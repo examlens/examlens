@@ -1,0 +1,24 @@
+import { supabase } from "@/app/lib/supabase";
+
+export async function GET() {
+  try {
+    const { data, error } = await supabase
+      .from("questions")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 500,
+      });
+    }
+
+    return new Response(JSON.stringify(data), {
+      status: 200,
+    });
+  } catch {
+    return new Response(JSON.stringify({ error: "Server error" }), {
+      status: 500,
+    });
+  }
+}
