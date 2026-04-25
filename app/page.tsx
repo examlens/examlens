@@ -1,157 +1,94 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/app/lib/supabase";
 import { useRouter } from "next/navigation";
 
-export default function AuthPage() {
-  const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+export default function LoginPage() {
   const router = useRouter();
 
-  // ✅ AUTO REDIRECT if already logged in
-  useEffect(() => {
-    const checkUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-      if (user) {
-        redirectUser(user.id);
+  const handleLogin = async () => {
+    try {
+      setLoading(true);
+
+      // ✅ Step 1: Login
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        alert(error.message);
+        return;
       }
-    };
 
-    checkUser();
-  }, []);
+      const user = data.user;
 
-  const redirectUser = async (userId: string) => {
-  const { data: profile, error } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", userId)
-    .maybeSingle();
+      if (!user) {
+        alert("Login failed");
+        return;
+      }
 
-  console.log("PROFILE:", profile, error);
+      console.log("✅ Logged in user:", user.id);
 
-  // 🚨 If no profile → create one automatically
-  if (!profile) {
-    console.log("⚠️ Creating missing profile...");
+      // ✅ Step 2: Get role
+      const { data: profile, error: roleError } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle(); // ✅ IMPORTANT FIX
 
-    await supabase.from("profiles").upsert([
-      {
-        id: userId,
-        role: "student",
-      },
-    ]);
+      if (roleError) {
+        console.log("❌ Role fetch error:", roleError);
+        alert("Role fetch failed");
+        return;
+      }
 
-    return router.push("/dashboard");
-  }
+      console.log("🎭 ROLE:", profile);
 
-  // ✅ Role-based redirect
-  if (profile.role === "admin") {
-    router.push("/admin/dashboard");
-  } else {
-    router.push("/dashboard");
-  }
-};
-
-  // ✅ LOGIN
- const handleLogin = async () => {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-
-  if (error) {
-    alert(error.message);
-    return;
-  }
-
-  await redirectUser(data.user.id);
-};
-
-  // ✅ SIGNUP
-const handleSignup = async () => {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-  });
-
-  if (error) {
-    alert(error.message);
-    return;
-  }
-
-  if (!data?.user) {
-    alert("Signup failed. Please try again.");
-    return;
-  }
-
-  // insert profile
-  await supabase.from("profiles").upsert([
-    {
-      id: data.user.id,
-      role: "student",
-    },
-  ]);
-
-    alert("Signup successful. Now login.");
-    setIsLogin(true);
+      // ✅ Step 3: Redirect
+      if (profile?.role === "admin") {
+        router.push("/admin/dashboard");
+      } else {
+        router.push("/student/dashboard");
+      }
+    } catch (err) {
+      console.log(err);
+      alert("Login error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="flex h-screen">
+    <div className="h-screen flex items-center justify-center bg-gray-100">
+      <div className="bg-white p-6 rounded-xl shadow-lg w-80">
+        <h1 className="text-xl font-bold mb-4">Login</h1>
 
-      {/* LEFT SIDE (Brand UI) */}
-      <div className="hidden md:flex flex-col justify-center items-center w-1/2 bg-black text-white">
-        <h1 className="text-4xl font-bold text-orange-500">
-          ExamLens
-        </h1>
-        <p className="mt-2 text-gray-400">
-          AI Evaluation Platform
-        </p>
-      </div>
+        <input
+          type="email"
+          placeholder="Email"
+          className="w-full mb-2 p-2 border rounded"
+          onChange={(e) => setEmail(e.target.value)}
+        />
 
-      {/* RIGHT SIDE (Form) */}
-      <div className="flex flex-col justify-center items-center w-full md:w-1/2 bg-gray-100">
-        <div className="bg-white p-6 rounded-xl shadow w-80">
+        <input
+          type="password"
+          placeholder="Password"
+          className="w-full mb-4 p-2 border rounded"
+          onChange={(e) => setPassword(e.target.value)}
+        />
 
-          <h2 className="text-xl font-bold mb-4 text-center">
-            {isLogin ? "Login" : "Signup"}
-          </h2>
-
-          <input
-            type="email"
-            placeholder="Email"
-            className="w-full border p-2 mb-3"
-            onChange={(e) => setEmail(e.target.value)}
-          />
-
-          <input
-            type="password"
-            placeholder="Password"
-            className="w-full border p-2 mb-3"
-            onChange={(e) => setPassword(e.target.value)}
-          />
-
-          <button
-            onClick={isLogin ? handleLogin : handleSignup}
-            className="w-full bg-orange-600 text-white py-2 rounded"
-          >
-            {isLogin ? "Login" : "Signup"}
-          </button>
-
-          <p className="text-sm mt-3 text-center">
-            {isLogin ? "Don't have account?" : "Already have account?"}
-            <span
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-blue-500 cursor-pointer ml-1"
-            >
-              {isLogin ? "Signup" : "Login"}
-            </span>
-          </p>
-        </div>
+        <button
+          onClick={handleLogin}
+          className="w-full bg-blue-600 text-white py-2 rounded"
+        >
+          {loading ? "Logging in..." : "Login"}
+        </button>
       </div>
     </div>
   );

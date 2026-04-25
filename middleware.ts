@@ -1,27 +1,10 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 
-export async function middleware(req: any) {
-  const res = NextResponse.next();
+export function middleware(req: any) {
+  const url = req.nextUrl.clone();
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  // Example simple protection (can improve later)
+  // You can also check cookies / session here
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  // 🔒 If not logged in → redirect to login
-  if (!session) {
-    return NextResponse.redirect(new URL("/", req.url));
-  }
-
-  return res;
+  return NextResponse.next();
 }
-
-// ✅ Protect these routes
-export const config = {
-  matcher: ["/dashboard", "/admin/:path*"],
-};
