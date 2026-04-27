@@ -1,32 +1,71 @@
 import { supabase } from "@/app/lib/supabase";
 
 export async function POST(req: Request) {
-  const formData = await req.formData();
+  try {
+    const body = await req.json();
+    console.log("📥 Incoming Body:", body);
 
-  const file = formData.get("file") as File;
-  const exam_id = formData.get("exam_id");
+    const { exam_id, answers } = body;
 
-  const fileName = `${Date.now()}_${file.name}`;
+    // ⚠️ TEMP: hardcode student_id (until auth is added)
+    const student_id = "9a66d6ad-9cfd-46f9-9e86-4c6e621d203f";
 
-  const { error: uploadError } = await supabase.storage
-    .from("answers")
-    .upload(fileName, file);
+    if (!exam_id || !answers || !student_id) {
+      return new Response(
+        JSON.stringify({ error: "Missing required fields" }),
+        { status: 400 }
+      );
+    }
 
-  if (uploadError) {
-    return new Response(JSON.stringify({ error: uploadError.message }), {
-      status: 500,
-    });
+    // ✅ 1. Create submission
+    const { data: submission, error: subError } = await supabase
+      .from("submissions")
+      .insert({
+        exam_id,
+        student_id,
+        status: "pending",
+      })
+      .select()
+      .single();
+
+    if (subError) {
+      console.error("❌ Submission insert error:", subError);
+      throw subError;
+    }
+
+    console.log("✅ Submission created:", submission);
+
+    // ✅ 2. Insert answers
+    const answerRows = Object.entries(answers).map(
+      ([question_id, answer]) => ({
+        submission_id: submission.id,
+        question_id,
+        answer,
+      })
+    );
+
+    const { error: ansError } = await supabase
+      .from("submission_answers")
+      .insert(answerRows);
+
+    if (ansError) {
+      console.error("❌ Answers insert error:", ansError);
+      throw ansError;
+    }
+
+    console.log("✅ Answers inserted");
+
+    return new Response(
+      JSON.stringify({ success: true }),
+      { status: 200 }
+    );
+
+  } catch (err: any) {
+    console.error("🔥 SUBMIT ERROR:", err);
+
+    return new Response(
+      JSON.stringify({ error: err.message }),
+      { status: 500 }
+    );
   }
-
-  const file_url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/answers/${fileName}`;
-
-  await supabase.from("submissions").insert([
-    {
-      exam_id,
-      file_url,
-      status: "pending",
-    },
-  ]);
-
-  return new Response(JSON.stringify({ success: true }), { status: 200 });
 }

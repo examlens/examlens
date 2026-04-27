@@ -1,14 +1,13 @@
 import { supabase } from "@/app/lib/supabase";
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(req: Request) {
   try {
-    const examId = params.id;
+    // ✅ Extract ID from URL manually (100% reliable)
+    const url = new URL(req.url);
+    const segments = url.pathname.split("/");
+    const examId = segments[segments.length - 1];
 
-    console.log("📥 Params:", params);
-    console.log("📥 Exam ID:", examId);
+    console.log("📥 Extracted examId:", examId);
 
     if (!examId) {
       return new Response(
@@ -42,8 +41,6 @@ export async function GET(
       question: item.questions.question,
       marks: item.questions.marks,
     }));
-
-    console.log("✅ Questions:", formatted);
 
     return new Response(JSON.stringify(formatted), { status: 200 });
 
