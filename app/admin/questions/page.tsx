@@ -6,7 +6,6 @@ export default function QuestionsPage() {
   const [questions, setQuestions] = useState<any[]>([]);
   const [form, setForm] = useState({
     question: "",
-    model_answer: "",
     marks: "",
     category: "Knowledge",
   });
@@ -56,7 +55,7 @@ export default function QuestionsPage() {
 
   // 🔹 Add question
   const handleAdd = async () => {
-    if (!form.question || !form.model_answer || !form.marks) {
+    if (!form.question  || !form.marks) {
       alert("Fill all fields");
       return;
     }
@@ -78,7 +77,6 @@ export default function QuestionsPage() {
       // Reset form
       setForm({
         question: "",
-        model_answer: "",
         marks: "",
         category: "Knowledge",
       });
@@ -129,14 +127,14 @@ export default function QuestionsPage() {
           }
         />
 
-        <textarea
+        {/* <textarea
           placeholder="Model Answer"
           className="w-full border p-3 mb-3 rounded-lg"
           value={form.model_answer}
           onChange={(e) =>
             setForm({ ...form, model_answer: e.target.value })
           }
-        />
+        /> */}
 
         <div className="grid md:grid-cols-2 gap-3">
           <input
@@ -188,9 +186,9 @@ export default function QuestionsPage() {
             >
               <p className="font-semibold text-lg">{q.question}</p>
 
-              <p className="text-sm text-gray-600 mt-2">
+              {/* <p className="text-sm text-gray-600 mt-2">
                 {q.model_answer}
-              </p>
+              </p> */}
 
               <div className="flex justify-between mt-4">
                 <span className="text-blue-600 text-sm">

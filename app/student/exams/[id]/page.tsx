@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { supabase } from "@/app/lib/supabase";
 
 export default function ExamPage() {
   const params = useParams();
   const router = useRouter();
 
-  // ✅ SAFELY extract ID
   const id =
     typeof params?.id === "string"
       ? params.id
@@ -16,13 +16,12 @@ export default function ExamPage() {
       : null;
 
   const [questions, setQuestions] = useState<any[]>([]);
-  const [answers, setAnswers] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  // ⏱️ Timer
-  const [timeLeft, setTimeLeft] = useState(600);
+  const [file, setFile] = useState<File | null>(null);
+  const [timeLeft, setTimeLeft] = useState(0);
 
   // ✅ FETCH EXAM
   useEffect(() => {
@@ -33,20 +32,16 @@ export default function ExamPage() {
         setLoading(true);
         setError("");
 
-        console.log("🚀 Fetching exam with ID:", id);
-
         const res = await fetch(`/api/student/exam/${id}`);
         const data = await res.json();
 
-        console.log("📦 API DATA:", data);
+        if (!res.ok) throw new Error(data.error);
 
-        if (!res.ok) {
-          throw new Error(data.error || "Failed to fetch exam");
-        }
+        setQuestions(Array.isArray(data.questions) ? data.questions : []);
 
-        setQuestions(Array.isArray(data) ? data : []);
+        const duration = data.duration || 10;
+        setTimeLeft(duration * 60);
       } catch (err: any) {
-        console.error("❌ Fetch error:", err);
         setError(err.message);
         setQuestions([]);
       } finally {
@@ -60,7 +55,7 @@ export default function ExamPage() {
   // ⏱️ TIMER
   useEffect(() => {
     if (timeLeft <= 0) {
-      handleSubmit(); // auto submit
+      if (file) handleSubmit();
       return;
     }
 
@@ -71,36 +66,55 @@ export default function ExamPage() {
     return () => clearInterval(timer);
   }, [timeLeft]);
 
-  // 📝 ANSWER
-  const handleAnswerChange = (qid: string, value: string) => {
-    setAnswers((prev) => ({
-      ...prev,
-      [qid]: value,
-    }));
-  };
-
-  // ✅ SUBMIT
+  // 📤 SUBMIT
   const handleSubmit = async () => {
-    if (questions.length === 0) return;
-
-    const unanswered = questions.filter((q) => !answers[q.id]);
-
-    if (unanswered.length > 0) {
-      alert(`⚠️ ${unanswered.length} questions unanswered`);
+    if (!file) {
+      alert("❌ Please upload your answer file");
       return;
     }
 
     try {
       setSubmitting(true);
 
+      // ✅ 1. GET SESSION TOKEN (CRITICAL FIX)
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const token = session?.access_token;
+
+      if (!token) {
+        throw new Error("User not authenticated");
+      }
+
+      // ✅ 2. UPLOAD FILE
+      const fileName = `${Date.now()}-${file.name}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("exam-answers")
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from("exam-answers")
+        .getPublicUrl(fileName);
+
+      const fileUrl = urlData.publicUrl;
+
+      console.log("📂 File URL:", fileUrl);
+
+      // ✅ 3. SEND TOKEN TO BACKEND (CRITICAL FIX)
       const res = await fetch("/api/student/submit", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // 🔥 IMPORTANT
         },
         body: JSON.stringify({
           exam_id: id,
-          answers,
+          student_id: "studentId", // ✅ BACKEND WILL EXTRACT FROM TOKEN, NO NEED
+          answer_file_url: fileUrl,
         }),
       });
 
@@ -126,7 +140,7 @@ export default function ExamPage() {
     );
   }
 
-  // ❌ ERROR UI
+  // ❌ ERROR
   if (error) {
     return (
       <div className="p-6">
@@ -142,7 +156,7 @@ export default function ExamPage() {
         <div>
           <h1 className="text-3xl font-bold">📄 Exam</h1>
           <p className="text-gray-500 text-sm">
-            Answer all questions carefully
+            Write answers on paper & upload below
           </p>
         </div>
 
@@ -153,7 +167,7 @@ export default function ExamPage() {
         </div>
       </div>
 
-      {/* EMPTY */}
+      {/* QUESTIONS */}
       {questions.length === 0 ? (
         <div className="bg-white p-6 rounded-xl shadow text-center">
           <p className="text-gray-500">
@@ -162,12 +176,11 @@ export default function ExamPage() {
         </div>
       ) : (
         <>
-          {/* QUESTIONS */}
           <div className="space-y-5">
             {questions.map((q: any, i: number) => (
               <div
                 key={q.id}
-                className="bg-white p-5 rounded-xl shadow hover:shadow-md transition"
+                className="bg-white p-5 rounded-xl shadow"
               >
                 <div className="flex justify-between">
                   <p className="font-semibold text-lg">
@@ -178,27 +191,34 @@ export default function ExamPage() {
                     {q.marks} marks
                   </span>
                 </div>
-
-                <textarea
-                  value={answers[q.id] || ""}
-                  onChange={(e) =>
-                    handleAnswerChange(q.id, e.target.value)
-                  }
-                  placeholder="Write your answer..."
-                  className="w-full mt-4 p-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                  rows={4}
-                />
               </div>
             ))}
           </div>
 
-          {/* FOOTER */}
-          <div className="mt-8 flex justify-between items-center">
-            <p className="text-sm text-gray-600">
-              Answered: {Object.keys(answers).length} /{" "}
-              {questions.length}
-            </p>
+          {/* FILE UPLOAD */}
+          <div className="mt-6 bg-white p-5 rounded-xl shadow">
+            <h2 className="font-semibold mb-3">
+              📤 Upload Answer Sheet
+            </h2>
 
+            <input
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png"
+              onChange={(e) =>
+                setFile(e.target.files?.[0] || null)
+              }
+              className="w-full border p-2 rounded"
+            />
+
+            {file && (
+              <p className="text-sm text-green-600 mt-2">
+                ✅ {file.name}
+              </p>
+            )}
+          </div>
+
+          {/* SUBMIT */}
+          <div className="mt-8 flex justify-end">
             <button
               onClick={handleSubmit}
               disabled={submitting}

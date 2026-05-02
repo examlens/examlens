@@ -1,17 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { supabase } from "@/app/lib/supabase";
 
 export default function ExamsPage() {
   const [exams, setExams] = useState<any[]>([]);
   const [questions, setQuestions] = useState<any[]>([]);
   const [selectedExam, setSelectedExam] = useState("");
   const [selectedQuestions, setSelectedQuestions] = useState<string[]>([]);
+  const [referenceFile, setReferenceFile] = useState<File | null>(null);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [duration, setDuration] = useState(""); // ✅ FIXED
 
   const [loading, setLoading] = useState(false);
+
 
   // 🔹 Fetch exams
   const fetchExams = async () => {
@@ -32,32 +36,61 @@ export default function ExamsPage() {
     fetchQuestions();
   }, []);
 
-  // 🔹 Create exam
   const createExam = async () => {
     if (!title) return alert("Enter exam title");
 
     setLoading(true);
 
-    const res = await fetch("/api/admin/exams", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ title, description }),
-    });
+    let referenceUrl = null;
 
-    const data = await res.json();
+    try {
+      // ✅ 1. Upload file to Supabase
+      if (referenceFile) {
+        const fileName = `${Date.now()}-${referenceFile.name}`;
 
-    if (!res.ok) {
-      alert(data.error);
+        const { error: uploadError } = await supabase.storage
+          .from("exam-notes") // 👈 bucket name
+          .upload(fileName, referenceFile);
+
+        if (uploadError) throw uploadError;
+
+        // ✅ 2. Get public URL
+        const { data } = supabase.storage
+          .from("exam-notes")
+          .getPublicUrl(fileName);
+
+        referenceUrl = data.publicUrl;
+      }
+
+      // ✅ 3. SEND TO BACKEND (THIS IS YOUR DOUBT PART 🔥)
+      const res = await fetch("/api/admin/exams", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title,
+          description,
+          duration,
+          reference_file_url: referenceUrl, // ✅ ADD HERE
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error);
+
+      alert("✅ Exam created");
+
+      setTitle("");
+      setDescription("");
+      setReferenceFile(null);
+
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
       setLoading(false);
-      return;
     }
-
-    setTitle("");
-    setDescription("");
-    fetchExams();
-    setLoading(false);
   };
 
   // 🔹 Toggle question
@@ -69,7 +102,7 @@ export default function ExamsPage() {
     );
   };
 
-  // 🔹 Assign
+  // 🔹 Assign questions
   const assignQuestions = async () => {
     if (!selectedExam || selectedQuestions.length === 0) {
       alert("Select exam & questions");
@@ -105,20 +138,17 @@ export default function ExamsPage() {
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
 
-      {/* 🔥 HEADER */}
+      {/* HEADER */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Exams</h1>
-        <button className="bg-orange-600 text-white px-4 py-2 rounded-lg">
-          + Create Exam
-        </button>
       </div>
 
       <div className="grid md:grid-cols-3 gap-6">
 
-        {/* 🔹 LEFT PANEL */}
+        {/* LEFT PANEL */}
         <div className="md:col-span-1 space-y-6">
 
-          {/* CREATE EXAM */}
+          {/* ✅ CREATE EXAM */}
           <div className="bg-white p-5 rounded-xl shadow">
             <h2 className="font-semibold mb-3">Create Exam</h2>
 
@@ -129,10 +159,26 @@ export default function ExamsPage() {
               className="w-full border p-2 rounded mb-2"
             />
 
+            <input
+              type="file"
+              accept=".pdf,.jpg,.png"
+              onChange={(e) => setReferenceFile(e.target.files?.[0] || null)}
+              className="w-full border p-2 rounded mb-3"
+            />
+
             <textarea
               placeholder="Description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              className="w-full border p-2 rounded mb-2"
+            />
+
+            {/* ✅ FIXED POSITION */}
+            <input
+              type="number"
+              placeholder="Duration (minutes)"
+              value={duration}
+              onChange={(e) => setDuration(e.target.value)}
               className="w-full border p-2 rounded mb-3"
             />
 
@@ -156,7 +202,7 @@ export default function ExamsPage() {
               <option value="">Choose Exam</option>
               {exams.map((e) => (
                 <option key={e.id} value={e.id}>
-                  {e.title}
+                  {e.title} ({e.duration || 0} min)
                 </option>
               ))}
             </select>
@@ -171,7 +217,7 @@ export default function ExamsPage() {
           </button>
         </div>
 
-        {/* 🔹 RIGHT PANEL (QUESTIONS) */}
+        {/* RIGHT PANEL */}
         <div className="md:col-span-2 bg-white p-5 rounded-xl shadow">
 
           <h2 className="font-semibold mb-4">
@@ -184,11 +230,10 @@ export default function ExamsPage() {
               <div
                 key={q.id}
                 onClick={() => toggleQuestion(q.id)}
-                className={`p-4 border rounded-lg cursor-pointer transition ${
-                  selectedQuestions.includes(q.id)
-                    ? "border-orange-500 bg-orange-50"
-                    : "hover:bg-gray-50"
-                }`}
+                className={`p-4 border rounded-lg cursor-pointer transition ${selectedQuestions.includes(q.id)
+                  ? "border-orange-500 bg-orange-50"
+                  : "hover:bg-gray-50"
+                  }`}
               >
                 <div className="flex justify-between items-start">
                   <p className="font-semibold">{q.question}</p>
@@ -205,9 +250,7 @@ export default function ExamsPage() {
                 </p>
 
                 <div className="flex justify-between mt-2 text-xs">
-                  <span className="text-blue-600">
-                    {q.category}
-                  </span>
+                  <span className="text-blue-600">{q.category}</span>
                   <span className="text-green-600">
                     {q.marks} marks
                   </span>
@@ -220,7 +263,6 @@ export default function ExamsPage() {
                 No questions found
               </p>
             )}
-
           </div>
         </div>
       </div>

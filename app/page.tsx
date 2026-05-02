@@ -9,13 +9,14 @@ export default function AuthPage() {
 
   const [isSignup, setIsSignup] = useState(false);
 
+  const [name, setName] = useState(""); // ✅ NEW
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // ✅ AUTO REDIRECT IF ALREADY LOGGED IN
+  // ✅ AUTO REDIRECT
   useEffect(() => {
     const checkUser = async () => {
       const { data } = await supabase.auth.getUser();
@@ -39,12 +40,17 @@ export default function AuthPage() {
     checkUser();
   }, []);
 
-  // ✅ AUTH HANDLER
+  // ✅ AUTH
   const handleAuth = async () => {
     try {
       setLoading(true);
 
       if (isSignup) {
+        if (!name) {
+          alert("Enter your name");
+          return;
+        }
+
         // 🔹 SIGNUP
         const { data, error } = await supabase.auth.signUp({
           email,
@@ -56,7 +62,20 @@ export default function AuthPage() {
         const user = data.user;
         if (!user) throw new Error("Signup failed");
 
-        // ✅ ALWAYS CREATE AS STUDENT (NO ROLE SELECT)
+        // ✅ SAVE NAME IN USERS TABLE
+        const { error: userError } = await supabase
+          .from("users")
+          .insert([
+            {
+              id: user.id,
+              name: name,
+              email: email,
+            },
+          ]);
+
+        if (userError) throw userError;
+
+        // ✅ ROLE TABLE
         const { error: profileError } = await supabase
           .from("profiles")
           .upsert({
@@ -68,6 +87,7 @@ export default function AuthPage() {
 
         alert("✅ Signup successful. Please login.");
         setIsSignup(false);
+        setName("");
       } else {
         // 🔹 LOGIN
         const { data, error } =
@@ -81,18 +101,13 @@ export default function AuthPage() {
         const user = data.user;
         if (!user) throw new Error("Login failed");
 
-        // ✅ FETCH ROLE
-        const { data: profile, error: roleError } =
-          await supabase
-            .from("profiles")
-            .select("role")
-            .eq("id", user.id)
-            .single();
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single();
 
-        if (roleError) throw roleError;
-
-        // ✅ REDIRECT BASED ON ROLE
-        if (profile.role === "admin") {
+        if (profile?.role === "admin") {
           router.push("/admin/dashboard");
         } else {
           router.push("/student/dashboard");
@@ -122,22 +137,39 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="h-screen flex items-center justify-center bg-gradient-to-br from-[#0d426a] to-[#00a0dc]">
-      <div className="bg-white p-8 rounded-2xl shadow-xl w-96">
-        {/* TITLE */}
-        <h1 className="text-2xl font-bold text-center mb-2">
-          ExamLens
-        </h1>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0d426a] via-[#005b8f] to-[#00a0dc]">
 
-        <p className="text-center text-gray-500 mb-6">
-          {isSignup ? "Create your account" : "Welcome back"}
-        </p>
+      {/* CARD */}
+      <div className="bg-white/95 backdrop-blur-lg p-8 rounded-2xl shadow-2xl w-[380px] border border-gray-200">
+
+        {/* LOGO */}
+        <div className="text-center mb-6">
+          <h1 className="text-3xl font-extrabold text-[#0d426a]">
+            ExamLens
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">
+            {isSignup
+              ? "Create your student account"
+              : "Welcome back 👋"}
+          </p>
+        </div>
+
+        {/* NAME (ONLY SIGNUP) */}
+        {isSignup && (
+          <input
+            type="text"
+            placeholder="Full Name"
+            className="w-full mb-3 p-3 border rounded-lg focus:ring-2 focus:ring-[#00a0dc]"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        )}
 
         {/* EMAIL */}
         <input
           type="email"
-          placeholder="Email"
-          className="w-full mb-3 p-3 border rounded-lg"
+          placeholder="Email address"
+          className="w-full mb-3 p-3 border rounded-lg focus:ring-2 focus:ring-[#00a0dc]"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
@@ -147,7 +179,7 @@ export default function AuthPage() {
           <input
             type={showPassword ? "text" : "password"}
             placeholder="Password"
-            className="w-full p-3 border rounded-lg"
+            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-[#00a0dc]"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
@@ -163,30 +195,37 @@ export default function AuthPage() {
         {/* BUTTON */}
         <button
           onClick={handleAuth}
-          className="w-full bg-[#0d426a] hover:bg-[#0b3656] text-white py-3 rounded-lg"
+          disabled={loading}
+          className={`w-full py-3 rounded-lg text-white font-semibold transition ${
+            loading
+              ? "bg-gray-400"
+              : "bg-[#0d426a] hover:bg-[#08314d]"
+          }`}
         >
           {loading
             ? "Please wait..."
             : isSignup
-            ? "Sign Up"
+            ? "Create Account"
             : "Login"}
         </button>
 
-        {/* FORGOT PASSWORD */}
+        {/* FORGOT */}
         {!isSignup && (
           <p
             onClick={handleForgotPassword}
-            className="text-sm text-blue-600 mt-3 cursor-pointer text-center"
+            className="text-sm text-[#00a0dc] mt-3 cursor-pointer text-center hover:underline"
           >
             Forgot Password?
           </p>
         )}
 
-        {/* TOGGLE */}
-        <p className="text-center text-sm mt-4">
-          {isSignup ? "Already have an account?" : "New here?"}{" "}
+        {/* SWITCH */}
+        <p className="text-center text-sm mt-5">
+          {isSignup
+            ? "Already have an account?"
+            : "New here?"}{" "}
           <span
-            className="text-blue-600 cursor-pointer"
+            className="text-[#00a0dc] font-semibold cursor-pointer"
             onClick={() => setIsSignup(!isSignup)}
           >
             {isSignup ? "Login" : "Sign up"}

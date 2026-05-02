@@ -32,10 +32,10 @@ export async function POST(req: Request) {
     const body = await req.json();
     console.log("📥 Incoming Data:", body);
 
-    const { question, model_answer, marks, category } = body;
+    const { question, marks, category } = body;
 
     // 🔒 Validation
-    if (!question || !model_answer || !marks || !category) {
+    if (!question  || !marks || !category) {
       return new Response(
         JSON.stringify({ error: "All fields are required" }),
         { status: 400 }
@@ -48,7 +48,6 @@ export async function POST(req: Request) {
       .insert([
         {
           question,
-          model_answer,
           marks: Number(marks),
           category,
         },

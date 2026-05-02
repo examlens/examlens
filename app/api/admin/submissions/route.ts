@@ -5,21 +5,24 @@ export async function GET() {
     const { data, error } = await supabase
       .from("submissions")
       .select(`
-        id,
-        status,
-        total_score,
-        created_at,
-        users (name),
-        exams (title)
-      `)
+  id,
+  created_at,
+  status,
+  total_score,
+  exams(title),
+  users!submissions_student_id_fkey(name)
+`)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
 
-    return new Response(JSON.stringify(data), { status: 200 });
-  } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
+    return new Response(JSON.stringify(data || []), {
+      status: 200,
     });
+  } catch (err: any) {
+    return new Response(
+      JSON.stringify({ error: err.message }),
+      { status: 500 }
+    );
   }
 }

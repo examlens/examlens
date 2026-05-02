@@ -4,47 +4,163 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
 export default function EvaluatePage() {
-  const { id } = useParams();
+  const params = useParams();
+
+  const id = Array.isArray(params?.id)
+    ? params.id[0]
+    : params?.id;
+
+  const submissionId = typeof id === "string" ? id : null;
+
   const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [evaluating, setEvaluating] = useState(false);
 
-  useEffect(() => {
-    fetch(`/api/admin/submission/${id}`)
-      .then((res) => res.json())
-      .then(setData);
-  }, [id]);
+  // 🔄 Fetch submission
+  const fetchData = async (sid: string) => {
+    try {
+      setLoading(true);
 
-  const handleEvaluate = async () => {
-    await fetch("/api/admin/evaluate", {
-      method: "POST",
-      body: JSON.stringify({ submission_id: id }),
-    });
+      const res = await fetch(`/api/admin/submission/${sid}`);
+      const result = await res.json();
 
-    alert("✅ Evaluated");
+      if (!res.ok) {
+        throw new Error(result?.error || "Failed to fetch submission");
+      }
 
-    location.reload();
+      setData(result);
+    } catch (err) {
+      console.error("❌ Fetch error:", err);
+      setData(null);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  if (!data) return <p>Loading...</p>;
+  useEffect(() => {
+    if (!submissionId) {
+      setLoading(false);
+      return;
+    }
+
+    fetchData(submissionId);
+  }, [submissionId]);
+
+  // 🤖 NEW EVALUATE (FILE BASED)
+  const handleEvaluate = async () => {
+    if (!submissionId || !data?.answer_file_url) {
+      alert("❌ No file to evaluate");
+      return;
+    }
+
+    setEvaluating(true);
+
+    try {
+      const res = await fetch("/api/admin/evaluate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          submission_id: submissionId,
+          file_url: data.answer_file_url, // 🔥 IMPORTANT
+        }),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        throw new Error(result?.error || "Evaluation failed");
+      }
+
+      alert("✅ Evaluation completed");
+
+      fetchData(submissionId); // refresh
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message);
+    } finally {
+      setEvaluating(false);
+    }
+  };
+
+  // ⏳ Loading
+  if (loading) return <p className="p-6">Loading...</p>;
+
+  if (!submissionId) {
+    return (
+      <p className="p-6 text-red-500">
+        ❌ Submission ID missing in URL
+      </p>
+    );
+  }
+
+  if (!data) {
+    return (
+      <p className="p-6 text-red-500">
+        No submission found or API error
+      </p>
+    );
+  }
+
+  // 👤 Student name
+  const studentName = (() => {
+    const u = data?.users;
+
+    if (!u) return "Unknown";
+    if (Array.isArray(u)) return u[0]?.name || "Unknown";
+    if (typeof u === "object") return (u as any)?.name || "Unknown";
+
+    return data?.student_name || "Unknown";
+  })();
 
   return (
-    <div className="p-6">
-      <h1 className="text-xl font-bold">
-        {data.users?.name} - {data.exams?.title}
-      </h1>
+    <div className="p-6 bg-gray-100 min-h-screen">
+      {/* HEADER */}
+      <div className="bg-white p-4 rounded-xl shadow">
+        <h1 className="text-2xl font-bold">
+          📄 {data?.exams?.title || "Exam"}
+        </h1>
 
-      {data.submission_answers.map((a: any, i: number) => (
-        <div key={a.id} className="border p-4 mt-4">
-          <p>Q{i + 1}: {a.questions.question}</p>
-          <p>Answer: {a.answer}</p>
-          <p>Score: {a.score ?? "Not evaluated"}</p>
-        </div>
-      ))}
+        <p className="text-gray-600 mt-1">
+          👤 Student: {studentName}
+        </p>
 
+        <p className="text-sm text-gray-500 mt-1">
+          Status: {data?.status || "pending"}
+        </p>
+
+        <p className="text-sm text-gray-500">
+          Total Score: {data?.total_score ?? "Not evaluated"}
+        </p>
+
+        {/* 📂 VIEW FILE */}
+        {data?.answer_file_url && (
+          <a
+            href={data.answer_file_url}
+            target="_blank"
+            className="inline-block mt-3 text-blue-600 underline"
+          >
+            📄 View Uploaded Answer
+          </a>
+        )}
+      </div>
+
+      {/* INFO */}
+      <div className="mt-6 bg-yellow-50 p-4 rounded-lg">
+        <p className="text-sm text-gray-700">
+          This submission uses handwritten answers. Click "Auto Evaluate"
+          to extract text and score automatically.
+        </p>
+      </div>
+
+      {/* BUTTON */}
       <button
         onClick={handleEvaluate}
-        className="mt-6 bg-green-600 text-white px-6 py-2 rounded"
+        disabled={evaluating}
+        className="mt-6 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg shadow disabled:opacity-50"
       >
-        🤖 Auto Evaluate
+        {evaluating ? "⏳ Evaluating..." : "🤖 Auto Evaluate"}
       </button>
     </div>
   );

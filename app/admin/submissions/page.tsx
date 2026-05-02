@@ -4,43 +4,48 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function AdminSubmissions() {
-  const [data, setData] = useState<any[]>([]);
+  const [submissions, setSubmissions] = useState<any[]>([]);
   const router = useRouter();
 
   useEffect(() => {
     fetch("/api/admin/submissions")
       .then((res) => res.json())
-      .then((d) => {
-        if (Array.isArray(d)) setData(d);
-        else setData([]);
+      .then((data) => {
+        console.log("📦 Admin Submissions:", data);
+
+        if (Array.isArray(data)) {
+          setSubmissions(data);
+        } else {
+          setSubmissions([]);
+        }
       });
   }, []);
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold">📥 Submissions</h1>
+      <h1 className="text-2xl font-bold mb-4">📥 Submissions</h1>
 
-      {data.map((s) => (
-        <div
-          key={s.id}
-          className="p-4 border mt-4 flex justify-between"
-        >
-          <div>
-            <p>👤 {s.users?.name}</p>
-            <p>📄 {s.exams?.title}</p>
-            <p>📊 {s.status}</p>
-          </div>
-
-          <button
+      {submissions.length === 0 ? (
+        <p>No submissions yet</p>
+      ) : (
+        submissions.map((s) => (
+          <div
+            key={s.id}
+            className="border p-4 mb-3 rounded cursor-pointer hover:bg-gray-50"
             onClick={() =>
               router.push(`/admin/submissions/${s.id}`)
             }
-            className="bg-blue-600 text-white px-4 py-2 rounded"
           >
-            Evaluate
-          </button>
-        </div>
-      ))}
+            <p><b>Exam:</b> {s.exams?.title || "Unknown"}</p>
+            <p><b>Student:</b> {s.users?.name || "Unknown"}</p>
+            <p><b>Status:</b> {s.status}</p>
+            <p>
+              <b>Score:</b>{" "}
+              {s.total_score ?? "Not evaluated"}
+            </p>
+          </div>
+        ))
+      )}
     </div>
   );
 }
