@@ -48,14 +48,16 @@ export default function EvaluatePage() {
 
   // 🤖 NEW EVALUATE (FILE BASED)
   const handleEvaluate = async () => {
-    if (!submissionId || !data?.answer_file_url) {
-      alert("❌ No file to evaluate");
+    if (!submissionId) {
+      alert("Invalid submission");
       return;
     }
 
-    setEvaluating(true);
-
     try {
+      setEvaluating(true);
+
+      console.log("🚀 Calling evaluate API with:", submissionId);
+
       const res = await fetch("/api/admin/evaluate", {
         method: "POST",
         headers: {
@@ -63,21 +65,20 @@ export default function EvaluatePage() {
         },
         body: JSON.stringify({
           submission_id: submissionId,
-          file_url: data.answer_file_url, // 🔥 IMPORTANT
         }),
       });
 
-      const result = await res.json();
+      const data = await res.json();
 
-      if (!res.ok) {
-        throw new Error(result?.error || "Evaluation failed");
-      }
+      console.log("✅ API RESPONSE:", data);
+
+      if (!res.ok) throw new Error(data.error);
 
       alert("✅ Evaluation completed");
 
-      fetchData(submissionId); // refresh
+      fetchData(submissionId);
     } catch (err: any) {
-      console.error(err);
+      console.error("❌ EVALUATE ERROR:", err);
       alert(err.message);
     } finally {
       setEvaluating(false);
@@ -158,7 +159,7 @@ export default function EvaluatePage() {
       <button
         onClick={handleEvaluate}
         disabled={evaluating}
-        className="mt-6 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg shadow disabled:opacity-50"
+        className="mt-6 bg-green-600 text-white px-6 py-3 rounded-lg"
       >
         {evaluating ? "⏳ Evaluating..." : "🤖 Auto Evaluate"}
       </button>
