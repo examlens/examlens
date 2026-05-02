@@ -12,8 +12,8 @@ export default function ExamPage() {
     typeof params?.id === "string"
       ? params.id
       : Array.isArray(params?.id)
-      ? params.id[0]
-      : null;
+        ? params.id[0]
+        : null;
 
   const [questions, setQuestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -109,11 +109,10 @@ export default function ExamPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // 🔥 IMPORTANT
+          Authorization: `Bearer ${session?.access_token}`, // 🔥 IMPORTANT
         },
         body: JSON.stringify({
           exam_id: id,
-          student_id: "studentId", // ✅ BACKEND WILL EXTRACT FROM TOKEN, NO NEED
           answer_file_url: fileUrl,
         }),
       });
@@ -222,11 +221,10 @@ export default function ExamPage() {
             <button
               onClick={handleSubmit}
               disabled={submitting}
-              className={`px-6 py-3 rounded-lg text-white ${
-                submitting
+              className={`px-6 py-3 rounded-lg text-white ${submitting
                   ? "bg-gray-400"
                   : "bg-green-600 hover:bg-green-700"
-              }`}
+                }`}
             >
               {submitting ? "Submitting..." : "Submit Exam"}
             </button>

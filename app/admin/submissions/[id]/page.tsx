@@ -135,15 +135,24 @@ export default function EvaluatePage() {
           Total Score: {data?.total_score ?? "Not evaluated"}
         </p>
 
-        {/* 📂 VIEW FILE */}
+        {/* 📂 VIEW SUBMITTED FILE */}
         {data?.answer_file_url && (
-          <a
-            href={data.answer_file_url}
-            target="_blank"
-            className="inline-block mt-3 text-blue-600 underline"
-          >
-            📄 View Uploaded Answer
-          </a>
+          <div className="mt-4 bg-white p-4 rounded-xl shadow">
+            <h2 className="font-semibold mb-2">📄 Student Answer File</h2>
+
+            {data.answer_file_url.endsWith(".pdf") ? (
+              <iframe
+                src={data.answer_file_url}
+                className="w-full h-[500px] border rounded"
+              />
+            ) : (
+              <img
+                src={data.answer_file_url}
+                alt="Answer"
+                className="w-full max-h-[500px] object-contain rounded"
+              />
+            )}
+          </div>
         )}
       </div>
 

@@ -5,6 +5,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { exam_id, answer_file_url } = body;
 
+    // ✅ VALIDATION
     if (!exam_id || !answer_file_url) {
       return new Response(
         JSON.stringify({ error: "Missing exam_id or file" }),
@@ -12,19 +13,19 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ 1. GET TOKEN FROM HEADER
+    // ✅ 1. GET AUTH TOKEN FROM HEADER
     const authHeader = req.headers.get("authorization");
 
-    if (!authHeader) {
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return new Response(
-        JSON.stringify({ error: "No auth token" }),
+        JSON.stringify({ error: "Unauthorized: No token" }),
         { status: 401 }
       );
     }
 
     const token = authHeader.replace("Bearer ", "");
 
-    // ✅ 2. VERIFY USER USING TOKEN
+    // ✅ 2. GET USER USING TOKEN (IMPORTANT FIX)
     const {
       data: { user },
       error: userError,
@@ -32,27 +33,28 @@ export async function POST(req: Request) {
 
     if (userError || !user) {
       return new Response(
-        JSON.stringify({ error: "Invalid user" }),
+        JSON.stringify({ error: "Invalid user session" }),
         { status: 401 }
       );
     }
 
     const student_id = user.id;
 
-    console.log("👤 REAL USER:", student_id);
+    console.log("👤 Logged-in student:", student_id);
 
-    // ✅ Only block if already SUBMITTED
-    const { data: existingSubmission } = await supabase
+    // ✅ 3. CHECK IF ALREADY SUBMITTED
+    const { data: existing, error: checkError } = await supabase
       .from("submissions")
-      .select("id, status")
+      .select("id")
       .eq("exam_id", exam_id)
-      .eq("student_id", student_id)
-      .maybeSingle();
+      .eq("student_id", student_id);
 
-    if (existingSubmission && existingSubmission.status === "submitted") {
+    if (checkError) throw checkError;
+
+    if (existing && existing.length > 0) {
       return new Response(
         JSON.stringify({
-          error: "You already submitted this exam",
+          error: "You already attempted this exam",
         }),
         { status: 400 }
       );
@@ -67,6 +69,7 @@ export async function POST(req: Request) {
           student_id,
           answer_file_url,
           status: "submitted",
+          total_score: null,
         },
       ])
       .select()
@@ -74,13 +77,23 @@ export async function POST(req: Request) {
 
     if (error) throw error;
 
+    console.log("✅ Submission saved:", data.id);
+
     return new Response(
-      JSON.stringify({ success: true, submission_id: data.id }),
+      JSON.stringify({
+        success: true,
+        submission_id: data.id,
+      }),
       { status: 200 }
     );
+
   } catch (err: any) {
+    console.error("🔥 SUBMIT ERROR:", err);
+
     return new Response(
-      JSON.stringify({ error: err.message }),
+      JSON.stringify({
+        error: err.message || "Submission failed",
+      }),
       { status: 500 }
     );
   }

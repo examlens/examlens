@@ -9,20 +9,22 @@ export default function AuthPage() {
 
   const [isSignup, setIsSignup] = useState(false);
 
-  const [name, setName] = useState(""); // ✅ NEW
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // ✅ AUTO REDIRECT
+  // ✅ AUTO REDIRECT IF SESSION EXISTS
   useEffect(() => {
     const checkUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      const user = data.user;
+      const { data } = await supabase.auth.getSession();
+      const session = data.session;
 
-      if (!user) return;
+      if (!session) return;
+
+      const user = session.user;
 
       const { data: profile } = await supabase
         .from("profiles")
@@ -40,20 +42,25 @@ export default function AuthPage() {
     checkUser();
   }, []);
 
-  // ✅ AUTH
+  // ✅ AUTH HANDLER
   const handleAuth = async () => {
+    if (!email || !password) {
+      alert("❌ Email and password are required");
+      return;
+    }
+
     try {
       setLoading(true);
 
       if (isSignup) {
-        if (!name) {
-          alert("Enter your name");
+        if (!name.trim()) {
+          alert("❌ Enter your name");
           return;
         }
 
         // 🔹 SIGNUP
         const { data, error } = await supabase.auth.signUp({
-          email,
+          email: email.trim(),
           password,
         });
 
@@ -62,20 +69,22 @@ export default function AuthPage() {
         const user = data.user;
         if (!user) throw new Error("Signup failed");
 
-        // ✅ SAVE NAME IN USERS TABLE
+        console.log("👤 New User:", user.id);
+
+        // ✅ INSERT INTO USERS TABLE
         const { error: userError } = await supabase
           .from("users")
           .insert([
             {
               id: user.id,
-              name: name,
-              email: email,
+              name: name.trim(),
+              email: email.trim(),
             },
           ]);
 
         if (userError) throw userError;
 
-        // ✅ ROLE TABLE
+        // ✅ INSERT ROLE
         const { error: profileError } = await supabase
           .from("profiles")
           .upsert({
@@ -86,13 +95,17 @@ export default function AuthPage() {
         if (profileError) throw profileError;
 
         alert("✅ Signup successful. Please login.");
+
+        // RESET
         setIsSignup(false);
         setName("");
+        setEmail("");
+        setPassword("");
       } else {
         // 🔹 LOGIN
         const { data, error } =
           await supabase.auth.signInWithPassword({
-            email,
+            email: email.trim(),
             password,
           });
 
@@ -101,12 +114,22 @@ export default function AuthPage() {
         const user = data.user;
         if (!user) throw new Error("Login failed");
 
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", user.id)
-          .single();
+        console.log("👤 Logged in:", user.id);
 
+        // ✅ IMPORTANT: refresh session
+        await supabase.auth.getSession();
+
+        // ✅ GET ROLE
+        const { data: profile, error: roleError } =
+          await supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", user.id)
+            .single();
+
+        if (roleError) throw roleError;
+
+        // ✅ REDIRECT
         if (profile?.role === "admin") {
           router.push("/admin/dashboard");
         } else {
@@ -114,6 +137,7 @@ export default function AuthPage() {
         }
       }
     } catch (err: any) {
+      console.error("❌ AUTH ERROR:", err);
       alert(err.message);
     } finally {
       setLoading(false);
@@ -137,24 +161,21 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0d426a] via-[#005b8f] to-[#00a0dc]">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0d426a] via-[#005b8f] to-[#00a0dc] px-4">
 
-      {/* CARD */}
-      <div className="bg-white/95 backdrop-blur-lg p-8 rounded-2xl shadow-2xl w-[380px] border border-gray-200">
+      <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md">
 
-        {/* LOGO */}
+        {/* TITLE */}
         <div className="text-center mb-6">
-          <h1 className="text-3xl font-extrabold text-[#0d426a]">
+          <h1 className="text-3xl font-bold text-[#0d426a]">
             ExamLens
           </h1>
-          <p className="text-gray-500 text-sm mt-1">
-            {isSignup
-              ? "Create your student account"
-              : "Welcome back 👋"}
+          <p className="text-gray-500 mt-1">
+            {isSignup ? "Create your account" : "Welcome back"}
           </p>
         </div>
 
-        {/* NAME (ONLY SIGNUP) */}
+        {/* NAME */}
         {isSignup && (
           <input
             type="text"
@@ -168,7 +189,7 @@ export default function AuthPage() {
         {/* EMAIL */}
         <input
           type="email"
-          placeholder="Email address"
+          placeholder="Email"
           className="w-full mb-3 p-3 border rounded-lg focus:ring-2 focus:ring-[#00a0dc]"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -196,7 +217,7 @@ export default function AuthPage() {
         <button
           onClick={handleAuth}
           disabled={loading}
-          className={`w-full py-3 rounded-lg text-white font-semibold transition ${
+          className={`w-full py-3 rounded-lg text-white font-semibold ${
             loading
               ? "bg-gray-400"
               : "bg-[#0d426a] hover:bg-[#08314d]"
@@ -213,7 +234,7 @@ export default function AuthPage() {
         {!isSignup && (
           <p
             onClick={handleForgotPassword}
-            className="text-sm text-[#00a0dc] mt-3 cursor-pointer text-center hover:underline"
+            className="text-sm text-[#00a0dc] mt-3 cursor-pointer text-center"
           >
             Forgot Password?
           </p>
