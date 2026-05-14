@@ -12,7 +12,6 @@ export default function StudentLayout({ children }: any) {
     { name: "My Dashboard", path: "/student/dashboard" },
     { name: "Take Exam", path: "/student/exams" },
     { name: "My Results", path: "/student/results" },
-    { name: "Upload Answer", path: "/upload" },
   ];
 
   const handleLogout = async () => {

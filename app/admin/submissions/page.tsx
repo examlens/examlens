@@ -4,47 +4,79 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function AdminSubmissions() {
-  const [submissions, setSubmissions] = useState<any[]>([]);
+  const [subjects, setSubjects] =
+    useState<any[]>([]);
+
   const router = useRouter();
 
   useEffect(() => {
     fetch("/api/admin/submissions")
       .then((res) => res.json())
       .then((data) => {
-        console.log("📦 Admin Submissions:", data);
-
-        if (Array.isArray(data)) {
-          setSubmissions(data);
-        } else {
-          setSubmissions([]);
-        }
+        setSubjects(data || []);
       });
   }, []);
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">📥 Submissions</h1>
+    <div className="min-h-screen bg-gray-100 p-6">
+      <h1 className="text-3xl font-bold text-[#0d426a] mb-6">
+        📥 Subject Submissions
+      </h1>
 
-      {submissions.length === 0 ? (
-        <p>No submissions yet</p>
+      {subjects.length === 0 ? (
+        <div className="bg-white p-6 rounded-xl shadow">
+          No submissions found
+        </div>
       ) : (
-        submissions.map((s) => (
-          <div
-            key={s.id}
-            className="border p-4 mb-3 rounded cursor-pointer hover:bg-gray-50"
-            onClick={() =>
-              router.push(`/admin/submissions/${s.id}`)
-            }
-          >
-            <p><b>Exam:</b> {s.exams?.title || "Unknown"}</p>
-            <p><b>Student:</b> {s.users?.name || "Unknown"}</p>
-            <p><b>Status:</b> {s.status}</p>
-            <p>
-              <b>Score:</b>{" "}
-              {s.total_score ?? "Not evaluated"}
-            </p>
-          </div>
-        ))
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {subjects.map((s: any) => (
+            <div
+              key={s.exam_id}
+              className="bg-white rounded-2xl shadow border p-5 hover:shadow-lg transition cursor-pointer"
+              onClick={() =>
+                router.push(
+                  `/admin/submissions/exam/${s.exam_id}`
+                )
+              }
+            >
+              <h2 className="text-2xl font-bold text-[#0d426a]">
+                {s.exam_title}
+              </h2>
+
+              <p className="text-gray-500 mt-2 line-clamp-2">
+                {s.description}
+              </p>
+
+              <div className="grid grid-cols-2 gap-3 mt-5">
+                <div className="bg-gray-50 border rounded-xl p-3">
+                  <p className="text-sm text-gray-500">
+                    Duration
+                  </p>
+
+                  <p className="font-bold">
+                    {s.duration} mins
+                  </p>
+                </div>
+
+                <div className="bg-gray-50 border rounded-xl p-3">
+                  <p className="text-sm text-gray-500">
+                    Submissions
+                  </p>
+
+                  <p className="font-bold text-green-600">
+                    {
+                      s.submission_count
+                    }
+                  </p>
+                </div>
+              </div>
+
+              <button className="mt-5 w-full bg-[#0d426a] text-white py-2 rounded-xl">
+                View Students
+              </button>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

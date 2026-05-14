@@ -1,49 +1,90 @@
-import { NextResponse } from "next/server";
 import { supabase } from "@/app/lib/supabase";
 
 export async function GET(req: Request) {
   try {
-    // ⚠️ For now (no auth), pass student_id via query
-    const { searchParams } = new URL(req.url);
-    const student_id = searchParams.get("student_id");
+    // ==========================================
+    // GET TOKEN
+    // ==========================================
 
-    if (!student_id) {
-      return NextResponse.json(
-        { error: "Missing student_id" },
-        { status: 400 }
+    const authHeader =
+      req.headers.get("authorization");
+
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({
+          error: "Unauthorized",
+        }),
+        { status: 401 }
       );
     }
 
-   const { data, error } = await supabase
-  .from("submissions")
-  .select(`
-    id,
-    status,
-    total_score,
-    exams(title),
+    const token =
+      authHeader.replace("Bearer ", "");
 
-    submission_answers!submission_answers_submission_id_fkey (
-      id,
-      answer,
-      score,
-      feedback,
+    // ==========================================
+    // GET USER
+    // ==========================================
 
-      questions!submission_answers_question_id_fkey (
-        question,
-        marks
-      )
-    )
-  `)
-  .eq("student_id", student_id)
-  .order("created_at", { ascending: false });
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser(token);
 
-    if (error) throw error;
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({
+          error: "Invalid user",
+        }),
+        { status: 401 }
+      );
+    }
 
-    return NextResponse.json(data);
+    // ==========================================
+    // FETCH RESULTS
+    // ==========================================
 
+    const { data, error } =
+      await supabase
+        .from("submissions")
+        .select(`
+          id,
+          total_score,
+          feedback,
+          mistakes,
+          knowledge_level,
+          evaluated,
+          evaluated_at,
+          status,
+
+          exams (
+            title
+          )
+        `)
+        .eq("student_id", user.id)
+        .order("evaluated_at", {
+          ascending: false,
+        });
+
+    if (error) {
+      throw error;
+    }
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        results: data || [],
+      }),
+      { status: 200 }
+    );
   } catch (err: any) {
-    return NextResponse.json(
-      { error: err.message },
+    console.error(err);
+
+    return new Response(
+      JSON.stringify({
+        error:
+          err.message ||
+          "Failed to fetch results",
+      }),
       { status: 500 }
     );
   }

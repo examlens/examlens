@@ -12,6 +12,10 @@ export async function POST(req: Request) {
 
     console.log("📥 submission_id:", submission_id);
 
+    // ==================================================
+    // ✅ VALIDATION
+    // ==================================================
+
     if (!submission_id) {
       return NextResponse.json(
         { error: "submission_id required" },
@@ -19,203 +23,488 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ 1. GET SUBMISSION
-    const { data: submission, error } = await supabase
-      .from("submissions")
-      .select("answer_file_url, exam_id")
-      .eq("id", submission_id)
-      .single();
+    // ==================================================
+    // ✅ GET SUBMISSION
+    // ==================================================
 
+    const { data: submission, error: submissionError } =
+      await supabase
+        .from("submissions")
+        .select(`
+          id,
+          answer_file_url,
+          exam_id,
+          student_id,
+          status,
+          total_score,
+          feedback
+        `)
+        .eq("id", submission_id)
+        .single();
 
-    console.log("📂 FILE FROM DB:", submission?.answer_file_url);
+    if (submissionError || !submission) {
+      console.error(submissionError);
 
-    if (error || !submission) {
-      throw new Error("Submission not found");
+      return NextResponse.json(
+        { error: "Submission not found" },
+        { status: 404 }
+      );
     }
 
-    const fileUrl = submission.answer_file_url;
+    console.log(
+      "📂 Answer File:",
+      submission.answer_file_url
+    );
 
-    if (!fileUrl) {
+    // ==================================================
+    // ✅ CHECK FILE
+    // ==================================================
+
+    if (!submission.answer_file_url) {
       return NextResponse.json(
-        { error: "No file to evaluate" },
+        { error: "No answer file uploaded" },
         { status: 400 }
       );
     }
 
-    // ✅ GET TOTAL MARKS OF EXAM
-    const { data: questions } = await supabase
+    // ==================================================
+    // ✅ GET EXAM + TOTAL MARKS
+    // ==================================================
+
+    const { data: exam, error: examError } =
+      await supabase
+        .from("exams")
+        .select(`
+          id,
+          title,
+          reference_file_url
+        `)
+        .eq("id", submission.exam_id)
+        .single();
+
+    if (examError || !exam) {
+      return NextResponse.json(
+        { error: "Exam not found" },
+        { status: 404 }
+      );
+    }
+
+    // ==================================================
+    // ✅ GET QUESTIONS
+    // ==================================================
+
+    const {
+      data: questionData,
+      error: questionError,
+    } = await supabase
       .from("exam_questions")
       .select(`
-    questions (
-      marks
-    )
-  `)
+        question_id,
+        questions (
+          id,
+          question,
+          marks
+        )
+      `)
       .eq("exam_id", submission.exam_id);
 
-    const totalMaxMarks =
-      questions?.reduce(
-        (sum: number, q: any) => sum + (q.questions?.marks || 0),
-        0
-      ) || 100;
+    if (questionError) {
+      console.error(questionError);
 
-    console.log("🎯 Total Max Marks:", totalMaxMarks);
+      return NextResponse.json(
+        { error: "Failed to fetch questions" },
+        { status: 500 }
+      );
+    }
 
-    // ✅ 2. GET REFERENCE FILE
-    const { data: exam } = await supabase
-      .from("exams")
-      .select("reference_file_url")
-      .eq("id", submission.exam_id)
-      .single();
+    const questions =
+      questionData?.map((q: any) => ({
+        question:
+          q.questions?.question || "",
+        marks:
+          Number(q.questions?.marks || 0),
+      })) || [];
 
-    const referenceUrl = exam?.reference_file_url || "";
+    // ==================================================
+    // ✅ TOTAL MARKS
+    // ==================================================
+
+    const totalMaxMarks = questions.reduce(
+      (sum: number, q: any) =>
+        sum + Number(q.marks || 0),
+      0
+    );
+
+    console.log(
+      "🎯 Total Exam Marks:",
+      totalMaxMarks
+    );
+
+    // ==================================================
+    // ✅ DOWNLOAD STUDENT FILE
+    // ==================================================
+
+    const answerPath =
+      submission.answer_file_url.split(
+        "/exam-answers/"
+      )[1];
+
+    if (!answerPath) {
+      return NextResponse.json(
+        { error: "Invalid answer file path" },
+        { status: 400 }
+      );
+    }
+
+    const {
+      data: answerFile,
+      error: answerDownloadError,
+    } = await supabase.storage
+      .from("exam-answers")
+      .download(answerPath);
+
+    if (
+      answerDownloadError ||
+      !answerFile
+    ) {
+      console.error(answerDownloadError);
+
+      return NextResponse.json(
+        {
+          error:
+            answerDownloadError?.message ||
+            "Failed to download answer file",
+        },
+        { status: 400 }
+      );
+    }
+
+    const answerBuffer = Buffer.from(
+      await answerFile.arrayBuffer()
+    );
+
+    // ==================================================
+    // ✅ EXTRACT REFERENCE TEXT
+    // ==================================================
 
     let referenceText = "";
 
-    // =========================
-    // ✅ EXTRACT REFERENCE PDF TEXT
-    // =========================
-    if (referenceUrl) {
+    if (exam.reference_file_url) {
       try {
-        const { PDFParse } = await import("pdf-parse");
+        const referencePath =
+          exam.reference_file_url.split(
+            "/exam-answers/"
+          )[1];
 
-        const refRes = await fetch(referenceUrl);
-        const refBuffer = await refRes.arrayBuffer();
+        if (referencePath) {
+          const {
+            data: referenceFile,
+          } = await supabase.storage
+            .from("exam-answers")
+            .download(referencePath);
 
-        const parser = new PDFParse({ data: Buffer.from(refBuffer) });
-        const textResult = await parser.getText();
-        referenceText = textResult.text;
+          if (referenceFile) {
+            const referenceBuffer =
+              Buffer.from(
+                await referenceFile.arrayBuffer()
+              );
 
-        console.log("📘 Reference text extracted");
+            const pdfParseModule =
+              await import("pdf-parse");
+
+            const pdfParse =
+              (pdfParseModule as any)
+                .default || pdfParseModule;
+
+            const parsedReference =
+              await pdfParse(
+                referenceBuffer
+              );
+
+            referenceText =
+              parsedReference.text || "";
+
+            console.log(
+              "📘 Reference text extracted"
+            );
+          }
+        }
       } catch (err) {
-        console.warn("⚠️ Failed to parse reference PDF");
+        console.warn(
+          "⚠️ Failed to parse reference file"
+        );
       }
     }
 
-    // =========================
-    // 🔍 DETECT FILE TYPE
-    // =========================
-    const isPDF = fileUrl.toLowerCase().endsWith(".pdf");
+    // ==================================================
+    // ✅ DETECT FILE TYPE
+    // ==================================================
 
-    // =========================
-    // ✅ PDF FLOW
-    // =========================
+    const isPDF =
+      submission.answer_file_url
+        .toLowerCase()
+        .endsWith(".pdf");
+
+    let studentText = "";
+
+    // ==================================================
+    // ✅ PDF TEXT EXTRACTION
+    // ==================================================
+
     if (isPDF) {
-      const pdfParse: any = await import("pdf-parse");
+      try {
+        const pdfParseModule =
+          await import("pdf-parse");
 
-      // 🔥 TIMEOUT SAFE FETCH
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 10000);
+        const pdfParse =
+          (pdfParseModule as any)
+            .default || pdfParseModule;
 
-      const fileRes = await fetch(fileUrl, {
-        signal: controller.signal,
-      });
+        const parsed =
+          await pdfParse(answerBuffer);
 
-      clearTimeout(timeout);
+        studentText = parsed.text || "";
 
-      const buffer = await fileRes.arrayBuffer();
+        console.log(
+          "📄 Extracted PDF Text Length:",
+          studentText.length
+        );
+      } catch (err) {
+        console.error(
+          "❌ PDF Parse Error:",
+          err
+        );
+      }
+    }
 
-      const parsed = await pdfParse(Buffer.from(buffer));
-      const studentText = parsed.text;
+    // ==================================================
+    // ✅ BUILD QUESTION LIST
+    // ==================================================
 
-      console.log("📄 Student PDF text length:", studentText.length);
+    const formattedQuestions =
+      questions
+        .map(
+          (q: any, index: number) => `
+Question ${index + 1}:
+${q.question}
 
-      const prompt = `
-You are an exam evaluator.
+Maximum Marks: ${q.marks}
+`
+        )
+        .join("\n");
 
-Evaluate the student's answer using the reference notes.
+    // ==================================================
+    // ✅ AI PROMPT
+    // ==================================================
 
-IMPORTANT:
-- Maximum marks = ${totalMaxMarks}
-- DO NOT exceed ${totalMaxMarks}
-- Be strict and fair
+    const prompt = `
+You are a strict AI exam evaluator.
 
-Return ONLY JSON:
+Evaluate the student's answer sheet carefully.
+
+==================================================
+
+EXAM TITLE:
+${exam.title}
+
+==================================================
+
+QUESTIONS:
+${formattedQuestions}
+
+==================================================
+
+REFERENCE ANSWERS:
+${referenceText}
+
+==================================================
+
+STUDENT ANSWERS:
+${studentText}
+
+==================================================
+
+IMPORTANT RULES:
+
+- Total maximum marks = ${totalMaxMarks}
+- NEVER exceed ${totalMaxMarks}
+- Evaluate question by question
+- Give realistic marks
+- Penalize wrong answers
+- Penalize missing answers
+- Give detailed teacher feedback
+- Return ONLY valid JSON
+
+==================================================
+
+OUTPUT FORMAT:
+
 {
   "marks": number,
   "feedback": string
 }
 `;
 
-      const aiResponse = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.3,
-      });
+    // ==================================================
+    // ✅ IMAGE FLOW
+    // ==================================================
 
-      const result = JSON.parse(
-        aiResponse.choices[0].message.content || "{}"
-      );
+    let aiResponse: any;
 
-      const finalMarks = Math.min(result.marks || 0, totalMaxMarks);
+    if (!isPDF) {
+      const base64 =
+        answerBuffer.toString("base64");
 
+      const mimeType =
+        submission.answer_file_url.endsWith(
+          ".png"
+        )
+          ? "image/png"
+          : "image/jpeg";
+
+      aiResponse =
+        await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text: prompt,
+                },
+                {
+                  type: "image_url",
+                  image_url: {
+                    url: `data:${mimeType};base64,${base64}`,
+                  },
+                },
+              ],
+            },
+          ],
+          temperature: 0.2,
+        });
+    }
+
+    // ==================================================
+    // ✅ PDF FLOW
+    // ==================================================
+
+    else {
+      aiResponse =
+        await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "user",
+              content: prompt,
+            },
+          ],
+          temperature: 0.2,
+        });
+    }
+
+    // ==================================================
+    // ✅ PARSE AI RESPONSE
+    // ==================================================
+
+    const rawResponse =
+      aiResponse.choices[0].message
+        .content || "{}";
+
+    console.log(
+      "🤖 RAW AI RESPONSE:",
+      rawResponse
+    );
+
+    let result: any;
+
+    try {
+      result = JSON.parse(rawResponse);
+    } catch {
+      result = {
+        marks: 0,
+        feedback:
+          "AI response parsing failed",
+      };
+    }
+
+    // ==================================================
+    // ✅ FINAL SAFE MARKS
+    // ==================================================
+
+    const finalMarks = Math.min(
+      Math.max(
+        Number(result.marks || 0),
+        0
+      ),
+      totalMaxMarks
+    );
+
+    console.log(
+      "✅ Final Marks:",
+      finalMarks
+    );
+
+    // ==================================================
+    // ✅ SAVE EVALUATION
+    // ==================================================
+
+    const { error: updateError } =
       await supabase
         .from("submissions")
         .update({
           total_score: finalMarks,
+          feedback:
+            result.feedback || "",
           status: "evaluated",
         })
         .eq("id", submission_id);
 
-      return NextResponse.json({ success: true, result });
-    }
+    if (updateError) {
+      console.error(updateError);
 
-    // =========================
-    // ✅ IMAGE FLOW (HANDWRITTEN)
-    // =========================
-    else {
-      const aiResponse = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: `
-Evaluate this handwritten answer.
-
-Reference Notes:
-${referenceText}
-
-Rules:
-- Give marks out of 100
-- Be strict but fair
-
-Return ONLY JSON:
-{
-  "marks": number,
-  "feedback": string
-}
-`,
-              },
-              {
-                type: "image_url",
-                image_url: { url: fileUrl }, // ✅ DIRECT URL
-              },
-            ],
-          },
-        ],
-      });
-
-      const result = JSON.parse(
-        aiResponse.choices[0].message.content || "{}"
+      return NextResponse.json(
+        {
+          error:
+            "Failed to save evaluation",
+        },
+        { status: 500 }
       );
-
-      await supabase
-        .from("submissions")
-        .update({
-          total_score: result.marks,
-          status: "evaluated",
-        })
-        .eq("id", submission_id);
-
-      return NextResponse.json({ success: true, result });
     }
+
+    // ==================================================
+    // ✅ RETURN RESPONSE
+    // ==================================================
+
+    return NextResponse.json({
+      success: true,
+      result: {
+        marks: finalMarks,
+        total_marks: totalMaxMarks,
+        feedback:
+          result.feedback || "",
+      },
+
+      submission: {
+        id: submission.id,
+        answer_file_url:
+          submission.answer_file_url,
+        status: "evaluated",
+      },
+    });
   } catch (err: any) {
-    console.error("🔥 EVALUATION ERROR:", err);
+    console.error(
+      "🔥 EVALUATION ERROR:",
+      err
+    );
 
     return NextResponse.json(
-      { error: err.message || "Evaluation failed" },
+      {
+        error:
+          err.message ||
+          "Evaluation failed",
+      },
       { status: 500 }
     );
   }

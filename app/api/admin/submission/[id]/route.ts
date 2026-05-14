@@ -1,61 +1,113 @@
 import { supabase } from "@/app/lib/supabase";
 
-export async function GET(req: Request) {
-
-console.log("HIT API FILE");
-
-  const url = new URL(req.url);
-  const id = url.pathname.split("/").pop(); // 🔥 THIS IS THE KEY FIX
-
-  console.log("🔥 EXTRACTED ID:", id);
-
-  if (!id || id === "submission") {
-    return new Response(
-      JSON.stringify({ error: "Submission ID missing" }),
-      { status: 400 }
-    );
+export async function GET(
+  request: Request,
+  context: {
+    params: Promise<{ id: string }>;
   }
+) {
+  try {
+    // ✅ NEXTJS 15 FIX
+    const { id } = await context.params;
 
- const { data, error } = await supabase
-  .from("submissions")
-  .select(`
-    id,
-    status,
-    total_score,
+    console.log("📥 Submission ID:", id);
 
-    users (
-      id,
-      name
-    ),
+    if (!id) {
+      return new Response(
+        JSON.stringify({
+          error: "Submission ID missing",
+        }),
+        {
+          status: 400,
+        }
+      );
+    }
 
-    exams (
-      title
-    ),
+    // ✅ FETCH SINGLE SUBMISSION
+    const { data, error } = await supabase
+      .from("submissions")
+      .select(`
+        *,
+        exams (
+          id,
+          title,
+          description,
+          duration,
+          reference_file_url
+        ),
+        users!submissions_student_id_fkey (
+          id,
+          name,
+          email
+        )
+      `)
+      .eq("id", id) // ✅ IMPORTANT
+      .maybeSingle();
 
-    submission_answers!submission_answers_submission_id_fkey (
-      id,
-      question_id,
-      answer,
-      score,
-      feedback,
+    if (error) {
+      console.error(
+        "❌ SUPABASE ERROR:",
+        error
+      );
 
-      questions!submission_answers_question_id_fkey (
-        question,
-        marks
-      )
+      throw error;
+    }
+
+    // ✅ NO DATA
+    if (!data) {
+      return new Response(
+        JSON.stringify({
+          error:
+            "Submission not found",
+        }),
+        {
+          status: 404,
+        }
+      );
+    }
+
+    // ✅ FIX ARRAY RESPONSE
+    const exam = Array.isArray(
+      data.exams
     )
-  `)
-  .eq("id", id)
-  .single();
+      ? data.exams[0]
+      : data.exams;
 
-  if (error) {
+    const user = Array.isArray(
+      data.users
+    )
+      ? data.users[0]
+      : data.users;
+
+    const formatted = {
+      ...data,
+
+      exams: exam || null,
+
+      users: user || null,
+    };
+
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500 }
+      JSON.stringify(formatted),
+      {
+        status: 200,
+      }
+    );
+  } catch (err: any) {
+    console.error(
+      "🔥 FETCH SUBMISSION ERROR:",
+      err
+    );
+
+    return new Response(
+      JSON.stringify({
+        error:
+          err.message ||
+          "Internal server error",
+      }),
+      {
+        status: 500,
+      }
     );
   }
-
-  return new Response(JSON.stringify(data), {
-    status: 200,
-  });
 }

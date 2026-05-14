@@ -16,12 +16,12 @@ export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // ✅ AUTO REDIRECT IF SESSION EXISTS
+  // ✅ AUTO REDIRECT
   useEffect(() => {
     const checkUser = async () => {
       const { data } = await supabase.auth.getSession();
-      const session = data.session;
 
+      const session = data.session;
       if (!session) return;
 
       const user = session.user;
@@ -30,9 +30,20 @@ export default function AuthPage() {
         .from("profiles")
         .select("role")
         .eq("id", user.id)
-        .single();
+        .maybeSingle(); // ✅ FIXED
 
-      if (profile?.role === "admin") {
+      if (!profile) {
+        // ✅ auto create profile
+        await supabase.from("profiles").insert({
+          id: user.id,
+          role: "student",
+        });
+
+        router.push("/student/dashboard");
+        return;
+      }
+
+      if (profile.role === "admin") {
         router.push("/admin/dashboard");
       } else {
         router.push("/student/dashboard");
@@ -45,64 +56,63 @@ export default function AuthPage() {
   // ✅ AUTH HANDLER
   const handleAuth = async () => {
     if (!email || !password) {
-      alert("❌ Email and password are required");
+      alert("Email & password required");
       return;
     }
 
     try {
       setLoading(true);
 
+      // =====================
+      // 🔹 SIGNUP
+      // =====================
       if (isSignup) {
         if (!name.trim()) {
-          alert("❌ Enter your name");
+          alert("Enter your name");
           return;
         }
 
-        // 🔹 SIGNUP
         const { data, error } = await supabase.auth.signUp({
           email: email.trim(),
           password,
         });
 
-        if (error) throw error;
+        if (error) {
+          if (error.message.includes("User already registered")) {
+            alert("⚠️ Email already exists. Please login.");
+            return;
+          }
+          throw error;
+        }
 
         const user = data.user;
         if (!user) throw new Error("Signup failed");
 
-        console.log("👤 New User:", user.id);
+        // ✅ insert users table
+        await supabase.from("users").insert({
+          id: user.id,
+          name: name.trim(),
+          email: email.trim(),
+        });
 
-        // ✅ INSERT INTO USERS TABLE
-        const { error: userError } = await supabase
-          .from("users")
-          .insert([
-            {
-              id: user.id,
-              name: name.trim(),
-              email: email.trim(),
-            },
-          ]);
+        // ✅ profile
+        await supabase.from("profiles").upsert({
+          id: user.id,
+          role: "student",
+        });
 
-        if (userError) throw userError;
+        alert("✅ Signup successful. Please login");
 
-        // ✅ INSERT ROLE
-        const { error: profileError } = await supabase
-          .from("profiles")
-          .upsert({
-            id: user.id,
-            role: "student",
-          });
-
-        if (profileError) throw profileError;
-
-        alert("✅ Signup successful. Please login.");
-
-        // RESET
         setIsSignup(false);
         setName("");
         setEmail("");
         setPassword("");
-      } else {
-        // 🔹 LOGIN
+      }
+
+      // =====================
+      // 🔹 LOGIN
+      // =====================
+      else {
         const { data, error } =
           await supabase.auth.signInWithPassword({
             email: email.trim(),
@@ -114,23 +124,23 @@ export default function AuthPage() {
         const user = data.user;
         if (!user) throw new Error("Login failed");
 
-        console.log("👤 Logged in:", user.id);
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .maybeSingle(); // ✅ FIXED
 
-        // ✅ IMPORTANT: refresh session
-        await supabase.auth.getSession();
+        if (!profile) {
+          await supabase.from("profiles").insert({
+            id: user.id,
+            role: "student",
+          });
 
-        // ✅ GET ROLE
-        const { data: profile, error: roleError } =
-          await supabase
-            .from("profiles")
-            .select("role")
-            .eq("id", user.id)
-            .single();
+          router.push("/student/dashboard");
+          return;
+        }
 
-        if (roleError) throw roleError;
-
-        // ✅ REDIRECT
-        if (profile?.role === "admin") {
+        if (profile.role === "admin") {
           router.push("/admin/dashboard");
         } else {
           router.push("/student/dashboard");
@@ -153,100 +163,78 @@ export default function AuthPage() {
 
     const { error } = await supabase.auth.resetPasswordForEmail(email);
 
-    if (error) {
-      alert(error.message);
-    } else {
-      alert("📩 Password reset email sent");
-    }
+    if (error) alert(error.message);
+    else alert("📩 Reset email sent");
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0d426a] via-[#005b8f] to-[#00a0dc] px-4">
 
-      <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md">
+      <div className="bg-white/95 backdrop-blur-lg p-8 rounded-2xl shadow-2xl w-full max-w-md">
 
-        {/* TITLE */}
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-[#0d426a]">
-            ExamLens
-          </h1>
-          <p className="text-gray-500 mt-1">
-            {isSignup ? "Create your account" : "Welcome back"}
-          </p>
-        </div>
+        <h1 className="text-3xl font-bold text-center text-[#0d426a] mb-2">
+          ExamLens
+        </h1>
 
-        {/* NAME */}
+        <p className="text-center text-gray-500 mb-6">
+          {isSignup ? "Create your account" : "Welcome back"}
+        </p>
+
         {isSignup && (
           <input
             type="text"
             placeholder="Full Name"
-            className="w-full mb-3 p-3 border rounded-lg focus:ring-2 focus:ring-[#00a0dc]"
+            className="w-full mb-3 p-3 border rounded-lg"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
         )}
 
-        {/* EMAIL */}
         <input
           type="email"
           placeholder="Email"
-          className="w-full mb-3 p-3 border rounded-lg focus:ring-2 focus:ring-[#00a0dc]"
+          className="w-full mb-3 p-3 border rounded-lg"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
 
-        {/* PASSWORD */}
         <div className="relative mb-3">
           <input
             type={showPassword ? "text" : "password"}
             placeholder="Password"
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-[#00a0dc]"
+            className="w-full p-3 border rounded-lg"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-
           <span
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-3 cursor-pointer text-sm text-gray-500"
+            className="absolute right-3 top-3 cursor-pointer text-sm"
           >
             {showPassword ? "Hide" : "Show"}
           </span>
         </div>
 
-        {/* BUTTON */}
         <button
           onClick={handleAuth}
           disabled={loading}
-          className={`w-full py-3 rounded-lg text-white font-semibold ${
-            loading
-              ? "bg-gray-400"
-              : "bg-[#0d426a] hover:bg-[#08314d]"
-          }`}
+          className="w-full py-3 bg-[#0d426a] text-white rounded-lg"
         >
-          {loading
-            ? "Please wait..."
-            : isSignup
-            ? "Create Account"
-            : "Login"}
+          {loading ? "Please wait..." : isSignup ? "Sign Up" : "Login"}
         </button>
 
-        {/* FORGOT */}
         {!isSignup && (
           <p
             onClick={handleForgotPassword}
-            className="text-sm text-[#00a0dc] mt-3 cursor-pointer text-center"
+            className="text-sm text-[#00a0dc] mt-3 text-center cursor-pointer"
           >
             Forgot Password?
           </p>
         )}
 
-        {/* SWITCH */}
         <p className="text-center text-sm mt-5">
-          {isSignup
-            ? "Already have an account?"
-            : "New here?"}{" "}
+          {isSignup ? "Already have account?" : "New here?"}{" "}
           <span
-            className="text-[#00a0dc] font-semibold cursor-pointer"
+            className="text-[#00a0dc] cursor-pointer"
             onClick={() => setIsSignup(!isSignup)}
           >
             {isSignup ? "Login" : "Sign up"}
