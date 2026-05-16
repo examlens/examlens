@@ -124,14 +124,19 @@ export default function AuthPage() {
         const user = data.user;
         if (!user) throw new Error("Login failed");
 
-        const { data: profile } = await supabase
+        alert("✅ Login successful");
+
+        const { data: profiles } = await supabase
           .from("profiles")
           .select("role")
-          .eq("id", user.id)
-          .maybeSingle(); // ✅ FIXED
+          .eq("id", user.id);
+
+        const profile = profiles?.[0] ?? null;
+
+        alert(`User role: ${profile?.role || "not found"}`);
 
         if (!profile) {
-          await supabase.from("profiles").insert({
+          await supabase.from("profiles").upsert({
             id: user.id,
             role: "student",
           });
@@ -143,6 +148,7 @@ export default function AuthPage() {
         if (profile.role === "admin") {
           router.push("/admin/dashboard");
         } else {
+          alert("✅ Login successful2");
           router.push("/student/dashboard");
         }
       }
@@ -161,10 +167,26 @@ export default function AuthPage() {
       return;
     }
 
+    const { data } = await supabase.auth.getSession();
+    const user = data?.session?.user;
+
+    if (user) {
+      await supabase.from("students").insert([
+  {
+    auth_user_id: user.id,
+    student_name: name,
+    student_code: "CS2024-01",
+    email: email,
+    attendance: 90,
+  },
+]);
+    }
+
     const { error } = await supabase.auth.resetPasswordForEmail(email);
 
     if (error) alert(error.message);
     else alert("📩 Reset email sent");
+    
   };
 
   return (
