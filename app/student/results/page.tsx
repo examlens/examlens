@@ -2,50 +2,32 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/app/lib/supabase";
-import {
-  BookOpen,
-  Trophy,
-  AlertTriangle,
-  Brain,
-  Clock,
-} from "lucide-react";
 
-interface ResultItem {
+interface Result {
   id: string;
-
-  total_score: number | null;
-
-  feedback: string | null;
-
-  mistakes: string | null;
-
-  knowledge_level: string | null;
-
-  evaluated: boolean;
-
-  evaluated_at: string | null;
-
-  status: string;
+  score: number;
+  total_marks: number;
+  feedback: string;
+  mistakes: string[];
+  expected_answers: string[];
+  strong_areas: string[];
+  weak_areas: string[];
+  evaluated_at: string;
 
   exams: {
     title: string;
   };
 }
 
-export default function StudentResultsPage() {
-  const [results, setResults] = useState<
-    ResultItem[]
-  >([]);
+export default function ResultsPage() {
+  const [results, setResults] =
+    useState<Result[]>([]);
+
+  const [selectedResult, setSelectedResult] =
+    useState<Result | null>(null);
 
   const [loading, setLoading] =
     useState(true);
-
-  const [error, setError] =
-    useState("");
-
-  // ==========================================
-  // FETCH RESULTS
-  // ==========================================
 
   useEffect(() => {
     fetchResults();
@@ -53,30 +35,15 @@ export default function StudentResultsPage() {
 
   const fetchResults = async () => {
     try {
-      setLoading(true);
-
-      // ==========================================
-      // GET SESSION
-      // ==========================================
-
       const {
         data: { session },
       } = await supabase.auth.getSession();
 
-      if (!session?.access_token) {
-        throw new Error(
-          "Please login again"
-        );
-      }
-
-      // ==========================================
-      // FETCH API
-      // ==========================================
+      if (!session?.access_token) return;
 
       const res = await fetch(
         "/api/student/results",
         {
-          method: "GET",
           headers: {
             Authorization: `Bearer ${session.access_token}`,
           },
@@ -85,11 +52,6 @@ export default function StudentResultsPage() {
 
       const data = await res.json();
 
-      console.log(
-        "📦 RESULTS:",
-        data
-      );
-
       if (!res.ok) {
         throw new Error(
           data.error ||
@@ -97,293 +59,302 @@ export default function StudentResultsPage() {
         );
       }
 
-      setResults(
-        data.results || []
-      );
-    } catch (err: any) {
+      setResults(data.results || []);
+    } catch (err) {
       console.error(err);
-
-      setError(
-        err.message ||
-          "Something went wrong"
-      );
     } finally {
       setLoading(false);
     }
   };
 
-  // ==========================================
-  // SCORE COLOR
-  // ==========================================
-
-  const getScoreColor = (
-    score: number
-  ) => {
-    if (score >= 90) {
-      return "bg-green-500";
-    }
-
-    if (score >= 70) {
-      return "bg-blue-500";
-    }
-
-    if (score >= 50) {
-      return "bg-yellow-500";
-    }
-
-    return "bg-red-500";
-  };
-
-  // ==========================================
-  // KNOWLEDGE LEVEL COLOR
-  // ==========================================
-
-  const getKnowledgeColor = (
-    level: string
-  ) => {
-    switch (
-      level?.toLowerCase()
-    ) {
-      case "advanced":
-        return "bg-green-100 text-green-700";
-
-      case "intermediate":
-        return "bg-yellow-100 text-yellow-700";
-
-      case "beginner":
-        return "bg-red-100 text-red-700";
-
-      default:
-        return "bg-gray-100 text-gray-700";
-    }
-  };
-
-  // ==========================================
-  // FORMAT DATE
-  // ==========================================
-
-  const formatDate = (
-    date: string | null
-  ) => {
-    if (!date) return "-";
-
-    return new Date(
-      date
-    ).toLocaleString();
-  };
-
-  // ==========================================
-  // LOADING UI
-  // ==========================================
-
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="bg-white shadow-xl rounded-2xl p-10">
-          <p className="text-lg font-semibold text-gray-700 animate-pulse">
-            Loading Results...
-          </p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
       </div>
     );
   }
-
-  // ==========================================
-  // ERROR UI
-  // ==========================================
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-red-50">
-        <div className="bg-white shadow-xl rounded-2xl p-10 text-center max-w-md">
-          <h1 className="text-3xl font-bold text-red-600 mb-3">
-            Error
-          </h1>
-
-          <p className="text-gray-700">
-            {error}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // ==========================================
-  // MAIN UI
-  // ==========================================
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className="min-h-screen bg-[#f4f7fb] p-6">
       {/* HEADER */}
 
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-[#0d426a]">
+      <div className="mb-10">
+        <h1 className="text-5xl font-black text-[#0d426a]">
           My Results
         </h1>
 
-        <p className="text-gray-500 mt-2">
-          View your evaluated exams,
-          performance analytics,
-          mistakes, and teacher
-          feedback.
+        <p className="text-gray-600 mt-3 text-lg">
+          Performance analytics,
+          teacher evaluation,
+          mistakes and learning insights.
         </p>
       </div>
 
-      {/* EMPTY */}
+      {/* RESULT CARDS */}
 
-      {results.length === 0 ? (
-        <div className="bg-white rounded-2xl shadow-md p-10 text-center">
-          <p className="text-gray-500 text-lg">
-            No results available
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {results.map((item) => {
-            const score =
-              item.total_score || 0;
+      <div className="grid gap-6">
+        {results.map((result) => (
+          <div
+            key={result.id}
+            onClick={() =>
+              setSelectedResult(result)
+            }
+            className="bg-white rounded-3xl p-7 shadow-lg hover:shadow-2xl transition-all cursor-pointer border border-gray-100"
+          >
+            <div className="flex justify-between items-start">
+              <div>
+                <h2 className="text-3xl font-bold text-[#0d426a]">
+                  {
+                    result.exams
+                      ?.title
+                  }
+                </h2>
 
-            return (
-              <div
-                key={item.id}
-                className="bg-white rounded-3xl shadow-lg p-6 border border-gray-100"
-              >
-                {/* TOP */}
+                <p className="text-gray-500 mt-2">
+                  Evaluated on{" "}
+                  {new Date(
+                    result.evaluated_at
+                  ).toLocaleString()}
+                </p>
+              </div>
 
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h2 className="text-2xl font-bold text-[#0d426a] flex items-center gap-2">
-                      <BookOpen size={22} />
-
-                      {
-                        item.exams
-                          ?.title
-                      }
-                    </h2>
-
-                    <p className="text-sm text-gray-500 mt-1 flex items-center gap-1">
-                      <Clock size={14} />
-
-                      Evaluated:
-                      {" "}
-                      {formatDate(
-                        item.evaluated_at
-                      )}
-                    </p>
-                  </div>
-
-                  {/* STATUS */}
-
-                  {item.evaluated ? (
-                    <div className="bg-green-100 text-green-700 px-4 py-2 rounded-xl text-sm font-semibold">
-                      Evaluated
-                    </div>
-                  ) : (
-                    <div className="bg-yellow-100 text-yellow-700 px-4 py-2 rounded-xl text-sm font-semibold">
-                      Pending
-                    </div>
-                  )}
+              <div className="bg-gradient-to-r from-green-500 to-emerald-400 text-white px-6 py-4 rounded-2xl text-center shadow-lg">
+                <div className="text-3xl font-black">
+                  {result.score}/
+                  {
+                    result.total_marks
+                  }
                 </div>
 
-                {/* SCORE */}
+                <div className="text-sm opacity-90">
+                  Score
+                </div>
+              </div>
+            </div>
 
-                {item.evaluated ? (
-                  <>
-                    <div className="mt-6">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <Trophy
-                            size={20}
-                          />
+            <div className="mt-6 bg-blue-50 border border-blue-100 rounded-2xl p-5">
+              <p className="text-blue-900 text-lg leading-8">
+                {
+                  result.feedback
+                }
+              </p>
+            </div>
 
-                          <span className="font-semibold text-gray-700">
-                            Score
-                          </span>
+            <div className="flex gap-4 flex-wrap mt-6">
+              <div className="bg-green-100 text-green-700 px-5 py-3 rounded-xl font-semibold">
+                ✅ Strong Areas:{" "}
+                {
+                  result
+                    .strong_areas
+                    ?.length
+                }
+              </div>
+
+              <div className="bg-red-100 text-red-700 px-5 py-3 rounded-xl font-semibold">
+                ❌ Weak Areas:{" "}
+                {
+                  result.weak_areas
+                    ?.length
+                }
+              </div>
+
+              <div className="bg-yellow-100 text-yellow-700 px-5 py-3 rounded-xl font-semibold">
+                ⚠ Mistakes:{" "}
+                {
+                  result.mistakes
+                    ?.length
+                }
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* MODAL */}
+
+      {selectedResult && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-6">
+          <div className="bg-white w-full max-w-5xl rounded-3xl p-8 max-h-[95vh] overflow-y-auto shadow-2xl">
+            {/* TOP */}
+
+            <div className="flex justify-between items-start">
+              <div>
+                <h2 className="text-4xl font-black text-[#0d426a]">
+                  {
+                    selectedResult
+                      .exams?.title
+                  }
+                </h2>
+
+                <p className="text-gray-500 mt-2">
+                  Complete Evaluation
+                  Report
+                </p>
+              </div>
+
+              <button
+                onClick={() =>
+                  setSelectedResult(
+                    null
+                  )
+                }
+                className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-2xl font-bold"
+              >
+                Close
+              </button>
+            </div>
+
+            {/* SCORE */}
+
+            <div className="mt-8 bg-gradient-to-r from-[#0d426a] to-[#00a0dc] rounded-3xl p-10 text-white shadow-xl">
+              <div className="text-xl font-semibold opacity-90">
+                Final Score
+              </div>
+
+              <div className="text-7xl font-black mt-4">
+                {
+                  selectedResult.score
+                }
+                /
+                {
+                  selectedResult.total_marks
+                }
+              </div>
+
+              <div className="mt-3 text-lg opacity-90">
+                Performance:
+                {" "}
+                {Math.round(
+                  (selectedResult.score /
+                    selectedResult.total_marks) *
+                    100
+                )}
+                %
+              </div>
+            </div>
+
+            {/* FEEDBACK */}
+
+            <div className="mt-10">
+              <h3 className="text-3xl font-bold mb-5">
+                Teacher Feedback
+              </h3>
+
+              <div className="bg-gray-100 rounded-2xl p-6 text-lg leading-9 text-gray-800">
+                {
+                  selectedResult.feedback
+                }
+              </div>
+            </div>
+
+            {/* MISTAKES */}
+
+            <div className="mt-10">
+              <h3 className="text-3xl font-bold text-red-600 mb-5">
+                Mistakes
+              </h3>
+
+              <div className="space-y-4">
+                {selectedResult
+                  .mistakes?.length >
+                0 ? (
+                  selectedResult.mistakes.map(
+                    (
+                      item,
+                      index
+                    ) => (
+                      <div
+                        key={index}
+                        className="bg-red-50 border border-red-100 p-5 rounded-2xl"
+                      >
+                        <div className="font-semibold text-red-700">
+                          Mistake{" "}
+                          {index + 1}
                         </div>
 
-                        <span className="text-2xl font-bold text-[#0d426a]">
-                          {score}/100
-                        </span>
+                        <div className="text-gray-700 mt-2">
+                          {item}
+                        </div>
+
+                        {selectedResult
+                          .expected_answers?.[
+                          index
+                        ] && (
+                          <div className="mt-4 bg-green-50 border border-green-100 p-4 rounded-xl">
+                            <div className="font-semibold text-green-700">
+                              Expected Answer
+                            </div>
+
+                            <div className="mt-2 text-gray-700">
+                              {
+                                selectedResult
+                                  .expected_answers[
+                                  index
+                                ]
+                              }
+                            </div>
+                          </div>
+                        )}
                       </div>
-
-                      {/* PROGRESS BAR */}
-
-                      <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
-                        <div
-                          className={`h-4 rounded-full ${getScoreColor(
-                            score
-                          )}`}
-                          style={{
-                            width: `${score}%`,
-                          }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* FEEDBACK */}
-
-                    <div className="mt-6">
-                      <h3 className="font-bold text-lg text-gray-800 mb-2">
-                        Teacher Feedback
-                      </h3>
-
-                      <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 text-gray-700">
-                        {item.feedback ||
-                          "No feedback"}
-                      </div>
-                    </div>
-
-                    {/* MISTAKES */}
-
-                    <div className="mt-6">
-                      <h3 className="font-bold text-lg text-gray-800 mb-2 flex items-center gap-2">
-                        <AlertTriangle
-                          size={20}
-                        />
-
-                        Mistakes
-                      </h3>
-
-                      <div className="bg-red-50 border border-red-100 rounded-2xl p-4 text-gray-700">
-                        {item.mistakes ||
-                          "No mistakes added"}
-                      </div>
-                    </div>
-
-                    {/* KNOWLEDGE */}
-
-                    <div className="mt-6">
-                      <h3 className="font-bold text-lg text-gray-800 mb-3 flex items-center gap-2">
-                        <Brain
-                          size={20}
-                        />
-
-                        Knowledge Level
-                      </h3>
-
-                      <span
-                        className={`px-4 py-2 rounded-xl text-sm font-semibold ${getKnowledgeColor(
-                          item.knowledge_level ||
-                            ""
-                        )}`}
-                      >
-                        {item.knowledge_level ||
-                          "Not Available"}
-                      </span>
-                    </div>
-                  </>
+                    )
+                  )
                 ) : (
-                  <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-2xl p-5">
-                    <p className="text-yellow-700 font-medium">
-                      ⏳ Your answer sheet
-                      is waiting for teacher
-                      evaluation.
-                    </p>
+                  <div className="bg-green-50 p-5 rounded-2xl text-green-700">
+                    No major mistakes.
                   </div>
                 )}
               </div>
-            );
-          })}
+            </div>
+
+            {/* STRONG */}
+
+            <div className="mt-10">
+              <h3 className="text-3xl font-bold text-green-600 mb-5">
+                Strong Areas
+              </h3>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                {selectedResult.strong_areas?.map(
+                  (
+                    item,
+                    index
+                  ) => (
+                    <div
+                      key={index}
+                      className="bg-green-50 border border-green-100 p-5 rounded-2xl"
+                    >
+                      ✅ {item}
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+
+            {/* WEAK */}
+
+            <div className="mt-10">
+              <h3 className="text-3xl font-bold text-yellow-600 mb-5">
+                Weak Areas
+              </h3>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                {selectedResult.weak_areas?.map(
+                  (
+                    item,
+                    index
+                  ) => (
+                    <div
+                      key={index}
+                      className="bg-yellow-50 border border-yellow-100 p-5 rounded-2xl"
+                    >
+                      ⚠ {item}
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

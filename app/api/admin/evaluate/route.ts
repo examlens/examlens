@@ -18,8 +18,12 @@ export async function POST(req: Request) {
 
     if (!submission_id) {
       return NextResponse.json(
-        { error: "submission_id required" },
-        { status: 400 }
+        {
+          error: "submission_id required",
+        },
+        {
+          status: 400,
+        }
       );
     }
 
@@ -27,27 +31,36 @@ export async function POST(req: Request) {
     // ✅ GET SUBMISSION
     // ==================================================
 
-    const { data: submission, error: submissionError } =
-      await supabase
-        .from("submissions")
-        .select(`
-          id,
-          answer_file_url,
-          exam_id,
-          student_id,
-          status,
-          total_score,
-          feedback
-        `)
-        .eq("id", submission_id)
-        .single();
+    const {
+      data: submission,
+      error: submissionError,
+    } = await supabase
+      .from("submissions")
+      .select(`
+        id,
+        answer_file_url,
+        exam_id,
+        student_id,
+        status,
+        total_score,
+        feedback
+      `)
+      .eq("id", submission_id)
+      .single();
 
     if (submissionError || !submission) {
-      console.error(submissionError);
+      console.error(
+        "❌ Submission Error:",
+        submissionError
+      );
 
       return NextResponse.json(
-        { error: "Submission not found" },
-        { status: 404 }
+        {
+          error: "Submission not found",
+        },
+        {
+          status: 404,
+        }
       );
     }
 
@@ -62,30 +75,45 @@ export async function POST(req: Request) {
 
     if (!submission.answer_file_url) {
       return NextResponse.json(
-        { error: "No answer file uploaded" },
-        { status: 400 }
+        {
+          error: "No answer file uploaded",
+        },
+        {
+          status: 400,
+        }
       );
     }
 
     // ==================================================
-    // ✅ GET EXAM + TOTAL MARKS
+    // ✅ GET EXAM DETAILS
     // ==================================================
 
-    const { data: exam, error: examError } =
-      await supabase
-        .from("exams")
-        .select(`
-          id,
-          title,
-          reference_file_url
-        `)
-        .eq("id", submission.exam_id)
-        .single();
+    const {
+      data: exam,
+      error: examError,
+    } = await supabase
+      .from("exams")
+      .select(`
+        id,
+        title,
+        reference_file_url
+      `)
+      .eq("id", submission.exam_id)
+      .single();
 
     if (examError || !exam) {
+      console.error(
+        "❌ Exam Error:",
+        examError
+      );
+
       return NextResponse.json(
-        { error: "Exam not found" },
-        { status: 404 }
+        {
+          error: "Exam not found",
+        },
+        {
+          status: 404,
+        }
       );
     }
 
@@ -109,31 +137,57 @@ export async function POST(req: Request) {
       .eq("exam_id", submission.exam_id);
 
     if (questionError) {
-      console.error(questionError);
+      console.error(
+        "❌ Question Error:",
+        questionError
+      );
 
       return NextResponse.json(
-        { error: "Failed to fetch questions" },
-        { status: 500 }
+        {
+          error:
+            "Failed to fetch questions",
+        },
+        {
+          status: 500,
+        }
       );
     }
 
+    // ==================================================
+    // ✅ FORMAT QUESTIONS
+    // ==================================================
+
     const questions =
-      questionData?.map((q: any) => ({
-        question:
-          q.questions?.question || "",
-        marks:
-          Number(q.questions?.marks || 0),
-      })) || [];
+      questionData?.map(
+        (q: any, index: number) => {
+          const questionObj =
+            Array.isArray(q.questions)
+              ? q.questions[0]
+              : q.questions;
+
+          return {
+            question_number: index + 1,
+            question:
+              questionObj?.question || "",
+            marks: Number(
+              questionObj?.marks || 0
+            ),
+          };
+        }
+      ) || [];
 
     // ==================================================
     // ✅ TOTAL MARKS
     // ==================================================
 
-    const totalMaxMarks = questions.reduce(
-      (sum: number, q: any) =>
-        sum + Number(q.marks || 0),
-      0
-    );
+    const totalMaxMarks =
+      questions.reduce(
+        (
+          sum: number,
+          q: any
+        ) => sum + q.marks,
+        0
+      );
 
     console.log(
       "🎯 Total Exam Marks:",
@@ -141,7 +195,7 @@ export async function POST(req: Request) {
     );
 
     // ==================================================
-    // ✅ DOWNLOAD STUDENT FILE
+    // ✅ DOWNLOAD ANSWER FILE
     // ==================================================
 
     const answerPath =
@@ -151,8 +205,13 @@ export async function POST(req: Request) {
 
     if (!answerPath) {
       return NextResponse.json(
-        { error: "Invalid answer file path" },
-        { status: 400 }
+        {
+          error:
+            "Invalid answer file path",
+        },
+        {
+          status: 400,
+        }
       );
     }
 
@@ -167,7 +226,10 @@ export async function POST(req: Request) {
       answerDownloadError ||
       !answerFile
     ) {
-      console.error(answerDownloadError);
+      console.error(
+        "❌ Download Error:",
+        answerDownloadError
+      );
 
       return NextResponse.json(
         {
@@ -175,7 +237,9 @@ export async function POST(req: Request) {
             answerDownloadError?.message ||
             "Failed to download answer file",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
@@ -210,11 +274,14 @@ export async function POST(req: Request) {
               );
 
             const pdfParseModule =
-              await import("pdf-parse");
+              await import(
+                "pdf-parse"
+              );
 
             const pdfParse =
               (pdfParseModule as any)
-                .default || pdfParseModule;
+                .default ||
+              pdfParseModule;
 
             const parsedReference =
               await pdfParse(
@@ -225,7 +292,7 @@ export async function POST(req: Request) {
               parsedReference.text || "";
 
             console.log(
-              "📘 Reference text extracted"
+              "📘 Reference Text Extracted"
             );
           }
         }
@@ -248,7 +315,7 @@ export async function POST(req: Request) {
     let studentText = "";
 
     // ==================================================
-    // ✅ PDF TEXT EXTRACTION
+    // ✅ EXTRACT PDF TEXT
     // ==================================================
 
     if (isPDF) {
@@ -258,15 +325,19 @@ export async function POST(req: Request) {
 
         const pdfParse =
           (pdfParseModule as any)
-            .default || pdfParseModule;
+            .default ||
+          pdfParseModule;
 
         const parsed =
-          await pdfParse(answerBuffer);
+          await pdfParse(
+            answerBuffer
+          );
 
-        studentText = parsed.text || "";
+        studentText =
+          parsed.text || "";
 
         console.log(
-          "📄 Extracted PDF Text Length:",
+          "📄 Student Text Length:",
           studentText.length
         );
       } catch (err) {
@@ -284,8 +355,8 @@ export async function POST(req: Request) {
     const formattedQuestions =
       questions
         .map(
-          (q: any, index: number) => `
-Question ${index + 1}:
+          (q: any) => `
+Question ${q.question_number}:
 ${q.question}
 
 Maximum Marks: ${q.marks}
@@ -298,7 +369,7 @@ Maximum Marks: ${q.marks}
     // ==================================================
 
     const prompt = `
-You are a strict AI exam evaluator.
+You are an expert strict exam evaluator.
 
 Evaluate the student's answer sheet carefully.
 
@@ -327,12 +398,13 @@ ${studentText}
 IMPORTANT RULES:
 
 - Total maximum marks = ${totalMaxMarks}
-- NEVER exceed ${totalMaxMarks}
-- Evaluate question by question
-- Give realistic marks
+- Never exceed ${totalMaxMarks}
+- Evaluate each question separately
 - Penalize wrong answers
-- Penalize missing answers
-- Give detailed teacher feedback
+- Penalize incomplete answers
+- Give realistic scoring
+- Give detailed mistakes
+- Give improvement suggestions
 - Return ONLY valid JSON
 
 ==================================================
@@ -341,19 +413,37 @@ OUTPUT FORMAT:
 
 {
   "marks": number,
-  "feedback": string
+  "feedback": "overall feedback",
+  "mistakes": [
+    "mistake 1",
+    "mistake 2"
+  ],
+  "knowledge_analysis": {
+    "strong_areas": [
+      "topic 1"
+    ],
+    "weak_areas": [
+      "topic 1"
+    ]
+  }
 }
 `;
+
+    // ==================================================
+    // ✅ AI RESPONSE
+    // ==================================================
+
+    let aiResponse: any;
 
     // ==================================================
     // ✅ IMAGE FLOW
     // ==================================================
 
-    let aiResponse: any;
-
     if (!isPDF) {
       const base64 =
-        answerBuffer.toString("base64");
+        answerBuffer.toString(
+          "base64"
+        );
 
       const mimeType =
         submission.answer_file_url.endsWith(
@@ -363,27 +453,29 @@ OUTPUT FORMAT:
           : "image/jpeg";
 
       aiResponse =
-        await openai.chat.completions.create({
-          model: "gpt-4o-mini",
-          messages: [
-            {
-              role: "user",
-              content: [
-                {
-                  type: "text",
-                  text: prompt,
-                },
-                {
-                  type: "image_url",
-                  image_url: {
-                    url: `data:${mimeType};base64,${base64}`,
+        await openai.chat.completions.create(
+          {
+            model: "gpt-4o-mini",
+            messages: [
+              {
+                role: "user",
+                content: [
+                  {
+                    type: "text",
+                    text: prompt,
                   },
-                },
-              ],
-            },
-          ],
-          temperature: 0.2,
-        });
+                  {
+                    type: "image_url",
+                    image_url: {
+                      url: `data:${mimeType};base64,${base64}`,
+                    },
+                  },
+                ],
+              },
+            ],
+            temperature: 0.2,
+          }
+        );
     }
 
     // ==================================================
@@ -392,16 +484,18 @@ OUTPUT FORMAT:
 
     else {
       aiResponse =
-        await openai.chat.completions.create({
-          model: "gpt-4o-mini",
-          messages: [
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
-          temperature: 0.2,
-        });
+        await openai.chat.completions.create(
+          {
+            model: "gpt-4o-mini",
+            messages: [
+              {
+                role: "user",
+                content: prompt,
+              },
+            ],
+            temperature: 0.2,
+          }
+        );
     }
 
     // ==================================================
@@ -409,8 +503,8 @@ OUTPUT FORMAT:
     // ==================================================
 
     const rawResponse =
-      aiResponse.choices[0].message
-        .content || "{}";
+      aiResponse.choices[0]
+        ?.message?.content || "{}";
 
     console.log(
       "🤖 RAW AI RESPONSE:",
@@ -420,12 +514,24 @@ OUTPUT FORMAT:
     let result: any;
 
     try {
-      result = JSON.parse(rawResponse);
-    } catch {
+      result = JSON.parse(
+        rawResponse
+      );
+    } catch (err) {
+      console.error(
+        "❌ JSON Parse Error:",
+        err
+      );
+
       result = {
         marks: 0,
         feedback:
           "AI response parsing failed",
+        mistakes: [],
+        knowledge_analysis: {
+          strong_areas: [],
+          weak_areas: [],
+        },
       };
     }
 
@@ -435,7 +541,9 @@ OUTPUT FORMAT:
 
     const finalMarks = Math.min(
       Math.max(
-        Number(result.marks || 0),
+        Number(
+          result.marks || 0
+        ),
         0
       ),
       totalMaxMarks
@@ -447,49 +555,143 @@ OUTPUT FORMAT:
     );
 
     // ==================================================
-    // ✅ SAVE EVALUATION
+    // ✅ SAVE TO RESULTS TABLE
     // ==================================================
 
-    const { error: updateError } =
-      await supabase
-        .from("submissions")
-        .update({
-          total_score: finalMarks,
+    const {
+      error: resultInsertError,
+    } = await supabase
+      .from("results")
+      .upsert([
+        {
+          submission_id:
+            submission.id,
+
+          exam_id:
+            submission.exam_id,
+
+          student_id:
+            submission.student_id,
+
+          score: finalMarks,
+
+          total_marks:
+            totalMaxMarks,
+
           feedback:
             result.feedback || "",
-          status: "evaluated",
-        })
-        .eq("id", submission_id);
 
-    if (updateError) {
-      console.error(updateError);
+          mistakes:
+            result.mistakes || [],
+
+          strong_areas:
+            result
+              ?.knowledge_analysis
+              ?.strong_areas || [],
+
+          weak_areas:
+            result
+              ?.knowledge_analysis
+              ?.weak_areas || [],
+
+          evaluated_at:
+            new Date().toISOString(),
+        },
+      ]);
+
+    if (resultInsertError) {
+      console.error(
+        "❌ Result Insert Error:",
+        resultInsertError
+      );
 
       return NextResponse.json(
         {
           error:
-            "Failed to save evaluation",
+            "Failed to save result",
         },
-        { status: 500 }
+        {
+          status: 500,
+        }
       );
     }
 
     // ==================================================
-    // ✅ RETURN RESPONSE
+    // ✅ UPDATE SUBMISSION
+    // ==================================================
+
+    const {
+      error: updateError,
+    } = await supabase
+      .from("submissions")
+      .update({
+        total_score:
+          finalMarks,
+
+        feedback:
+          result.feedback || "",
+
+        status:
+          "evaluated",
+
+        evaluated_at:
+          new Date().toISOString(),
+      })
+      .eq("id", submission_id);
+
+    if (updateError) {
+      console.error(
+        "❌ Submission Update Error:",
+        updateError
+      );
+
+      return NextResponse.json(
+        {
+          error:
+            "Failed to update submission",
+        },
+        {
+          status: 500,
+        }
+      );
+    }
+
+    // ==================================================
+    // ✅ SUCCESS RESPONSE
     // ==================================================
 
     return NextResponse.json({
       success: true,
+
       result: {
         marks: finalMarks,
-        total_marks: totalMaxMarks,
+
+        total_marks:
+          totalMaxMarks,
+
         feedback:
           result.feedback || "",
+
+        mistakes:
+          result.mistakes || [],
+
+        strong_areas:
+          result
+            ?.knowledge_analysis
+            ?.strong_areas || [],
+
+        weak_areas:
+          result
+            ?.knowledge_analysis
+            ?.weak_areas || [],
       },
 
       submission: {
         id: submission.id,
+
         answer_file_url:
           submission.answer_file_url,
+
         status: "evaluated",
       },
     });
@@ -505,7 +707,9 @@ OUTPUT FORMAT:
           err.message ||
           "Evaluation failed",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }

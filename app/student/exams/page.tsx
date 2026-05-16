@@ -59,44 +59,166 @@ export default function StudentExams() {
   }
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-      <h1 className="text-3xl font-bold mb-6">📝 Available Exams</h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-6">
+      {/* HEADER */}
+      <div className="mb-10">
+        <div className="flex items-center gap-4 mb-3">
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg">
+            <span className="text-2xl">📝</span>
+          </div>
 
-      {/* ❌ Empty State */}
+          <div>
+            <h1 className="text-4xl font-bold text-slate-800">
+              Available Exams
+            </h1>
+
+            <p className="text-slate-500 mt-1 text-lg">
+              Attend your assigned exams and track your performance.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* EMPTY STATE */}
       {exams.length === 0 ? (
-        <div className="bg-white p-6 rounded-xl shadow text-center">
-          <p className="text-gray-500">No exams available</p>
+        <div className="bg-white/70 backdrop-blur-xl border border-white/40 shadow-2xl rounded-3xl p-12 text-center">
+          <div className="w-24 h-24 mx-auto rounded-full bg-blue-100 flex items-center justify-center text-5xl mb-6">
+            📄
+          </div>
+
+          <h2 className="text-2xl font-bold text-slate-700">
+            No Exams Available
+          </h2>
+
+          <p className="text-slate-500 mt-3 max-w-md mx-auto">
+            Your teacher hasn’t assigned any exams yet.
+            Please check back later.
+          </p>
         </div>
       ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-7">
           {exams.map((exam: any) => (
             <div
               key={exam.id}
-              className="bg-white p-5 rounded-xl shadow hover:shadow-md transition"
+              className="
+              group
+              relative
+              overflow-hidden
+              rounded-3xl
+              bg-white/70
+              backdrop-blur-xl
+              border border-white/40
+              shadow-xl
+              hover:shadow-2xl
+              hover:-translate-y-2
+              transition-all
+              duration-300
+            "
             >
-              <h2 className="text-xl font-semibold">
-                {exam.title || "Untitled Exam"}
-              </h2>
+              {/* TOP GLOW */}
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-indigo-500/5 to-cyan-400/10 opacity-0 group-hover:opacity-100 transition duration-500" />
 
-              <p className="text-gray-600 mt-2 text-sm">
-                {exam.description || "No description"}
-              </p>
+              {/* CONTENT */}
+              <div className="relative p-6">
+                {/* HEADER */}
+                <div className="flex items-start justify-between mb-5">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg text-white text-2xl">
+                      📘
+                    </div>
 
-              {/* 🔥 DEBUG INFO (optional remove later) */}
-              <p className="text-xs text-gray-400 mt-2">
-                ID: {exam.id}
-              </p>
+                    <div>
+                      <h2 className="text-2xl font-bold text-slate-800 line-clamp-1">
+                        {exam.title || "Untitled Exam"}
+                      </h2>
 
-              <button
-                onClick={() => handleStartExam(exam)}
-                className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
-              >
-                Start Exam
-              </button>
+                      <p className="text-slate-400 text-sm mt-1">
+                        Exam Portal
+                      </p>
+                    </div>
+                  </div>
+
+                  <div
+                    className={`px-3 py-1 rounded-full text-xs font-semibold ${exam.is_completed
+                        ? "bg-gray-200 text-gray-700"
+                        : "bg-green-100 text-green-700"
+                      }`}
+                  >
+                    {exam.is_completed ? "Completed" : "Active"}
+                  </div>
+                </div>
+
+                  {/* DESCRIPTION */}
+                  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 mb-5">
+                    <p className="text-slate-600 text-sm leading-relaxed line-clamp-3">
+                      {exam.description ||
+                        "No description available for this exam."}
+                    </p>
+                  </div>
+
+                  {/* EXAM INFO */}
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
+                      <p className="text-xs text-blue-500 font-medium mb-1">
+                        Duration
+                      </p>
+
+                      <h3 className="text-lg font-bold text-blue-700">
+                        {exam.duration || 10} mins
+                      </h3>
+                    </div>
+
+                    {/* <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4">
+                  <p className="text-xs text-indigo-500 font-medium mb-1">
+                    Questions
+                  </p>
+
+                  <h3 className="text-lg font-bold text-indigo-700">
+                    {exam.question_count || 0}
+                  </h3>
+                </div> */}
+                  </div>
+
+                  {/* FOOTER */}
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="text-xs text-slate-400 truncate max-w-[120px]">
+                      ID: {exam.id}
+                    </div>
+
+                    <button
+                      onClick={() => handleStartExam(exam)}
+                      className="
+                    relative
+                    overflow-hidden
+                    px-5
+                    py-3
+                    rounded-2xl
+                    bg-gradient-to-r
+                    from-blue-600
+                    to-indigo-600
+                    text-white
+                    font-semibold
+                    shadow-lg
+                    hover:shadow-blue-300/50
+                    hover:scale-105
+                    active:scale-95
+                    transition-all
+                    duration-300
+                  "
+                    >
+                      <span className="relative z-10 flex items-center gap-2">
+                        Start Exam
+                        <span>🚀</span>
+                      </span>
+
+                      <div className="absolute inset-0 bg-white/10 opacity-0 hover:opacity-100 transition" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+        ))}
             </div>
-          ))}
+          )}
         </div>
-      )}
-    </div>
-  );
+      );
 }
