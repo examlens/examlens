@@ -99,6 +99,8 @@ export default function AuthPage() {
         await supabase.from("profiles").upsert({
           id: user.id,
           role: "student",
+          name,
+          email,
         });
 
         alert("✅ Signup successful. Please login");

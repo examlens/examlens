@@ -10,7 +10,10 @@ export async function POST(req: Request) {
   try {
     const { submission_id } = await req.json();
 
-    console.log("📥 submission_id:", submission_id);
+    console.log(
+      "📥 submission_id:",
+      submission_id
+    );
 
     // ==================================================
     // ✅ VALIDATION
@@ -19,7 +22,8 @@ export async function POST(req: Request) {
     if (!submission_id) {
       return NextResponse.json(
         {
-          error: "submission_id required",
+          error:
+            "submission_id required",
         },
         {
           status: 400,
@@ -48,7 +52,10 @@ export async function POST(req: Request) {
       .eq("id", submission_id)
       .single();
 
-    if (submissionError || !submission) {
+    if (
+      submissionError ||
+      !submission
+    ) {
       console.error(
         "❌ Submission Error:",
         submissionError
@@ -56,7 +63,8 @@ export async function POST(req: Request) {
 
       return NextResponse.json(
         {
-          error: "Submission not found",
+          error:
+            "Submission not found",
         },
         {
           status: 404,
@@ -73,10 +81,13 @@ export async function POST(req: Request) {
     // ✅ CHECK FILE
     // ==================================================
 
-    if (!submission.answer_file_url) {
+    if (
+      !submission.answer_file_url
+    ) {
       return NextResponse.json(
         {
-          error: "No answer file uploaded",
+          error:
+            "No answer file uploaded",
         },
         {
           status: 400,
@@ -159,16 +170,25 @@ export async function POST(req: Request) {
 
     const questions =
       questionData?.map(
-        (q: any, index: number) => {
+        (
+          q: any,
+          index: number
+        ) => {
           const questionObj =
-            Array.isArray(q.questions)
+            Array.isArray(
+              q.questions
+            )
               ? q.questions[0]
               : q.questions;
 
           return {
-            question_number: index + 1,
+            question_number:
+              index + 1,
+
             question:
-              questionObj?.question || "",
+              questionObj?.question ||
+              "",
+
             marks: Number(
               questionObj?.marks || 0
             ),
@@ -265,7 +285,9 @@ export async function POST(req: Request) {
             data: referenceFile,
           } = await supabase.storage
             .from("exam-answers")
-            .download(referencePath);
+            .download(
+              referencePath
+            );
 
           if (referenceFile) {
             const referenceBuffer =
@@ -289,7 +311,8 @@ export async function POST(req: Request) {
               );
 
             referenceText =
-              parsedReference.text || "";
+              parsedReference.text ||
+              "";
 
             console.log(
               "📘 Reference Text Extracted"
@@ -321,7 +344,9 @@ export async function POST(req: Request) {
     if (isPDF) {
       try {
         const pdfParseModule =
-          await import("pdf-parse");
+          await import(
+            "pdf-parse"
+          );
 
         const pdfParse =
           (pdfParseModule as any)
@@ -435,10 +460,6 @@ OUTPUT FORMAT:
 
     let aiResponse: any;
 
-    // ==================================================
-    // ✅ IMAGE FLOW
-    // ==================================================
-
     if (!isPDF) {
       const base64 =
         answerBuffer.toString(
@@ -455,17 +476,23 @@ OUTPUT FORMAT:
       aiResponse =
         await openai.chat.completions.create(
           {
-            model: "gpt-4o-mini",
+            model:
+              "gpt-4o-mini",
+
             messages: [
               {
                 role: "user",
+
                 content: [
                   {
                     type: "text",
                     text: prompt,
                   },
+
                   {
-                    type: "image_url",
+                    type:
+                      "image_url",
+
                     image_url: {
                       url: `data:${mimeType};base64,${base64}`,
                     },
@@ -473,26 +500,24 @@ OUTPUT FORMAT:
                 ],
               },
             ],
+
             temperature: 0.2,
           }
         );
-    }
-
-    // ==================================================
-    // ✅ PDF FLOW
-    // ==================================================
-
-    else {
+    } else {
       aiResponse =
         await openai.chat.completions.create(
           {
-            model: "gpt-4o-mini",
+            model:
+              "gpt-4o-mini",
+
             messages: [
               {
                 role: "user",
                 content: prompt,
               },
             ],
+
             temperature: 0.2,
           }
         );
@@ -504,7 +529,8 @@ OUTPUT FORMAT:
 
     const rawResponse =
       aiResponse.choices[0]
-        ?.message?.content || "{}";
+        ?.message?.content ||
+      "{}";
 
     console.log(
       "🤖 RAW AI RESPONSE:",
@@ -525,9 +551,12 @@ OUTPUT FORMAT:
 
       result = {
         marks: 0,
+
         feedback:
           "AI response parsing failed",
+
         mistakes: [],
+
         knowledge_analysis: {
           strong_areas: [],
           weak_areas: [],
@@ -555,6 +584,24 @@ OUTPUT FORMAT:
     );
 
     // ==================================================
+    // ✅ CALCULATE PERCENTAGE
+    // ==================================================
+
+    const percentage =
+      totalMaxMarks > 0
+        ? Math.round(
+            (finalMarks /
+              totalMaxMarks) *
+              100
+          )
+        : 0;
+
+    console.log(
+      "📊 Percentage:",
+      percentage
+    );
+
+    // ==================================================
     // ✅ SAVE TO RESULTS TABLE
     // ==================================================
 
@@ -573,10 +620,13 @@ OUTPUT FORMAT:
           student_id:
             submission.student_id,
 
-          score: finalMarks,
-
           total_marks:
             totalMaxMarks,
+
+          score: finalMarks,
+
+          percentage:
+            percentage,
 
           feedback:
             result.feedback || "",
@@ -587,15 +637,14 @@ OUTPUT FORMAT:
           strong_areas:
             result
               ?.knowledge_analysis
-              ?.strong_areas || [],
+              ?.strong_areas ||
+            [],
 
           weak_areas:
             result
               ?.knowledge_analysis
-              ?.weak_areas || [],
-
-          evaluated_at:
-            new Date().toISOString(),
+              ?.weak_areas ||
+            [],
         },
       ]);
 
@@ -608,7 +657,7 @@ OUTPUT FORMAT:
       return NextResponse.json(
         {
           error:
-            "Failed to save result",
+            resultInsertError.message,
         },
         {
           status: 500,
@@ -657,6 +706,202 @@ OUTPUT FORMAT:
     }
 
     // ==================================================
+    // ✅ FETCH ALL RESULTS
+    // ==================================================
+
+    const {
+      data: allResults,
+      error: allResultsError,
+    } = await supabase
+      .from("results")
+      .select(`
+        score,
+        percentage
+      `)
+      .eq(
+        "student_id",
+        submission.student_id
+      );
+
+    if (allResultsError) {
+      console.error(
+        "❌ Results Fetch Error:",
+        allResultsError
+      );
+    }
+
+    // ==================================================
+    // ✅ CALCULATE AVERAGE PERCENTAGE
+    // ==================================================
+
+    let averagePercentage = 0;
+
+    if (
+      allResults &&
+      allResults.length > 0
+    ) {
+      const totalPercentage =
+        allResults.reduce(
+          (
+            sum: number,
+            item: any
+          ) =>
+            sum +
+            Number(
+              item.percentage || 0
+            ),
+          0
+        );
+
+      averagePercentage =
+        Math.round(
+          totalPercentage /
+            allResults.length
+        );
+    }
+
+    console.log(
+      "📊 Average Percentage:",
+      averagePercentage
+    );
+
+    // ==================================================
+    // ✅ TOTAL SUBMISSIONS
+    // ==================================================
+
+    const {
+      count: totalSubmissionCount,
+      error:
+        totalSubmissionError,
+    } = await supabase
+      .from("submissions")
+      .select("*", {
+        count: "exact",
+        head: true,
+      })
+      .eq(
+        "student_id",
+        submission.student_id
+      );
+
+    if (totalSubmissionError) {
+      console.error(
+        "❌ Submission Count Error:",
+        totalSubmissionError
+      );
+    }
+
+    // ==================================================
+    // ✅ TOTAL EVALUATED
+    // ==================================================
+
+    const {
+      count: totalEvaluatedCount,
+      error:
+        totalEvaluatedError,
+    } = await supabase
+      .from("submissions")
+      .select("*", {
+        count: "exact",
+        head: true,
+      })
+      .eq(
+        "student_id",
+        submission.student_id
+      )
+      .eq("status", "evaluated");
+
+    if (totalEvaluatedError) {
+      console.error(
+        "❌ Evaluated Count Error:",
+        totalEvaluatedError
+      );
+    }
+
+    console.log(
+      "📘 Total Submissions:",
+      totalSubmissionCount
+    );
+
+    console.log(
+      "✅ Total Evaluated:",
+      totalEvaluatedCount
+    );
+
+    // ==================================================
+    // ✅ ATTENDANCE %
+    // ==================================================
+
+    const attendancePercentage =
+      totalSubmissionCount &&
+      totalSubmissionCount > 0
+        ? Math.round(
+            (Number(
+              totalEvaluatedCount ||
+                0
+            ) /
+              Number(
+                totalSubmissionCount
+              )) *
+              100
+          )
+        : 0;
+
+    console.log(
+      "🎓 Attendance:",
+      attendancePercentage
+    );
+
+    // ==================================================
+    // ✅ UPDATE PROFILE TABLE
+    // ==================================================
+
+    const profilePayload = {
+      attendance:
+        attendancePercentage,
+
+      avg_score:
+        averagePercentage,
+
+      evaluation_status:
+        totalEvaluatedCount &&
+        totalEvaluatedCount > 0
+          ? "evaluated"
+          : "pending",
+    };
+
+    console.log(
+      "🛠 Updating Profile:",
+      profilePayload
+    );
+
+    console.log(
+      "🎯 Student ID:",
+      submission.student_id
+    );
+
+    const {
+      data: updatedProfile,
+      error: profileUpdateError,
+    } = await supabase
+      .from("profiles")
+      .update(profilePayload)
+      .eq("id", submission.student_id)
+      .select();
+
+    if (profileUpdateError) {
+      console.error(
+        "❌ Profile Update Error:",
+        profileUpdateError
+      );
+    } else {
+      console.log(
+        "✅ Profile Updated:",
+        updatedProfile
+      );
+    }
+
+    // ==================================================
     // ✅ SUCCESS RESPONSE
     // ==================================================
 
@@ -669,6 +914,9 @@ OUTPUT FORMAT:
         total_marks:
           totalMaxMarks,
 
+        percentage:
+          percentage,
+
         feedback:
           result.feedback || "",
 
@@ -678,12 +926,14 @@ OUTPUT FORMAT:
         strong_areas:
           result
             ?.knowledge_analysis
-            ?.strong_areas || [],
+            ?.strong_areas ||
+          [],
 
         weak_areas:
           result
             ?.knowledge_analysis
-            ?.weak_areas || [],
+            ?.weak_areas ||
+          [],
       },
 
       submission: {
