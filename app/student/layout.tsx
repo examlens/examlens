@@ -99,11 +99,10 @@ export default function StudentLayout({
                 href={item.path}
               >
                 <div
-                  className={`px-4 py-3 rounded-lg cursor-pointer transition-all ${
-                    path === item.path
+                  className={`px-4 py-3 rounded-lg cursor-pointer transition-all ${path === item.path
                       ? "bg-orange-600 text-white"
                       : "text-gray-300 hover:bg-gray-800"
-                  }`}
+                    }`}
                 >
                   {item.name}
                 </div>
@@ -127,61 +126,180 @@ export default function StudentLayout({
       <div className="flex-1 flex flex-col ml-64 h-screen overflow-y-auto">
 
         {/* TOP BAR */}
-        <div className="sticky top-1 z-40 backdrop-blur-xl bg-black border-b border-white/30 shadow-sm border-rounded-lg mx-4 mt-4">
-          <div className="px-6 py-4 flex items-center justify-between">
+        <div className="sticky top-3 z-50 mx-4">
+          <div
+            className="
+      relative
+      overflow-hidden
+      rounded-[30px]
+      border
+      border-orange-500/20
+      bg-gradient-to-r
+      from-black
+      via-zinc-950
+      to-black
+      shadow-[0_10px_40px_rgba(0,0,0,0.35)]
+      backdrop-blur-2xl
+    "
+          >
 
-            {/* LEFT SECTION */}
-            <div className="flex items-center gap-4">
+            {/* GLOW EFFECTS */}
 
-              {/* LOGO */}
-              <div className="w-14 h-14 rounded-2xl  flex items-center justify-center shadow-lg">
-                <span className="text-2xl text-white">
-                  🎓
-                </span>
-              </div>
+            <div className="absolute -top-16 -left-16 w-52 h-52 bg-orange-500/20 rounded-full blur-3xl" />
 
-              {/* TITLE */}
-              <div>
-                <h1 className="text-2xl font-bold bg-orange-500 bg-clip-text text-transparent">
-                  Student Dashboard
-                </h1>
+            <div className="absolute top-0 right-0 w-72 h-72 bg-orange-400/10 rounded-full blur-3xl" />
 
-                <p className="text-sm text-slate-500 mt-1">
-                  Track exams, results,
-                  analytics and performance
-                </p>
-              </div>
-            </div>
+            {/* CONTENT */}
 
-            {/* RIGHT SECTION */}
-            <div className="flex items-center gap-4">
+            <div className="relative z-10 px-6 lg:px-8 py-5 flex items-center justify-between">
 
-              {/* STATUS */}
-              <div className="hidden md:flex items-center gap-2 bg-green-50 border border-green-100 px-4 py-2 rounded-2xl">
-                <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
+              {/* ===================================================== */}
+              {/* LEFT */}
+              {/* ===================================================== */}
 
-                <span className="text-sm font-medium text-green-700">
-                  Online
-                </span>
-              </div>
+              <div className="flex items-center gap-5">
 
-              {/* PROFILE */}
-              <div className="flex items-center gap-3 bg-white border border-slate-200 px-4 py-2 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer">
+                {/* LOGO */}
 
-                {/* AVATAR */}
-                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg uppercase">
-                  {studentName.charAt(0)}
+                <div
+                  className="
+            relative
+            w-16
+            h-16
+            rounded-3xl
+            bg-gradient-to-br
+            from-orange-400
+            via-orange-500
+            to-orange-600
+            flex
+            items-center
+            justify-center
+            shadow-[0_8px_25px_rgba(249,115,22,0.45)]
+          "
+                >
+
+                  <div className="absolute inset-0 rounded-3xl bg-white/10 backdrop-blur-xl" />
+
+                  <span className="relative text-3xl">
+                    🎓
+                  </span>
                 </div>
 
-                {/* USER INFO */}
-                <div className="hidden sm:block">
-                  <p className="text-sm font-semibold text-slate-800 capitalize">
-                    {studentName}
-                  </p>
+                {/* TITLE */}
 
-                  <p className="text-xs text-slate-500">
-                    Welcome back 👋
+                <div>
+                  <h1
+                    className="
+              text-3xl
+              font-black
+              tracking-tight
+              bg-gradient-to-r
+              from-orange-300
+              via-orange-400
+              to-orange-500
+              bg-clip-text
+              text-transparent
+            "
+                  >
+                    Student Dashboard
+                  </h1>
+
+                  <p className="text-sm text-zinc-400 mt-1 leading-relaxed">
+                    Monitor exams, results, attendance and academic analytics
                   </p>
+                </div>
+              </div>
+
+              {/* ===================================================== */}
+              {/* RIGHT */}
+              {/* ===================================================== */}
+
+              <div className="flex items-center gap-4">
+
+                {/* STATUS */}
+
+                <div
+                  className="
+            hidden
+            md:flex
+            items-center
+            gap-3
+            px-5
+            py-3
+            rounded-2xl
+            border
+            border-orange-500/20
+            bg-orange-500/10
+            backdrop-blur-xl
+          "
+                >
+
+                  <div className="relative flex items-center justify-center">
+                    <div className="w-3 h-3 rounded-full bg-orange-400 animate-pulse" />
+
+                    <div className="absolute w-3 h-3 rounded-full bg-orange-400 animate-ping opacity-50" />
+                  </div>
+
+                  <span className="text-sm font-semibold text-orange-300">
+                    Active Session
+                  </span>
+                </div>
+
+                {/* PROFILE */}
+
+                <div
+                  className="
+            flex
+            items-center
+            gap-4
+            rounded-2xl
+            border
+            border-white/10
+            bg-white/5
+            hover:bg-white/10
+            transition-all
+            duration-300
+            px-4
+            py-3
+            cursor-pointer
+            backdrop-blur-xl
+          "
+                >
+
+                  {/* AVATAR */}
+
+                  <div
+                    className="
+              w-12
+              h-12
+              rounded-2xl
+              bg-gradient-to-br
+              from-orange-400
+              to-orange-600
+              flex
+              items-center
+              justify-center
+              text-white
+              font-black
+              text-lg
+              uppercase
+              shadow-lg
+            "
+                  >
+                    {studentName.charAt(0)}
+                  </div>
+
+                  {/* INFO */}
+
+                  <div className="hidden sm:block">
+                    <p className="text-sm font-bold text-white capitalize">
+                      {studentName}
+                    </p>
+
+                    <p className="text-xs text-zinc-400 mt-1">
+                      Welcome back 👋
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

@@ -59,166 +59,91 @@ export default function StudentExams() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-6">
-      {/* HEADER */}
-      <div className="mb-10">
-        <div className="flex items-center gap-4 mb-3">
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg">
-            <span className="text-2xl">📝</span>
-          </div>
-
+  <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 p-6">
+    {/* HEADER */}
+    <div className="mb-12">
+      <div className="max-w-5xl mx-auto">
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-slate-800">
+            <h1 className="text-5xl font-bold text-slate-800 tracking-tight">
               Available Exams
             </h1>
-
-            <p className="text-slate-500 mt-1 text-lg">
-              Attend your assigned exams and track your performance.
+            <p className="text-slate-600 mt-3 text-xl">
+              Choose an exam to begin. Good luck!
             </p>
+          </div>
+          <div className="hidden md:block text-right">
+            <div className="text-sm text-slate-500">Total Available</div>
+            <div className="text-4xl font-semibold text-orange-600">{exams.length}</div>
           </div>
         </div>
       </div>
+    </div>
 
-      {/* EMPTY STATE */}
-      {exams.length === 0 ? (
-        <div className="bg-white/70 backdrop-blur-xl border border-white/40 shadow-2xl rounded-3xl p-12 text-center">
-          <div className="w-24 h-24 mx-auto rounded-full bg-blue-100 flex items-center justify-center text-5xl mb-6">
-            📄
-          </div>
-
-          <h2 className="text-2xl font-bold text-slate-700">
-            No Exams Available
-          </h2>
-
-          <p className="text-slate-500 mt-3 max-w-md mx-auto">
-            Your teacher hasn’t assigned any exams yet.
-            Please check back later.
-          </p>
+    {/* EMPTY STATE */}
+    {exams.length === 0 ? (
+      <div className="max-w-md mx-auto bg-white rounded-3xl shadow-xl p-12 text-center border border-orange-100">
+        <div className="w-20 h-20 mx-auto bg-orange-100 rounded-full flex items-center justify-center mb-6">
+          <span className="text-4xl">📋</span>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-7">
+        <h2 className="text-2xl font-semibold text-slate-700">No Exams Available</h2>
+        <p className="text-slate-500 mt-3">
+          Your instructor hasn’t assigned any exams yet. Please check back later.
+        </p>
+      </div>
+    ) : (
+      <div className="max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
           {exams.map((exam: any) => (
             <div
               key={exam.id}
-              className="
-              group
-              relative
-              overflow-hidden
-              rounded-3xl
-              bg-white/70
-              backdrop-blur-xl
-              border border-white/40
-              shadow-xl
-              hover:shadow-2xl
-              hover:-translate-y-2
-              transition-all
-              duration-300
-            "
+              className="group bg-white rounded-3xl shadow-lg hover:shadow-2xl border border-orange-100 hover:border-orange-200 overflow-hidden transition-all duration-300 flex flex-col"
             >
-              {/* TOP GLOW */}
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-indigo-500/5 to-cyan-400/10 opacity-0 group-hover:opacity-100 transition duration-500" />
+              {/* Top Accent Bar */}
+              <div className="h-2 bg-gradient-to-r from-orange-500 to-amber-500" />
 
-              {/* CONTENT */}
-              <div className="relative p-6">
-                {/* HEADER */}
-                <div className="flex items-start justify-between mb-5">
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg text-white text-2xl">
-                      📘
-                    </div>
-
-                    <div>
-                      <h2 className="text-2xl font-bold text-slate-800 line-clamp-1">
-                        {exam.title || "Untitled Exam"}
-                      </h2>
-
-                      <p className="text-slate-400 text-sm mt-1">
-                        Exam Portal
-                      </p>
-                    </div>
-                  </div>
-
-                  <div
-                    className={`px-3 py-1 rounded-full text-xs font-semibold ${exam.is_completed
-                        ? "bg-gray-200 text-gray-700"
-                        : "bg-green-100 text-green-700"
-                      }`}
-                  >
-                    {exam.is_completed ? "Completed" : "Active"}
-                  </div>
+              <div className="p-8 flex-1 flex flex-col">
+                {/* Title */}
+                <div className="mb-6">
+                  <h2 className="text-2xl font-bold text-slate-800 leading-tight line-clamp-2 group-hover:text-orange-600 transition-colors">
+                    {exam.title || "Untitled Exam"}
+                  </h2>
                 </div>
 
-                  {/* DESCRIPTION */}
-                  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 mb-5">
-                    <p className="text-slate-600 text-sm leading-relaxed line-clamp-3">
-                      {exam.description ||
-                        "No description available for this exam."}
-                    </p>
-                  </div>
-
-                  {/* EXAM INFO */}
-                  <div className="grid grid-cols-2 gap-4 mb-6">
-                    <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
-                      <p className="text-xs text-blue-500 font-medium mb-1">
-                        Duration
-                      </p>
-
-                      <h3 className="text-lg font-bold text-blue-700">
-                        {exam.duration || 10} mins
-                      </h3>
-                    </div>
-
-                    {/* <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4">
-                  <p className="text-xs text-indigo-500 font-medium mb-1">
-                    Questions
+                {/* Description */}
+                <div className="flex-1 mb-8">
+                  <p className="text-slate-600 leading-relaxed line-clamp-4 text-[15px]">
+                    {exam.description || "No description provided for this exam."}
                   </p>
+                </div>
 
-                  <h3 className="text-lg font-bold text-indigo-700">
-                    {exam.question_count || 0}
-                  </h3>
-                </div> */}
-                  </div>
-
-                  {/* FOOTER */}
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="text-xs text-slate-400 truncate max-w-[120px]">
-                      ID: {exam.id}
+                {/* Duration */}
+                <div className="bg-orange-50 border border-orange-100 rounded-2xl p-5 mb-8">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs uppercase tracking-widest font-semibold text-orange-600">Duration</p>
+                      <p className="text-3xl font-bold text-orange-700 mt-1">
+                        {exam.duration || 10} <span className="text-xl font-medium">mins</span>
+                      </p>
                     </div>
-
-                    <button
-                      onClick={() => handleStartExam(exam)}
-                      className="
-                    relative
-                    overflow-hidden
-                    px-5
-                    py-3
-                    rounded-2xl
-                    bg-gradient-to-r
-                    from-blue-600
-                    to-indigo-600
-                    text-white
-                    font-semibold
-                    shadow-lg
-                    hover:shadow-blue-300/50
-                    hover:scale-105
-                    active:scale-95
-                    transition-all
-                    duration-300
-                  "
-                    >
-                      <span className="relative z-10 flex items-center gap-2">
-                        Start Exam
-                        <span>🚀</span>
-                      </span>
-
-                      <div className="absolute inset-0 bg-white/10 opacity-0 hover:opacity-100 transition" />
-                    </button>
+                    <div className="text-5xl text-orange-200 group-hover:text-orange-300 transition-colors">⏱</div>
                   </div>
                 </div>
+
+                {/* Start Button */}
+                <button
+                  onClick={() => handleStartExam(exam)}
+                  className="mt-auto w-full py-4 rounded-2xl bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-semibold text-lg shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/40 transition-all duration-200 flex items-center justify-center gap-3 group-hover:scale-[1.02]"
+                >
+                  Start Exam
+                  <span className="text-xl transition-transform group-hover:translate-x-1">→</span>
+                </button>
               </div>
-        ))}
             </div>
-          )}
+          ))}
         </div>
-      );
+      </div>
+    )}
+  </div>
+);
 }

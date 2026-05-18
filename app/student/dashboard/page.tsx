@@ -125,289 +125,285 @@ export default function StudentDashboard() {
   const results =
     data?.results || [];
 
-  const upcomingExams =
-    data?.upcomingExams || [];
+  // Ensure exams are ordered by completion date so the first completed exam
+  // appears first (Exam #1)
+  const sortedResults = [...results].sort((a: any, b: any) => {
+    const da = a.completed_at ? new Date(a.completed_at).getTime() : 0;
+    const db = b.completed_at ? new Date(b.completed_at).getTime() : 0;
+    return da - db;
+  });
+
+  // const upcomingExams =
+  //   data?.upcomingExams || [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-slate-200 p-6">
+  <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 p-4 md:p-6">
 
-      {/* ===================================================== */}
+    {/* ===================================================== */}
+    {/* HEADER */}
+    {/* ===================================================== */}
+
+    <div className="relative overflow-hidden rounded-[32px] bg-white p-8 mb-8 shadow-xl">
+
+      <div className="absolute top-0 right-0 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
+
+      <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+
+        <div>
+          <p className="uppercase tracking-[0.25em] text-orange-800 text-xs font-semibold">
+            Student Dashboard
+          </p>
+
+          <h1 className="text-4xl font-black text-black mt-3">
+            WELCOME BACK
+          </h1>
+
+          <p className="text-slate-500 mt-3 max-w-2xl leading-relaxed">
+            Monitor your academic growth, performance insights,
+            attendance progress and completed evaluations.
+          </p>
+        </div>
+
+        <div className="bg-white/15 backdrop-blur-xl border border-white/20 rounded-3xl px-6 py-5 min-w-[220px]">
+          <p className="text-browntext-sm uppercase tracking-wider">
+            Exams Evaluated
+          </p>
+
+          <h2 className="text-5xl font-black text-orange-500 mt-2">
+            {results.length}
+          </h2>
+        </div>
+      </div>
+    </div>
+
+    {/* ===================================================== */}
+    {/* STATS */}
+    {/* ===================================================== */}
+
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+
+      {/* CARD */}
+
+      <div className="group relative overflow-hidden rounded-[30px] bg-white border border-orange-100 p-6 shadow-sm hover:shadow-xl transition-all duration-300">
+
+        <div className="absolute top-0 right-0 w-40 h-40 bg-orange-100 rounded-full blur-3xl opacity-50" />
+
+        <div className="relative z-10">
+          <p className="text-sm font-semibold tracking-wide text-orange-500 uppercase">
+            Total Submissions
+          </p>
+
+          <h2 className="text-5xl font-black text-slate-900 mt-5">
+            {data?.submissionCount || 0}
+          </h2>
+
+          <div className="mt-6 w-full h-2 bg-orange-100 rounded-full overflow-hidden">
+            <div className="h-full w-[85%] bg-orange-500 rounded-full" />
+          </div>
+        </div>
+      </div>
+
+      {/* CARD */}
+
+      <div className="group relative overflow-hidden rounded-[30px] bg-white border border-orange-100 p-6 shadow-sm hover:shadow-xl transition-all duration-300">
+
+        <div className="absolute bottom-0 left-0 w-40 h-40 bg-orange-100 rounded-full blur-3xl opacity-50" />
+
+        <div className="relative z-10">
+          <p className="text-sm font-semibold tracking-wide text-orange-500 uppercase">
+            Average Score
+          </p>
+
+          <h2 className="text-5xl font-black text-slate-900 mt-5">
+            {profile?.avg_score || 0}%
+          </h2>
+
+          <div className="mt-6 w-full h-2 bg-orange-100 rounded-full overflow-hidden">
+
+            <div
+              className="h-full bg-orange-500 rounded-full"
+              style={{
+                width: `${profile?.avg_score || 0}%`,
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* CARD */}
+
+      <div className="group relative overflow-hidden rounded-[30px] bg-white border border-orange-100 p-6 shadow-sm hover:shadow-xl transition-all duration-300">
+
+        <div className="absolute top-10 left-10 w-40 h-40 bg-orange-100 rounded-full blur-3xl opacity-50" />
+
+        <div className="relative z-10">
+          <p className="text-sm font-semibold tracking-wide text-orange-500 uppercase">
+            Attendance
+          </p>
+
+          <h2 className="text-5xl font-black text-slate-900 mt-5">
+            {profile?.attendance || 0}%
+          </h2>
+
+          <div className="mt-6 w-full h-2 bg-orange-100 rounded-full overflow-hidden">
+
+            <div
+              className="h-full bg-orange-500 rounded-full"
+              style={{
+                width: `${profile?.attendance || 0}%`,
+              }}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* ===================================================== */}
+    {/* PERFORMANCE SECTION */}
+    {/* ===================================================== */}
+
+    <div className="rounded-[36px] bg-white border border-orange-100 shadow-xl overflow-hidden">
+
       {/* HEADER */}
-      {/* ===================================================== */}
 
-      <div className="mb-8">
-        <h1 className="text-4xl font-black text-slate-800">
-          Welcome Back 👋
-        </h1>
+      <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-8 py-6">
 
-        <p className="text-slate-500 mt-2 text-lg">
-          Track your exams,
-          attendance and
-          performance analytics
-        </p>
-      </div>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
 
-      {/* ===================================================== */}
-      {/* STATS */}
-      {/* ===================================================== */}
-
-      <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
-
-        <StatCard
-          icon={<BookOpen />}
-          title="Submissions"
-          value={
-            data?.submissionCount ||
-            0
-          }
-        />
-
-        <StatCard
-          icon={<Trophy />}
-          title="Average Score"
-          value={`${profile?.avg_score || 0}%`}
-        />
-
-        <StatCard
-          icon={<Activity />}
-          title="Attendance"
-          value={`${profile?.attendance || 0}%`}
-        />
-
-        <StatCard
-          icon={<Calendar />}
-          title="Upcoming Exams"
-          value={
-            upcomingExams.length
-          }
-        />
-      </div>
-
-      {/* ===================================================== */}
-      {/* PERFORMANCE OVERVIEW */}
-      {/* ===================================================== */}
-
-      <div className="bg-white rounded-[32px] p-6 shadow-sm border border-slate-200 mb-8">
-
-        <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-black text-slate-800">
+            <h2 className="text-3xl font-black text-white">
               Performance Overview
             </h2>
 
-            <p className="text-slate-500 mt-1">
-              Exam-wise score analysis
+            <p className="text-orange-100 mt-2">
+              Detailed exam-wise performance analytics
             </p>
           </div>
 
-          <div className="bg-blue-100 text-blue-700 px-4 py-2 rounded-2xl font-bold">
-            {
-              results.length
-            }{" "}
-            Exams
+          <div className="bg-white/15 backdrop-blur-xl border border-white/20 rounded-2xl px-5 py-4">
+
+            <p className="text-orange-100 text-xs uppercase tracking-widest">
+              Total Results
+            </p>
+
+            <h3 className="text-3xl font-black text-white mt-1">
+              {results.length}
+            </h3>
           </div>
         </div>
+      </div>
 
-        {results.length ===
-        0 ? (
-          <div className="h-[250px] flex items-center justify-center text-slate-400 text-lg font-medium">
-            No Results Available
+      {/* BODY */}
+
+      <div className="p-6 md:p-8">
+
+        {results.length === 0 ? (
+          <div className="h-[350px] flex flex-col items-center justify-center">
+
+            <div className="w-28 h-28 rounded-full bg-orange-100 flex items-center justify-center mb-6">
+              <div className="w-14 h-14 rounded-full bg-orange-500" />
+            </div>
+
+            <h2 className="text-2xl font-bold text-slate-700">
+              No Results Available
+            </h2>
+
+            <p className="text-slate-500 mt-3 text-center max-w-md">
+              Your evaluated exams will appear here once the
+              assessment is completed.
+            </p>
           </div>
         ) : (
           <div className="space-y-6">
 
-            {results.map(
+            {sortedResults.map(
               (
                 result: any,
                 index: number
               ) => (
                 <div
                   key={result.id}
-                  className="bg-slate-50 border border-slate-200 rounded-[28px] p-5"
+                  className="relative overflow-hidden rounded-[30px] border border-orange-100 bg-gradient-to-br from-white to-orange-50 p-6 hover:shadow-xl transition-all duration-300"
                 >
 
-                  {/* TOP */}
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+                  <div className="absolute top-0 right-0 w-52 h-52 bg-orange-100 rounded-full blur-3xl opacity-40" />
 
-                    <div>
-                      <h3 className="text-xl font-black text-slate-800">
-                        {
-                          result.exam_title
-                        }
-                      </h3>
+                  <div className="relative z-10">
 
-                      <p className="text-slate-500 mt-1">
-                        Exam #{index + 1}
+                    {/* TOP */}
+
+                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5 mb-6">
+
+                      <div>
+                        {/* <p className="text-xs uppercase tracking-[0.2em] text-orange-500 font-bold">
+                          Exam #{index + 1}
+                        </p> */}
+
+                        <h3 className="text-2xl font-black text-slate-900 mt-2">
+                          {result.exam_title}
+                        </h3>
+
+                        <p className="text-slate-500 mt-3 leading-relaxed max-w-3xl">
+                          {result.feedback}
+                        </p>
+                      </div>
+
+                      <div className="min-w-[120px]">
+
+                        <div className="bg-white border border-orange-100 rounded-3xl px-5 py-4 text-center shadow-sm">
+
+                          <h2 className="text-4xl font-black text-orange-500">
+                            {result.percentage}%
+                          </h2>
+
+                          <p className="text-slate-500 text-sm mt-1">
+                            Performance
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* SCORE */}
+
+                    <div className="flex items-center justify-between mb-3">
+
+                      <p className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
+                        Score Progress
+                      </p>
+
+                      <p className="text-sm font-bold text-slate-700">
+                        {result.score}/{result.total_marks}
                       </p>
                     </div>
 
-                    <div className="text-right">
-                      <h2 className="text-3xl font-black text-blue-600">
-                        {
-                          result.percentage
-                        }
-                        %
-                      </h2>
+                    {/* BAR */}
 
-                      <p className="text-slate-500 text-sm">
-                        Performance
-                      </p>
+                    <div className="w-full h-4 bg-orange-100 rounded-full overflow-hidden">
+
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-orange-400 to-orange-600 transition-all duration-700"
+                        style={{
+                          width: `${result.percentage}%`,
+                        }}
+                      />
                     </div>
-                  </div>
 
-                  {/* POLL BAR */}
+                    {/* FOOTER */}
 
-                  <div className="w-full h-5 bg-slate-200 rounded-full overflow-hidden">
+                    <div className="mt-4 flex items-center justify-between text-sm">
 
-                    <div
-                      className={`h-full rounded-full transition-all duration-700 ${
-                        result.percentage >=
-                        80
-                          ? "bg-green-500"
-                          : result.percentage >=
-                            50
-                          ? "bg-yellow-500"
-                          : "bg-red-500"
-                      }`}
-                      style={{
-                        width: `${result.percentage}%`,
-                      }}
-                    />
-                  </div>
+                      <span className="text-slate-400">
+                        Needs Improvement
+                      </span>
 
-                  {/* LABELS */}
+                      <span className="font-semibold text-orange-600">
+                        Academic Performance
+                      </span>
 
-                  <div className="flex items-center justify-between mt-3 text-sm">
-
-                    <span className="text-slate-500">
-                      Poor
-                    </span>
-
-                    <span className="font-bold text-slate-700">
-                      {
-                        result.score
-                      }
-                      /
-                      {
-                        result.total_marks
-                      }
-                    </span>
-
-                    <span className="text-slate-500">
-                      Excellent
-                    </span>
-                  </div>
-
-                  {/* FEEDBACK */}
-
-                  <div className="mt-5 bg-white border border-slate-200 rounded-2xl p-4">
-                    <p className="text-slate-600 leading-relaxed">
-                      {
-                        result.feedback
-                      }
-                    </p>
-                  </div>
-                </div>
-              )
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* ===================================================== */}
-      {/* UPCOMING EXAMS */}
-      {/* ===================================================== */}
-
-      <div className="bg-white rounded-[32px] p-6 shadow-sm border border-slate-200 mb-8">
-
-        <h2 className="text-2xl font-black text-slate-800 mb-6">
-          Upcoming Exams
-        </h2>
-
-        {upcomingExams.length ===
-        0 ? (
-          <div className="text-center py-12 text-slate-400 text-lg font-medium">
-            No Upcoming Exams
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
-
-            {upcomingExams.map(
-              (exam: any) => (
-                <div
-                  key={exam.id}
-                  className="border border-slate-200 rounded-[28px] p-5 hover:shadow-lg transition-all duration-300 bg-slate-50"
-                >
-
-                  <h3 className="text-xl font-black text-slate-800">
-                    {exam.title}
-                  </h3>
-
-                  <p className="text-slate-500 mt-3 line-clamp-3">
-                    {exam.description ||
-                      "No description available"}
-                  </p>
-
-                  <button className="mt-5 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-2xl font-semibold transition-all duration-300">
-                    View Exam
-                  </button>
-                </div>
-              )
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* ===================================================== */}
-      {/* RECENT RESULTS */}
-      {/* ===================================================== */}
-
-      <div className="bg-white rounded-[32px] p-6 shadow-sm border border-slate-200">
-
-        <h2 className="text-2xl font-black text-slate-800 mb-6">
-          Recent Results
-        </h2>
-
-        {results.length ===
-        0 ? (
-          <div className="text-center py-12 text-slate-400 text-lg font-medium">
-            No Results Available
-          </div>
-        ) : (
-          <div className="space-y-4">
-
-            {results.map(
-              (result: any) => (
-                <div
-                  key={result.id}
-                  className="border border-slate-200 rounded-[24px] p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4 hover:shadow-md transition-all duration-300"
-                >
-
-                  <div>
-                    <h3 className="font-black text-xl text-slate-800">
-                      {
-                        result.exam_title
-                      }
-                    </h3>
-
-                    <p className="text-slate-500 mt-2 max-w-2xl">
-                      {
-                        result.feedback
-                      }
-                    </p>
-                  </div>
-
-                  <div className="text-right">
-                    <h2 className="text-4xl font-black text-blue-600">
-                      {
-                        result.percentage
-                      }
-                      %
-                    </h2>
-
-                    <p className="text-slate-500 text-sm mt-1">
-                      Score
-                    </p>
+                      <span className="text-green-500 font-bold">
+                        Excellent
+                      </span>
+                    </div>
                   </div>
                 </div>
               )
@@ -416,37 +412,6 @@ export default function StudentDashboard() {
         )}
       </div>
     </div>
-  );
-}
-
-// =====================================================
-// STAT CARD
-// =====================================================
-
-function StatCard({
-  icon,
-  title,
-  value,
-}: any) {
-  return (
-    <div className="bg-white rounded-[30px] p-6 shadow-sm border border-slate-200 hover:shadow-lg transition-all duration-300">
-
-      <div className="flex items-center justify-between">
-
-        <div>
-          <p className="text-slate-500 font-medium">
-            {title}
-          </p>
-
-          <h2 className="text-4xl font-black text-slate-800 mt-2">
-            {value}
-          </h2>
-        </div>
-
-        <div className="w-14 h-14 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-600">
-          {icon}
-        </div>
-      </div>
-    </div>
-  );
+  </div>
+);
 }
