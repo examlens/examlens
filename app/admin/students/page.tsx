@@ -282,7 +282,7 @@ export default function AdminStudentsPage() {
           </p>
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-4 gap-5">
 
           {filteredStudents.map(
             (student: any) => (
@@ -397,14 +397,14 @@ export default function AdminStudentsPage() {
                   <div className="mt-5 flex gap-2">
 
                     {/* VIEW */}
-                    <Link
+                    {/* <Link
                       href={`/admin/students/${student.id}`}
                       className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition-all duration-300 text-sm"
                     >
                       <Eye size={16} />
 
                       View
-                    </Link>
+                    </Link> */}
 
                     {/* DELETE */}
                     <button

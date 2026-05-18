@@ -304,7 +304,7 @@ Marks: ${result?.result?.marks}/${result?.result?.total_marks}`
             </h2>
 
             <p className="text-sm mt-1">
-              Out of {maxMarks}
+              {/* Out of {maxMarks} */}
             </p>
           </div>
         </div>

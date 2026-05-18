@@ -9,7 +9,7 @@ export default function AdminLayout({ children }: any) {
 
   const menu = [
     { name: "Dashboard", path: "/admin/dashboard" },
-    { name: "Analytics", path: "/admin/analytics" },
+    // { name: "Analytics", path: "/admin/analytics" },
     { name: "Exams", path: "/admin/exams" },
     { name: "Students", path: "/admin/students" },
     { name: "Submissions", path: "/admin/submissions" },
@@ -24,12 +24,20 @@ export default function AdminLayout({ children }: any) {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="min-h-screen flex">
       {/* Sidebar */}
-      <div className="w-64 bg-black text-white p-5">
-        <h1 className="text-xl font-bold mb-6 text-orange-400">
-          ExamLens
+      <div className="sticky top-0 h-screen w-64 bg-black text-white p-5">
+        <h1 className="text-xl font-bold text-white">
+          Exam
+          <span className="text-orange-500">
+            Lens
+          </span>
         </h1>
+
+         <p className="text-xs text-gray-400 mt-1">
+              AI Evaluation Platform
+            </p>
+            <div className="mt-6">
 
         {menu.map((item) => (
           <Link key={item.path} href={item.path}>
@@ -43,15 +51,19 @@ export default function AdminLayout({ children }: any) {
             </div>
           </Link>
         ))}
-        <button
-          onClick={handleLogout}
-          className="bg-red-500 text-white px-3 py-1 rounded"
-        >
-          Logout
-        </button>
+        </div>
+        {/* BOTTOM */}
+        <div className="p-4 border-t border-gray-800">
+          <button
+            onClick={handleLogout}
+            className="w-full bg-red-500 hover:bg-red-600 py-2 rounded-lg transition-all"
+          >
+            Logout
+          </button>
+        </div>
       </div>
       {/* Content */}
-      <div className="flex-1 bg-gray-100 p-6">{children}</div>
+      <main className="flex-1 bg-gray-100 p-6 min-h-screen">{children}</main>
     </div>
   );
 }

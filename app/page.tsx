@@ -126,7 +126,7 @@ export default function AuthPage() {
         const user = data.user;
         if (!user) throw new Error("Login failed");
 
-        alert("✅ Login successful");
+        // alert("✅ Login successful");
 
         const { data: profiles } = await supabase
           .from("profiles")
@@ -135,7 +135,7 @@ export default function AuthPage() {
 
         const profile = profiles?.[0] ?? null;
 
-        alert(`User role: ${profile?.role || "not found"}`);
+        // alert(`User role: ${profile?.role || "not found"}`);
 
         if (!profile) {
           await supabase.from("profiles").upsert({
@@ -150,7 +150,7 @@ export default function AuthPage() {
         if (profile.role === "admin") {
           router.push("/admin/dashboard");
         } else {
-          alert("✅ Login successful2");
+          // alert("✅ Login successful2");
           router.push("/student/dashboard");
         }
       }
