@@ -1,23 +1,44 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/app/lib/supabase";
 import { useRouter } from "next/navigation";
+
+interface Exam {
+  id: string;
+  title: string;
+  description: string;
+  duration: number;
+  total_marks: number;
+  subject: string;
+  exam_date: string;
+  reference_file_url?: string;
+  question_count?: number;
+}
+
+interface Question {
+  id: string;
+  question: string;
+  category: string;
+  difficulty: string;
+  subject: string;
+  marks: number;
+}
 
 export default function ExamsPage() {
   const router = useRouter();
 
-  const [exams, setExams] = useState<any[]>([]);
-  const [questions, setQuestions] = useState<any[]>([]);
-
-  const [selectedExam, setSelectedExam] =
-    useState("");
+  const [exams, setExams] = useState<Exam[]>([]);
+  const [questions, setQuestions] = useState<Question[]>([]);
 
   const [selectedQuestions, setSelectedQuestions] =
     useState<string[]>([]);
 
   const [referenceFile, setReferenceFile] =
     useState<File | null>(null);
+
+  const [showModal, setShowModal] =
+    useState(false);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] =
@@ -26,11 +47,23 @@ export default function ExamsPage() {
   const [duration, setDuration] =
     useState("");
 
+  const [totalMarks, setTotalMarks] =
+    useState("");
+
+  const [subject, setSubject] =
+    useState("Biology");
+
+  const [examDate, setExamDate] =
+    useState("");
+
+  // const [shuffleQuestions, setShuffleQuestions] =
+  //   useState(false);
+
   const [loading, setLoading] =
     useState(false);
 
   // =====================================================
-  // ✅ FETCH EXAMS
+  // FETCH EXAMS
   // =====================================================
 
   const fetchExams = async () => {
@@ -41,21 +74,14 @@ export default function ExamsPage() {
 
       const data = await res.json();
 
-      if (!res.ok) {
-        throw new Error(
-          data.error || "Failed to fetch exams"
-        );
-      }
-
       setExams(Array.isArray(data) ? data : []);
-    } catch (err: any) {
-      console.error("❌ FETCH EXAMS:", err);
-      alert(err.message);
+    } catch (err) {
+      console.error(err);
     }
   };
 
   // =====================================================
-  // ✅ FETCH QUESTIONS
+  // FETCH QUESTIONS
   // =====================================================
 
   const fetchQuestions = async () => {
@@ -66,20 +92,11 @@ export default function ExamsPage() {
 
       const data = await res.json();
 
-      if (!res.ok) {
-        throw new Error(
-          data.error ||
-            "Failed to fetch questions"
-        );
-      }
-
-      setQuestions(Array.isArray(data) ? data : []);
-    } catch (err: any) {
-      console.error(
-        "❌ FETCH QUESTIONS:",
-        err
+      setQuestions(
+        Array.isArray(data) ? data : []
       );
-      alert(err.message);
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -89,206 +106,17 @@ export default function ExamsPage() {
   }, []);
 
   // =====================================================
-  // ✅ CREATE EXAM
+  // FILTER SUBJECT QUESTIONS
   // =====================================================
 
-  const createExam = async () => {
-    if (!title.trim()) {
-      alert("Enter exam title");
-      return;
-    }
-
-    try {
-      setLoading(true);
-
-      let referenceUrl: string | null =
-        null;
-
-      // =========================================
-      // ✅ GET AUTH USER
-      // =========================================
-
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!session?.access_token) {
-        throw new Error(
-          "You must login first"
-        );
-      }
-
-      // =========================================
-      // ✅ UPLOAD REFERENCE NOTES
-      // =========================================
-
-      if (referenceFile) {
-        const fileName = `${Date.now()}-${
-          referenceFile.name
-        }`;
-
-        const { error: uploadError } =
-          await supabase.storage
-            .from("exam-notes")
-            .upload(fileName, referenceFile, {
-              cacheControl: "3600",
-              upsert: false,
-            });
-
-        if (uploadError) {
-          console.error(
-            "❌ STORAGE ERROR:",
-            uploadError
-          );
-
-          throw new Error(
-            uploadError.message
-          );
-        }
-
-        const { data } = supabase.storage
-          .from("exam-notes")
-          .getPublicUrl(fileName);
-
-        referenceUrl =
-          data?.publicUrl || null;
-      }
-
-      // =========================================
-      // ✅ CREATE EXAM API
-      // =========================================
-
-      const res = await fetch(
-        "/api/admin/exams",
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json",
-
-            Authorization: `Bearer ${session.access_token}`,
-          },
-
-          body: JSON.stringify({
-            title,
-            description,
-            duration:
-              Number(duration) || 10,
-            reference_file_url:
-              referenceUrl,
-          }),
-        }
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(
-          data.error ||
-            "Failed to create exam"
-        );
-      }
-
-      alert("✅ Exam created");
-
-      // =========================================
-      // ✅ RESET FORM
-      // =========================================
-
-      setTitle("");
-      setDescription("");
-      setDuration("");
-      setReferenceFile(null);
-
-      // reset file input manually
-      const fileInput =
-        document.getElementById(
-          "referenceFile"
-        ) as HTMLInputElement;
-
-      if (fileInput) {
-        fileInput.value = "";
-      }
-
-      fetchExams();
-    } catch (err: any) {
-      console.error(
-        "❌ CREATE EXAM:",
-        err
-      );
-
-      alert(
-        err.message ||
-          "Failed to create exam"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // =====================================================
-  // ✅ DELETE EXAM
-  // =====================================================
-
-  const handleDelete = async (
-    examId: string
-  ) => {
-    const confirmDelete = confirm(
-      "Are you sure you want to delete this exam?"
+  const filteredQuestions = useMemo(() => {
+    return questions.filter(
+      (q) => q.subject === subject
     );
-
-    if (!confirmDelete) return;
-
-    try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!session?.access_token) {
-        throw new Error(
-          "Authentication required"
-        );
-      }
-
-      const res = await fetch(
-        `/api/admin/exams?id=${examId}`,
-        {
-          method: "DELETE",
-
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-          },
-        }
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(
-          data.error ||
-            "Failed to delete exam"
-        );
-      }
-
-      alert("✅ Exam deleted");
-
-      fetchExams();
-    } catch (err: any) {
-      console.error(
-        "❌ DELETE EXAM:",
-        err
-      );
-
-      alert(
-        err.message ||
-          "Failed to delete exam"
-      );
-    }
-  };
+  }, [questions, subject]);
 
   // =====================================================
-  // ✅ TOGGLE QUESTION
+  // TOGGLE QUESTIONS
   // =====================================================
 
   const toggleQuestion = (id: string) => {
@@ -300,16 +128,24 @@ export default function ExamsPage() {
   };
 
   // =====================================================
-  // ✅ ASSIGN QUESTIONS
+  // CREATE EXAM
   // =====================================================
 
-  const assignQuestions = async () => {
+  const createExam = async () => {
     if (
-      !selectedExam ||
-      selectedQuestions.length === 0
+      !title ||
+      !duration ||
+      !totalMarks ||
+      !subject ||
+      !examDate
     ) {
+      alert("Fill all required fields");
+      return;
+    }
+
+    if (selectedQuestions.length === 0) {
       alert(
-        "Select exam and questions"
+        "Select at least one question"
       );
       return;
     }
@@ -317,17 +153,106 @@ export default function ExamsPage() {
     try {
       setLoading(true);
 
+      let referenceUrl: string | null =
+        null;
+
+      // =========================================
+      // GET SESSION
+      // =========================================
+
       const {
         data: { session },
       } = await supabase.auth.getSession();
 
       if (!session?.access_token) {
         throw new Error(
-          "Authentication required"
+          "Please login again"
         );
       }
 
-      const res = await fetch(
+      // =========================================
+      // UPLOAD NOTES
+      // =========================================
+
+      if (referenceFile) {
+        const fileName = `${Date.now()}-${referenceFile.name
+          }`;
+
+        const { error: uploadError } =
+          await supabase.storage
+            .from("exam-notes")
+            .upload(
+              fileName,
+              referenceFile
+            );
+
+        if (uploadError) {
+          throw new Error(
+            uploadError.message
+          );
+        }
+
+        const { data } = supabase.storage
+          .from("exam-notes")
+          .getPublicUrl(fileName);
+
+        referenceUrl =
+          data.publicUrl;
+      }
+
+      // =========================================
+      // CREATE EXAM
+      // =========================================
+
+      const examRes = await fetch(
+        "/api/admin/exams",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+
+          body: JSON.stringify({
+            title,
+            description,
+            duration:
+              Number(duration),
+            total_marks:
+              Number(totalMarks),
+            subject,
+            exam_date: examDate,
+            // shuffle_questions:              shuffleQuestions,  
+            reference_file_url:
+              referenceUrl,
+          }),
+        }
+      );
+
+      const examData =
+        await examRes.json();
+
+      if (!examRes.ok) {
+        throw new Error(
+          examData.error ||
+          "Failed to create exam"
+        );
+      }
+
+      const examId =
+        examData?.exam?.id;
+
+      console.log(
+        "✅ Created Exam ID:",
+        examId
+      );
+
+      // =========================================
+      // ASSIGN QUESTIONS
+      // =========================================
+
+      const assignRes = await fetch(
         "/api/admin/exam-questions",
         {
           method: "POST",
@@ -335,43 +260,49 @@ export default function ExamsPage() {
           headers: {
             "Content-Type":
               "application/json",
-
             Authorization: `Bearer ${session.access_token}`,
           },
 
           body: JSON.stringify({
-            exam_id: selectedExam,
+            exam_id: examId,
             question_ids:
               selectedQuestions,
           }),
         }
       );
 
-      const data = await res.json();
+      const assignData =
+        await assignRes.json();
 
-      if (!res.ok) {
+      if (!assignRes.ok) {
         throw new Error(
-          data.error ||
-            "Failed to assign questions"
+          assignData.error ||
+          "Failed to assign questions"
         );
       }
 
-      alert(
-        "✅ Questions assigned successfully"
-      );
+      alert("✅ Exam created");
 
+      // RESET
+
+      setTitle("");
+      setDescription("");
+      setDuration("");
+      setTotalMarks("");
+      setSubject("Biology");
+      setExamDate("");
       setSelectedQuestions([]);
+      setReferenceFile(null);
+      // setShuffleQuestions(false);
+      setShowModal(false);
 
       fetchExams();
     } catch (err: any) {
-      console.error(
-        "❌ ASSIGN QUESTIONS:",
-        err
-      );
+      console.error(err);
 
       alert(
         err.message ||
-          "Assignment failed"
+        "Failed to create exam"
       );
     } finally {
       setLoading(false);
@@ -379,355 +310,720 @@ export default function ExamsPage() {
   };
 
   // =====================================================
-  // ✅ UI
+  // DELETE EXAM
+  // =====================================================
+
+  const handleDelete = async (
+    id: string
+  ) => {
+    const confirmDelete = confirm(
+      "Delete this exam?"
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const res = await fetch(
+        `/api/admin/exams?id=${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error);
+      }
+
+      fetchExams();
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
+  // =====================================================
+  // BADGE COLORS
+  // =====================================================
+
+  const getDifficultyColor = (
+    difficulty: string
+  ) => {
+    switch (difficulty) {
+      case "Easy":
+        return "bg-green-100 text-green-700";
+
+      case "Medium":
+        return "bg-yellow-100 text-yellow-700";
+
+      case "Hard":
+        return "bg-red-100 text-red-700";
+
+      default:
+        return "bg-slate-100 text-slate-700";
+    }
+  };
+
+  // =====================================================
+  // UI
   // =====================================================
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      {/* HEADER */}
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 p-6">
 
-      <div className="flex justify-between items-center mb-6">
+      {/* ===================================================== */}
+      {/* HEADER */}
+      {/* ===================================================== */}
+
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 mb-8">
+
         <div>
-          <h1 className="text-3xl font-bold text-[#0d426a]">
+          <p className="text-orange-500 font-semibold uppercase tracking-widest text-sm">
             Exam Management
+          </p>
+
+          <h1 className="text-4xl font-black text-slate-800 mt-2">
+            Exams
           </h1>
 
-          <p className="text-gray-500 mt-1">
-            Create exams, assign
-            questions, manage
-            submissions
+          <p className="text-slate-500 mt-2 text-lg">
+            Create and manage exams with subject-based question filtering
           </p>
         </div>
+
+        <button
+          onClick={() =>
+            setShowModal(true)
+          }
+          className="
+            px-7
+            py-4
+            rounded-2xl
+            bg-orange-500
+            hover:bg-orange-600
+            text-white
+            font-bold
+            shadow-lg
+            shadow-orange-200
+            transition-all
+            duration-300
+            hover:scale-105
+          "
+        >
+          + Create Exam
+        </button>
       </div>
 
-      {/* MAIN GRID */}
+      {/* ===================================================== */}
+      {/* EXAM CARDS */}
+      {/* ===================================================== */}
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* LEFT PANEL */}
+      {exams.length === 0 ? (
+        <div className="bg-white border border-orange-100 rounded-[30px] p-14 text-center shadow-lg">
+          <h2 className="text-3xl font-black text-slate-700">
+            No Exams Created
+          </h2>
 
-        <div className="space-y-6">
-          {/* CREATE EXAM */}
-
-          <div className="bg-white rounded-2xl shadow p-5">
-            <h2 className="text-xl font-semibold mb-4">
-              📘 Create Exam
-            </h2>
-
-            <input
-              type="text"
-              placeholder="Exam Title"
-              value={title}
-              onChange={(e) =>
-                setTitle(
-                  e.target.value
-                )
-              }
-              className="w-full border p-3 rounded-lg mb-3"
-            />
-
-            <textarea
-              placeholder="Description"
-              value={description}
-              onChange={(e) =>
-                setDescription(
-                  e.target.value
-                )
-              }
-              className="w-full border p-3 rounded-lg mb-3"
-              rows={4}
-            />
-
-            <input
-              type="number"
-              placeholder="Duration (minutes)"
-              value={duration}
-              onChange={(e) =>
-                setDuration(
-                  e.target.value
-                )
-              }
-              className="w-full border p-3 rounded-lg mb-3"
-            />
-
-            {/* FILE */}
-
-            <div className="mb-4">
-              <label className="text-sm font-medium text-gray-700">
-                Upload Reference Notes
-              </label>
-
-              <input
-                id="referenceFile"
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png"
-                onChange={(e) =>
-                  setReferenceFile(
-                    e.target
-                      .files?.[0] ||
-                      null
-                  )
-                }
-                className="w-full border p-2 rounded-lg mt-1"
-              />
-
-              <p className="text-xs text-gray-500 mt-1">
-                AI uses these notes
-                for evaluation
-              </p>
-            </div>
-
-            <button
-              onClick={createExam}
-              disabled={loading}
-              className={`w-full py-3 rounded-lg text-white font-semibold ${
-                loading
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-[#0d426a] hover:bg-[#08314d]"
-              }`}
-            >
-              {loading
-                ? "Creating..."
-                : "Create Exam"}
-            </button>
-          </div>
-
-          {/* ASSIGN QUESTIONS */}
-
-          <div className="bg-white rounded-2xl shadow p-5">
-            <h2 className="text-xl font-semibold mb-4">
-              📝 Assign Questions
-            </h2>
-
-            <select
-              value={selectedExam}
-              onChange={(e) =>
-                setSelectedExam(
-                  e.target.value
-                )
-              }
-              className="w-full border p-3 rounded-lg"
-            >
-              <option value="">
-                Select Exam
-              </option>
-
-              {exams.map((exam) => (
-                <option
-                  key={exam.id}
-                  value={exam.id}
-                >
-                  {exam.title} (
-                  {exam.duration || 0} mins)
-                </option>
-              ))}
-            </select>
-
-            <button
-              onClick={
-                assignQuestions
-              }
-              disabled={loading}
-              className="mt-4 w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold"
-            >
-              {loading
-                ? "Assigning..."
-                : "Assign Questions"}
-            </button>
-          </div>
+          <p className="text-slate-500 mt-3">
+            Create your first exam
+          </p>
         </div>
+      ) : (
+        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
 
-        {/* RIGHT PANEL */}
+          {exams.map((exam) => (
+            <div
+              key={exam.id}
+              className="
+                bg-white
+                border
+                border-orange-100
+                rounded-[30px]
+                p-6
+                shadow-md
+                hover:shadow-2xl
+                hover:-translate-y-1
+                transition-all
+                duration-300
+              "
+            >
 
-        <div className="lg:col-span-2 space-y-6">
-          {/* EXAMS */}
+              {/* TOP */}
 
-          <div className="bg-white rounded-2xl shadow p-5">
-            <h2 className="text-2xl font-bold mb-5 text-[#0d426a]">
-              📚 Created Exams
-            </h2>
+              <div className="flex justify-between items-start gap-3">
 
-            {exams.length === 0 ? (
-              <div className="text-center py-10 text-gray-400">
-                No exams created yet
+                <div>
+                  <h2 className="text-2xl font-black text-slate-800">
+                    {exam.title}
+                  </h2>
+
+                  <p className="text-slate-500 mt-2 text-sm">
+                    {exam.description}
+                  </p>
+                </div>
+
+                <div className="bg-orange-100 text-orange-700 px-4 py-2 rounded-full text-sm font-bold">
+                  {exam.duration} mins
+                </div>
               </div>
-            ) : (
-              <div className="grid md:grid-cols-2 gap-5">
-                {exams.map(
-                  (exam: any) => (
-                    <div
-                      key={exam.id}
-                      className="border rounded-2xl p-5 hover:shadow-lg transition bg-gray-50"
+
+              {/* TAGS */}
+
+              <div className="flex flex-wrap gap-3 mt-5">
+
+                <span className="px-4 py-2 rounded-full bg-orange-50 text-orange-600 font-semibold text-sm">
+                  {exam.subject}
+                </span>
+
+                <span className="px-4 py-2 rounded-full bg-green-100 text-green-700 font-semibold text-sm">
+                  {exam.total_marks} Marks
+                </span>
+
+                <span className="px-4 py-2 rounded-full bg-blue-100 text-blue-700 font-semibold text-sm">
+                  {exam.question_count || 0} Questions
+                </span>
+              </div>
+
+              {/* DATE */}
+
+              <div className="mt-5 bg-orange-50 border border-orange-100 rounded-2xl p-4">
+                <p className="text-sm text-orange-600 font-semibold">
+                  Exam Date
+                </p>
+
+                <p className="text-slate-700 font-bold mt-1">
+                  {exam.exam_date}
+                </p>
+              </div>
+
+              {/* ACTIONS */}
+
+              <div className="flex gap-3 mt-6">
+
+                <button
+                  onClick={() =>
+                    router.push(
+                      `/admin/submissions/${exam.id}`
+                    )
+                  }
+                  className="
+                    flex-1
+                    bg-orange-500
+                    hover:bg-orange-600
+                    text-white
+                    py-3
+                    rounded-2xl
+                    font-bold
+                    transition-all
+                  "
+                >
+                  View Submissions
+                </button>
+
+                <button
+                  onClick={() =>
+                    handleDelete(
+                      exam.id
+                    )
+                  }
+                  className="
+                    px-5
+                    py-3
+                    rounded-2xl
+                    bg-red-500
+                    hover:bg-red-600
+                    text-white
+                    font-bold
+                    transition-all
+                  "
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ===================================================== */}
+      {/* MODAL */}
+      {/* ===================================================== */}
+
+      {showModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm overflow-y-auto">
+
+          <div className="min-h-screen flex items-start justify-center p-4 md:p-8">
+
+            <div
+              className="
+          relative
+          w-full
+          max-w-7xl
+          bg-white
+          rounded-[32px]
+          shadow-2xl
+          border
+          border-orange-100
+          my-10
+          overflow-hidden
+        "
+            >
+
+              {/* ===================================================== */}
+              {/* HEADER */}
+              {/* ===================================================== */}
+
+              <div className="sticky top-0 z-20 bg-white border-b border-orange-100 px-6 md:px-8 py-6">
+
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="
+              absolute
+              top-6
+              right-6
+              w-10
+              h-10
+              rounded-xl
+              bg-slate-100
+              hover:bg-red-100
+              text-slate-600
+              hover:text-red-600
+              font-bold
+              transition-all
+              flex
+              items-center
+              justify-center
+            "
+                >
+                  ✕
+                </button>
+
+                <p className="text-orange-500 font-bold uppercase tracking-[3px] text-xs">
+                  Create New Exam
+                </p>
+
+                <h2 className="text-3xl md:text-4xl font-black text-slate-800 mt-2">
+                  Configure Exam
+                </h2>
+
+                <p className="text-slate-500 mt-2">
+                  Configure exam settings and select questions
+                </p>
+              </div>
+
+              {/* ===================================================== */}
+              {/* CONTENT */}
+              {/* ===================================================== */}
+
+              <div className="grid lg:grid-cols-[420px_1fr]">
+
+                {/* ===================================================== */}
+                {/* LEFT PANEL */}
+                {/* ===================================================== */}
+
+                <div className="border-r border-orange-100 bg-orange-50/40 p-6 md:p-8 space-y-6">
+
+                  {/* EXAM NAME */}
+
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-3">
+                      Exam Name
+                    </label>
+
+                    <input
+                      type="text"
+                      value={title}
+                      onChange={(e) =>
+                        setTitle(e.target.value)
+                      }
+                      placeholder="e.g Mid-Term Exam"
+                      className="
+                  w-full
+                  bg-white
+                  border
+                  border-orange-200
+                  rounded-2xl
+                  px-5
+                  py-4
+                  outline-none
+                  transition-all
+                  focus:border-orange-500
+                  focus:ring-4
+                  focus:ring-orange-100
+                "
+                    />
+                  </div>
+
+                  {/* SUBJECT */}
+
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-3">
+                      Subject
+                    </label>
+
+                    <select
+                      value={subject}
+                      onChange={(e) =>
+                        setSubject(e.target.value)
+                      }
+                      className="
+                  w-full
+                  bg-white
+                  border
+                  border-orange-200
+                  rounded-2xl
+                  px-5
+                  py-4
+                  outline-none
+                  transition-all
+                  focus:border-orange-500
+                  focus:ring-4
+                  focus:ring-orange-100
+                "
                     >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="text-xl font-bold text-[#0d426a]">
-                            {
-                              exam.title
-                            }
-                          </h3>
+                      <option>Biology</option>
+                      <option>Physics</option>
+                      <option>Chemistry</option>
+                      <option>Mathematics</option>
+                      <option>History</option>
+                      <option>Computer Science</option>
+                    </select>
+                  </div>
 
-                          <p className="text-sm text-gray-500 mt-1">
-                            {
-                              exam.description
-                            }
-                          </p>
-                        </div>
+                  {/* DATE */}
 
-                        <div className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">
-                          {
-                            exam.duration
-                          }{" "}
-                          mins
-                        </div>
-                      </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-3">
+                      Exam Date
+                    </label>
 
-                      {/* STATS */}
+                    <input
+                      type="date"
+                      value={examDate}
+                      onChange={(e) =>
+                        setExamDate(e.target.value)
+                      }
+                      className="
+                  w-full
+                  bg-white
+                  border
+                  border-orange-200
+                  rounded-2xl
+                  px-5
+                  py-4
+                  outline-none
+                  transition-all
+                  focus:border-orange-500
+                  focus:ring-4
+                  focus:ring-orange-100
+                "
+                    />
+                  </div>
 
-                      <div className="grid grid-cols-2 gap-3 mt-5">
-                        <div className="bg-white rounded-lg p-3 border">
-                          <p className="text-sm text-gray-500">
-                            Questions
-                          </p>
+                  {/* DURATION + MARKS */}
 
-                          <p className="text-xl font-bold text-[#0d426a]">
-                            {exam.question_count ||
-                              0}
-                          </p>
-                        </div>
+                  <div className="grid grid-cols-2 gap-4">
 
-                        <div className="bg-white rounded-lg p-3 border">
-                          <p className="text-sm text-gray-500">
-                            Submissions
-                          </p>
-
-                          <p className="text-xl font-bold text-green-600">
-                            {exam.submission_count ||
-                              0}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* NOTES */}
-
-                      {exam.reference_file_url && (
-                        <a
-                          href={
-                            exam.reference_file_url
-                          }
-                          target="_blank"
-                          className="block mt-4 text-sm text-blue-600 hover:underline"
-                        >
-                          📄 View Reference
-                          Notes
-                        </a>
-                      )}
-
-                      {/* ACTIONS */}
-
-                      <div className="flex gap-3 mt-5">
-                        <button
-                          onClick={() =>
-                            router.push(
-                              `/admin/submissions/${exam.id}`
-                            )
-                          }
-                          className="flex-1 bg-[#0d426a] hover:bg-[#08314d] text-white py-2 rounded-lg"
-                        >
-                          View
-                          Submissions
-                        </button>
-
-                        <button
-                          onClick={() =>
-                            handleDelete(
-                              exam.id
-                            )
-                          }
-                          className="bg-red-500 hover:bg-red-600 text-white px-4 rounded-lg"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  )
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* QUESTION BANK */}
-
-          <div className="bg-white rounded-2xl shadow p-5">
-            <h2 className="text-2xl font-bold mb-5 text-[#0d426a]">
-              📑 Question Bank (
-              {questions.length})
-            </h2>
-
-            <div className="space-y-4 max-h-[700px] overflow-y-auto pr-2">
-              {questions.map(
-                (q: any) => (
-                  <div
-                    key={q.id}
-                    onClick={() =>
-                      toggleQuestion(
-                        q.id
-                      )
-                    }
-                    className={`border rounded-xl p-4 cursor-pointer transition ${
-                      selectedQuestions.includes(
-                        q.id
-                      )
-                        ? "border-orange-500 bg-orange-50"
-                        : "hover:bg-gray-50"
-                    }`}
-                  >
-                    <div className="flex justify-between items-start">
-                      <p className="font-semibold text-lg">
-                        {
-                          q.question
-                        }
-                      </p>
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-3">
+                        Duration
+                      </label>
 
                       <input
-                        type="checkbox"
-                        checked={selectedQuestions.includes(
-                          q.id
-                        )}
-                        readOnly
+                        type="number"
+                        value={duration}
+                        onChange={(e) =>
+                          setDuration(e.target.value)
+                        }
+                        placeholder="120"
+                        className="
+                    w-full
+                    bg-white
+                    border
+                    border-orange-200
+                    rounded-2xl
+                    px-5
+                    py-4
+                    outline-none
+                    transition-all
+                    focus:border-orange-500
+                    focus:ring-4
+                    focus:ring-orange-100
+                  "
                       />
                     </div>
 
-                    <p className="text-gray-500 text-sm mt-2">
-                      {
-                        q.model_answer
-                      }
-                    </p>
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-3">
+                        Total Marks
+                      </label>
 
-                    <div className="flex justify-between items-center mt-4 text-sm">
-                      <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full">
-                        {
-                          q.category
+                      <input
+                        type="number"
+                        value={totalMarks}
+                        onChange={(e) =>
+                          setTotalMarks(e.target.value)
                         }
-                      </span>
-
-                      <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full">
-                        {q.marks} marks
-                      </span>
+                        placeholder="100"
+                        className="
+                    w-full
+                    bg-white
+                    border
+                    border-orange-200
+                    rounded-2xl
+                    px-5
+                    py-4
+                    outline-none
+                    transition-all
+                    focus:border-orange-500
+                    focus:ring-4
+                    focus:ring-orange-100
+                  "
+                      />
                     </div>
                   </div>
-                )
-              )}
 
-              {questions.length ===
-                0 && (
-                <div className="text-center text-gray-400 py-10">
-                  No questions found
+                  {/* DESCRIPTION */}
+
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-3">
+                      Description
+                    </label>
+
+                    <textarea
+                      rows={5}
+                      value={description}
+                      onChange={(e) =>
+                        setDescription(e.target.value)
+                      }
+                      className="
+                  w-full
+                  bg-white
+                  border
+                  border-orange-200
+                  rounded-2xl
+                  px-5
+                  py-4
+                  outline-none
+                  resize-none
+                  transition-all
+                  focus:border-orange-500
+                  focus:ring-4
+                  focus:ring-orange-100
+                "
+                    />
+                  </div>
+
+                  {/* FILE */}
+
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-3">
+                      Upload Reference Notes
+                    </label>
+
+                    <input
+                      type="file"
+                      accept=".pdf,.jpg,.png,.jpeg"
+                      onChange={(e) =>
+                        setReferenceFile(
+                          e.target.files?.[0] || null
+                        )
+                      }
+                      className="
+                  w-full
+                  bg-white
+                  border
+                  border-orange-200
+                  rounded-2xl
+                  p-4
+                "
+                    />
+                  </div>
+
+                  {/* SHUFFLE */}
+
+                  {/* <div className="bg-white border border-orange-200 rounded-2xl p-4 flex items-center gap-3">
+
+                    <input
+                      type="checkbox"
+                      checked={shuffleQuestions}
+                      onChange={(e) =>
+                        setShuffleQuestions(
+                          e.target.checked
+                        )
+                      }
+                      className="w-5 h-5 accent-orange-500"
+                    />
+
+                    <p className="font-medium text-slate-700">
+                      Auto-shuffle questions per student
+                    </p>
+                  </div> */}
                 </div>
-              )}
+
+                {/* ===================================================== */}
+                {/* RIGHT PANEL */}
+                {/* ===================================================== */}
+
+                <div className="p-6 md:p-8 flex flex-col">
+
+                  {/* HEADER */}
+
+                  <div className="flex items-center justify-between mb-6">
+
+                    <div>
+                      <h3 className="text-3xl font-black text-slate-800">
+                        Question Selection
+                      </h3>
+
+                      <p className="text-slate-500 mt-1">
+                        Select questions for this exam
+                      </p>
+                    </div>
+
+                    <div className="bg-orange-100 text-orange-700 px-5 py-3 rounded-2xl font-bold">
+                      {filteredQuestions.length} Questions
+                    </div>
+                  </div>
+
+                  {/* QUESTIONS */}
+
+                  <div className="space-y-4 overflow-y-auto max-h-[650px] pr-2">
+
+                    {filteredQuestions.map((q) => (
+                      <div
+                        key={q.id}
+                        onClick={() =>
+                          toggleQuestion(q.id)
+                        }
+                        className={`
+                    rounded-3xl
+                    border
+                    p-5
+                    cursor-pointer
+                    transition-all
+                    duration-300
+                    ${selectedQuestions.includes(
+                          q.id
+                        )
+                            ? "border-orange-500 bg-orange-50 shadow-lg"
+                            : "border-slate-200 hover:border-orange-300 hover:shadow-md bg-white"
+                          }
+                  `}
+                      >
+
+                        <div className="flex gap-4">
+
+                          <input
+                            type="checkbox"
+                            checked={selectedQuestions.includes(
+                              q.id
+                            )}
+                            readOnly
+                            className="mt-1 w-5 h-5 accent-orange-500"
+                          />
+
+                          <div className="flex-1">
+
+                            <h2 className="text-lg font-bold text-slate-800 leading-relaxed">
+                              {q.question}
+                            </h2>
+
+                            <div className="flex flex-wrap gap-2 mt-4">
+
+                              <span className="px-3 py-1 rounded-full bg-orange-100 text-orange-700 text-xs font-bold">
+                                {q.category}
+                              </span>
+
+                              <span
+                                className={`px-3 py-1 rounded-full text-xs font-bold ${getDifficultyColor(
+                                  q.difficulty
+                                )}`}
+                              >
+                                {q.difficulty}
+                              </span>
+
+                              <span className="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold">
+                                {q.marks} Marks
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    {filteredQuestions.length === 0 && (
+                      <div className="bg-orange-50 border border-orange-100 rounded-3xl p-10 text-center">
+
+                        <p className="text-xl font-bold text-slate-700">
+                          No Questions Found
+                        </p>
+
+                        <p className="text-slate-500 mt-2">
+                          No questions available for selected subject
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* ===================================================== */}
+              {/* FOOTER */}
+              {/* ===================================================== */}
+
+              <div className="border-t border-orange-100 bg-white px-6 md:px-8 py-5 flex justify-end gap-4">
+
+                <button
+                  onClick={() =>
+                    setShowModal(false)
+                  }
+                  className="
+              px-6
+              py-3
+              rounded-2xl
+              border
+              border-slate-300
+              font-semibold
+              hover:bg-slate-100
+              transition-all
+            "
+                >
+                  Cancel
+                </button>
+
+                <button
+                  onClick={createExam}
+                  disabled={loading}
+                  className="
+              px-8
+              py-3
+              rounded-2xl
+              bg-orange-500
+              hover:bg-orange-600
+              text-white
+              font-bold
+              shadow-lg
+              shadow-orange-200
+              transition-all
+            "
+                >
+                  {loading
+                    ? "Creating..."
+                    : "Create Exam"}
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

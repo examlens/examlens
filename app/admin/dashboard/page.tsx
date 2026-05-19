@@ -75,351 +75,333 @@ export default function AdminDashboardPage() {
   // ======================================================
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-slate-200 flex items-center justify-center">
-        <div className="bg-white rounded-[30px] p-12 shadow-xl text-center">
-          <div className="animate-spin w-14 h-14 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-5" />
-
-          <h2 className="text-2xl font-bold text-slate-700">
-            Loading Dashboard...
-          </h2>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-slate-200 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 flex items-center justify-center">
+      <div className="bg-white/90 backdrop-blur-xl border border-orange-100 rounded-[36px] px-12 py-10 shadow-2xl text-center">
 
-      {/* ====================================================== */}
-      {/* HEADER */}
-      {/* ====================================================== */}
+        <div className="relative w-20 h-20 mx-auto mb-6">
+          <div className="absolute inset-0 rounded-full border-4 border-orange-200" />
 
-      <div className="mb-10">
-        <h1 className="text-4xl font-black text-slate-800">
-          Admin Dashboard
-        </h1>
+          <div className="absolute inset-0 rounded-full border-4 border-orange-500 border-t-transparent animate-spin" />
+        </div>
 
-        <p className="text-slate-500 mt-2 text-lg">
-          Monitor students,
-          submissions, evaluations
-          and upcoming exams
+        <h2 className="text-3xl font-black text-slate-800">
+          Loading Dashboard
+        </h2>
+
+        <p className="text-slate-500 mt-3">
+          Preparing analytics and performance insights...
         </p>
-      </div>
-
-      {/* ====================================================== */}
-      {/* STATS */}
-      {/* ====================================================== */}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
-
-        {/* TOTAL STUDENTS */}
-
-        <div className="bg-white rounded-[30px] p-6 shadow-sm border border-slate-200 hover:shadow-xl transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-slate-500 text-sm">
-                Total Students
-              </p>
-
-              <h2 className="text-4xl font-black text-slate-800 mt-2">
-                {
-                  dashboard.totalStudents
-                }
-              </h2>
-            </div>
-
-            <div className="w-16 h-16 rounded-2xl bg-blue-100 flex items-center justify-center">
-              <Users className="text-blue-600" />
-            </div>
-          </div>
-        </div>
-
-        {/* AVG SCORE */}
-
-        <div className="bg-white rounded-[30px] p-6 shadow-sm border border-slate-200 hover:shadow-xl transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-slate-500 text-sm">
-                Average Score
-              </p>
-
-              <h2 className="text-4xl font-black text-green-600 mt-2">
-                {
-                  dashboard.averageScore
-                }
-                %
-              </h2>
-            </div>
-
-            <div className="w-16 h-16 rounded-2xl bg-green-100 flex items-center justify-center">
-              <TrendingUp className="text-green-600" />
-            </div>
-          </div>
-        </div>
-
-        {/* TOTAL SUBMISSIONS */}
-
-        <div className="bg-white rounded-[30px] p-6 shadow-sm border border-slate-200 hover:shadow-xl transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-slate-500 text-sm">
-                Total Submissions
-              </p>
-
-              <h2 className="text-4xl font-black text-orange-600 mt-2">
-                {
-                  dashboard.totalSubmissions
-                }
-              </h2>
-            </div>
-
-            <div className="w-16 h-16 rounded-2xl bg-orange-100 flex items-center justify-center">
-              <FileText className="text-orange-600" />
-            </div>
-          </div>
-        </div>
-
-        {/* EVALUATED */}
-
-        <div className="bg-white rounded-[30px] p-6 shadow-sm border border-slate-200 hover:shadow-xl transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-slate-500 text-sm">
-                Evaluated
-              </p>
-
-              <h2 className="text-4xl font-black text-cyan-600 mt-2">
-                {
-                  dashboard.evaluatedSubmissions
-                }
-              </h2>
-            </div>
-
-            <div className="w-16 h-16 rounded-2xl bg-cyan-100 flex items-center justify-center">
-              <CheckCircle2 className="text-cyan-600" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ====================================================== */}
-      {/* SECOND ROW */}
-      {/* ====================================================== */}
-
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-
-        {/* ====================================================== */}
-        {/* TOP STUDENTS */}
-        {/* ====================================================== */}
-
-        <div className="xl:col-span-2 bg-white rounded-[35px] shadow-sm border border-slate-200 p-7">
-
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-2xl font-black text-slate-800">
-                Student Performance
-              </h2>
-
-              <p className="text-slate-500 mt-1">
-                Top performing students
-              </p>
-            </div>
-
-            <div className="w-14 h-14 rounded-2xl bg-indigo-100 flex items-center justify-center">
-              <Trophy className="text-indigo-600" />
-            </div>
-          </div>
-
-          <div className="space-y-5">
-
-            {dashboard.topStudents
-              .length === 0 ? (
-                <div className="text-center py-14">
-                  <Activity
-                    size={60}
-                    className="mx-auto text-slate-300 mb-4"
-                  />
-
-                  <h3 className="text-xl font-bold text-slate-700">
-                    No Student Data
-                  </h3>
-                </div>
-              ) : (
-                dashboard.topStudents.map(
-                  (
-                    student,
-                    index
-                  ) => (
-                    <div
-                      key={
-                        student.id
-                      }
-                      className="bg-slate-50 border border-slate-200 rounded-[28px] p-5 hover:shadow-md transition-all"
-                    >
-                      <div className="flex items-center justify-between">
-
-                        {/* LEFT */}
-
-                        <div className="flex items-center gap-5">
-
-                          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center text-white text-2xl font-black">
-                            {(
-                              student.name ||
-                              "S"
-                            )
-                              .charAt(
-                                0
-                              )
-                              .toUpperCase()}
-                          </div>
-
-                          <div>
-                            <h3 className="text-xl font-black text-slate-800">
-                              {
-                                student.name
-                              }
-                            </h3>
-
-                            <p className="text-slate-500 text-sm mt-1">
-                              {
-                                student.email
-                              }
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* RIGHT */}
-
-                        <div className="text-right">
-                          <h2 className="text-3xl font-black text-green-600">
-                            {
-                              student.avg_score
-                            }
-                            %
-                          </h2>
-
-                          <p className="text-sm text-slate-500 mt-1">
-                            Avg Score
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* PROGRESS */}
-
-                      <div className="mt-5">
-                        <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-gradient-to-r from-green-500 to-emerald-500"
-                            style={{
-                              width: `${student.avg_score}%`,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )
-                )
-              )}
-          </div>
-        </div>
-
-        {/* ====================================================== */}
-        {/* RIGHT SIDE */}
-        {/* ====================================================== */}
-
-        <div className="space-y-8">
-
-          {/* PENDING */}
-
-          <div className="bg-white rounded-[35px] shadow-sm border border-slate-200 p-7">
-            <div className="flex items-center justify-between">
-
-              <div>
-                <p className="text-slate-500">
-                  Pending Reviews
-                </p>
-
-                <h2 className="text-5xl font-black text-yellow-500 mt-3">
-                  {
-                    dashboard.pendingSubmissions
-                  }
-                </h2>
-              </div>
-
-              <div className="w-16 h-16 rounded-2xl bg-yellow-100 flex items-center justify-center">
-                <Clock3 className="text-yellow-600" />
-              </div>
-            </div>
-          </div>
-
-          {/* UPCOMING EXAMS
-
-          <div className="bg-white rounded-[35px] shadow-sm border border-slate-200 p-7">
-
-            <div className="flex items-center justify-between mb-7">
-              <div>
-                <h2 className="text-2xl font-black text-slate-800">
-                  Upcoming Exams
-                </h2>
-
-                <p className="text-slate-500 mt-1">
-                  Scheduled exams list
-                </p>
-              </div>
-
-              <div className="w-14 h-14 rounded-2xl bg-pink-100 flex items-center justify-center">
-                <CalendarDays className="text-pink-600" />
-              </div>
-            </div>
-
-            <div className="space-y-4">
-
-              {dashboard.upcomingExams
-                .length === 0 ? (
-                  <div className="text-center py-10">
-                    <CalendarDays
-                      size={50}
-                      className="mx-auto text-slate-300 mb-4"
-                    />
-
-                    <h3 className="font-bold text-slate-700">
-                      No Upcoming Exams
-                    </h3>
-                  </div>
-                ) : (
-                  dashboard.upcomingExams.map(
-                    (exam) => (
-                      <div
-                        key={exam.id}
-                        className="border border-slate-200 rounded-2xl p-5 bg-slate-50"
-                      >
-                        <h3 className="text-lg font-black text-slate-800">
-                          {exam.title}
-                        </h3>
-
-                        <p className="text-slate-500 text-sm mt-2">
-                          {exam.description ||
-                            "No description"}
-                        </p>
-
-                        <div className="mt-4 inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-bold">
-                          <CalendarDays size={16} />
-
-                          {exam.exam_date
-                            ? new Date(
-                                exam.exam_date
-                              ).toLocaleDateString()
-                            : "Date not available"}
-                        </div>
-                      </div>
-                    )
-                  )
-                )}
-            </div>
-          </div> */}
-        </div>
       </div>
     </div>
   );
+}
+
+return (
+  <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 p-6">
+
+    {/* ====================================================== */}
+    {/* TOP HEADER */}
+    {/* ====================================================== */}
+
+    <div className="relative overflow-hidden rounded-[38px] bg-black p-8 mb-10 shadow-2xl">
+
+      {/* GLOW EFFECTS */}
+
+      <div className="absolute top-0 right-0 w-72 h-72 bg-orange-500/20 rounded-full blur-3xl" />
+
+      <div className="absolute bottom-0 left-0 w-60 h-60 bg-orange-300/10 rounded-full blur-3xl" />
+
+      <div className="relative z-10 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-8">
+
+        {/* LEFT */}
+
+        <div>
+          <div className="inline-flex items-center gap-2 bg-orange-500/15 border border-orange-500/20 px-4 py-2 rounded-full text-orange-400 text-sm font-semibold mb-5">
+            ADMIN PANEL
+          </div>
+
+          <h1 className="text-5xl font-black text-white leading-tight">
+            Smart Exam
+            <span className="block text-orange-500">
+              Analytics Dashboard
+            </span>
+          </h1>
+
+          <p className="text-slate-400 text-lg mt-5 max-w-2xl leading-relaxed">
+            Track student performance, monitor evaluations,
+            manage submissions and gain real-time academic insights.
+          </p>
+        </div>
+
+        {/* RIGHT */}
+
+        <div className="grid grid-cols-2 gap-5 min-w-[320px]">
+
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-5">
+            <p className="text-slate-400 text-sm">
+              Students
+            </p>
+
+            <h2 className="text-4xl font-black text-white mt-2">
+              {dashboard.totalStudents}
+            </h2>
+          </div>
+
+          <div className="bg-orange-500 rounded-3xl p-5 shadow-lg shadow-orange-500/30">
+            <p className="text-orange-100 text-sm">
+              Avg Score
+            </p>
+
+            <h2 className="text-4xl font-black text-white mt-2">
+              {dashboard.averageScore}%
+            </h2>
+          </div>
+
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-5">
+            <p className="text-slate-400 text-sm">
+              Submissions
+            </p>
+
+            <h2 className="text-4xl font-black text-white mt-2">
+              {dashboard.totalSubmissions}
+            </h2>
+          </div>
+
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-5">
+            <p className="text-slate-400 text-sm">
+              Evaluated
+            </p>
+
+            <h2 className="text-4xl font-black text-orange-400 mt-2">
+              {dashboard.evaluatedSubmissions}
+            </h2>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* ====================================================== */}
+    {/* MAIN GRID */}
+    {/* ====================================================== */}
+
+    <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+
+      {/* ====================================================== */}
+      {/* PERFORMANCE SECTION */}
+      {/* ====================================================== */}
+
+      <div className="xl:col-span-2 bg-white rounded-[36px] border border-orange-100 shadow-xl overflow-hidden">
+
+        {/* TOP */}
+
+        <div className="px-8 py-7 border-b border-orange-100 bg-gradient-to-r from-orange-500 to-orange-600">
+
+          <div className="flex items-center justify-between">
+
+            <div>
+              <h2 className="text-3xl font-black text-white">
+                Student Performance
+              </h2>
+
+              <p className="text-orange-100 mt-2">
+                Top performing students overview
+              </p>
+            </div>
+
+            <div className="bg-white/15 border border-white/10 backdrop-blur-xl px-5 py-3 rounded-2xl">
+              <p className="text-sm text-orange-100">
+                Active Students
+              </p>
+
+              <h3 className="text-2xl font-black text-white mt-1">
+                {dashboard.topStudents.length}
+              </h3>
+            </div>
+          </div>
+        </div>
+
+        {/* STUDENTS */}
+
+        <div className="p-7 space-y-5">
+
+          {dashboard.topStudents.length === 0 ? (
+            <div className="py-24 text-center">
+
+              <div className="w-24 h-24 rounded-full bg-orange-100 mx-auto flex items-center justify-center mb-6">
+                <span className="text-4xl">
+                  📊
+                </span>
+              </div>
+
+              <h3 className="text-2xl font-black text-slate-700">
+                No Student Data
+              </h3>
+
+              <p className="text-slate-500 mt-3">
+                Performance analytics will appear here
+              </p>
+            </div>
+          ) : (
+            dashboard.topStudents.map(
+              (student, index) => (
+                <div
+                  key={student.id}
+                  className="group border border-orange-100 hover:border-orange-300 rounded-[30px] p-6 transition-all duration-300 hover:shadow-lg bg-gradient-to-r from-white to-orange-50/40"
+                >
+
+                  <div className="flex items-center justify-between gap-5">
+
+                    {/* LEFT */}
+
+                    <div className="flex items-center gap-5">
+
+                      <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white text-2xl font-black shadow-lg shadow-orange-200">
+                        {(
+                          student.name || "S"
+                        )
+                          .charAt(0)
+                          .toUpperCase()}
+                      </div>
+
+                      <div>
+                        <h3 className="text-2xl font-black text-slate-800">
+                          {student.name}
+                        </h3>
+
+                        <p className="text-slate-500 mt-1">
+                          {student.email}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* RIGHT */}
+
+                    <div className="text-right min-w-[140px]">
+
+                      <div
+                        className={`inline-flex px-4 py-2 rounded-2xl text-sm font-bold mb-3 ${
+                          student.avg_score >= 80
+                            ? "bg-green-100 text-green-700"
+                            : student.avg_score >= 50
+                            ? "bg-yellow-100 text-yellow-700"
+                            : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        {student.avg_score >= 80
+                          ? "Excellent"
+                          : student.avg_score >= 50
+                          ? "Good"
+                          : "Needs Improvement"}
+                      </div>
+
+                      <h2 className="text-4xl font-black text-orange-600">
+                        {student.avg_score}%
+                      </h2>
+                    </div>
+                  </div>
+
+                  {/* PROGRESS */}
+
+                  <div className="mt-6">
+                    <div className="w-full h-4 bg-orange-100 rounded-full overflow-hidden">
+
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-orange-500 to-orange-600 transition-all duration-700"
+                        style={{
+                          width: `${student.avg_score}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )
+            )
+          )}
+        </div>
+      </div>
+
+      {/* ====================================================== */}
+      {/* RIGHT PANEL */}
+      {/* ====================================================== */}
+
+      <div className="space-y-8">
+
+        {/* PENDING CARD */}
+
+        <div className="relative overflow-hidden rounded-[36px] bg-gradient-to-br from-orange-500 to-orange-600 p-8 shadow-2xl shadow-orange-200">
+
+          <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
+
+          <div className="relative z-10">
+
+            <p className="text-orange-100 text-sm uppercase tracking-widest">
+              Pending Reviews
+            </p>
+
+            <h2 className="text-7xl font-black text-white mt-5">
+              {dashboard.pendingSubmissions}
+            </h2>
+
+            <p className="text-orange-100 mt-5 leading-relaxed">
+              Submissions waiting for AI evaluation and admin review.
+            </p>
+          </div>
+        </div>
+
+        {/* QUICK STATS */}
+
+        <div className="bg-white rounded-[36px] border border-orange-100 shadow-xl p-7">
+
+          <h2 className="text-2xl font-black text-slate-800 mb-7">
+            Quick Insights
+          </h2>
+
+          <div className="space-y-5">
+
+            <div className="bg-orange-50 rounded-3xl p-5 border border-orange-100">
+
+              <p className="text-sm text-orange-500 font-semibold">
+                Evaluation Rate
+              </p>
+
+              <h3 className="text-4xl font-black text-slate-800 mt-2">
+                {dashboard.totalSubmissions > 0
+                  ? Math.round(
+                      (dashboard.evaluatedSubmissions /
+                        dashboard.totalSubmissions) *
+                        100
+                    )
+                  : 0}
+                %
+              </h3>
+            </div>
+
+            <div className="bg-slate-50 rounded-3xl p-5 border border-slate-200">
+
+              <p className="text-sm text-slate-500 font-semibold">
+                Active Performance
+              </p>
+
+              <h3 className="text-4xl font-black text-orange-600 mt-2">
+                {dashboard.averageScore}%
+              </h3>
+            </div>
+
+            <div className="bg-black rounded-3xl p-5">
+
+              <p className="text-sm text-orange-300 font-semibold">
+                Platform Status
+              </p>
+
+              <h3 className="text-3xl font-black text-white mt-2">
+                Running Smoothly
+              </h3>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
 }

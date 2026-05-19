@@ -24,7 +24,10 @@ export async function GET() {
 
     if (error) throw error;
 
+    // ======================================================
     // ✅ FORMAT RESPONSE
+    // ======================================================
+
     const formatted = (data || []).map(
       (exam: any) => ({
         ...exam,
@@ -53,7 +56,9 @@ export async function GET() {
       JSON.stringify({
         error: err.message,
       }),
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }
@@ -70,20 +75,43 @@ export async function POST(req: Request) {
       title,
       description,
       duration,
+      total_marks,
+      subject,
+      exam_date,
+      // auto_shuffle,
       reference_file_url,
     } = body;
 
+    // ======================================================
     // ✅ VALIDATION
+    // ======================================================
+
     if (!title?.trim()) {
       return new Response(
         JSON.stringify({
-          error: "Title is required",
+          error: "Exam title is required",
         }),
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    // ✅ CREATE EXAM
+    if (!subject?.trim()) {
+      return new Response(
+        JSON.stringify({
+          error: "Subject is required",
+        }),
+        {
+          status: 400,
+        }
+      );
+    }
+
+    // ======================================================
+    // ✅ INSERT EXAM
+    // ======================================================
+
     const { data, error } = await supabase
       .from("exams")
       .insert([
@@ -93,8 +121,20 @@ export async function POST(req: Request) {
           description:
             description?.trim() || null,
 
+          subject:
+            subject?.trim() || null,
+
           duration:
-            Number(duration) || 10,
+            Number(duration) || 60,
+
+          total_marks:
+            Number(total_marks) || 0,
+
+          exam_date:
+            exam_date || null,
+
+          // auto_shuffle:
+          //   auto_shuffle || false,
 
           reference_file_url:
             reference_file_url || null,
@@ -103,11 +143,18 @@ export async function POST(req: Request) {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.log(
+        "❌ CREATE EXAM ERROR:",
+        error
+      );
+
+      throw error;
+    }
 
     console.log(
-      "✅ Exam created:",
-      data.id
+      "✅ Exam Created:",
+      data
     );
 
     return new Response(
@@ -115,7 +162,9 @@ export async function POST(req: Request) {
         success: true,
         exam: data,
       }),
-      { status: 200 }
+      {
+        status: 200,
+      }
     );
   } catch (err: any) {
     console.error(
@@ -125,9 +174,13 @@ export async function POST(req: Request) {
 
     return new Response(
       JSON.stringify({
-        error: err.message,
+        error:
+          err.message ||
+          "Failed to create exam",
       }),
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }
@@ -143,23 +196,28 @@ export async function DELETE(req: Request) {
     const examId =
       url.searchParams.get("id");
 
+    // ======================================================
     // ✅ VALIDATION
+    // ======================================================
+
     if (!examId) {
       return new Response(
         JSON.stringify({
           error: "Exam ID missing",
         }),
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
     console.log(
-      "🗑️ Deleting exam:",
+      "🗑️ Deleting Exam:",
       examId
     );
 
     // ======================================================
-    // ✅ DELETE RELATED EXAM QUESTIONS
+    // ✅ DELETE EXAM QUESTIONS
     // ======================================================
 
     const {
@@ -174,7 +232,7 @@ export async function DELETE(req: Request) {
     }
 
     // ======================================================
-    // ✅ DELETE RELATED SUBMISSIONS
+    // ✅ DELETE SUBMISSIONS
     // ======================================================
 
     const {
@@ -209,7 +267,9 @@ export async function DELETE(req: Request) {
         message:
           "Exam deleted successfully",
       }),
-      { status: 200 }
+      {
+        status: 200,
+      }
     );
   } catch (err: any) {
     console.error(
@@ -219,9 +279,13 @@ export async function DELETE(req: Request) {
 
     return new Response(
       JSON.stringify({
-        error: err.message,
+        error:
+          err.message ||
+          "Failed to delete exam",
       }),
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }

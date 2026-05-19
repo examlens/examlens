@@ -12,6 +12,7 @@
     "@supabase/auth-helpers-nextjs": "^0.15.0",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.103.3",
+    "axios": "^1.16.1",
     "chart.js": "^4.5.1",
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.16.0",
