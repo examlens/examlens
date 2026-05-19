@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/app/lib/supabase";
 import { useRouter } from "next/navigation";
 
+
 interface Exam {
   id: string;
   title: string;
@@ -223,7 +224,6 @@ export default function ExamsPage() {
               Number(totalMarks),
             subject,
             exam_date: examDate,
-            // shuffle_questions:              shuffleQuestions,  
             reference_file_url:
               referenceUrl,
           }),
@@ -293,7 +293,6 @@ export default function ExamsPage() {
       setExamDate("");
       setSelectedQuestions([]);
       setReferenceFile(null);
-      // setShuffleQuestions(false);
       setShowModal(false);
 
       fetchExams();
@@ -846,26 +845,6 @@ export default function ExamsPage() {
                 "
                     />
                   </div>
-
-                  {/* SHUFFLE */}
-
-                  {/* <div className="bg-white border border-orange-200 rounded-2xl p-4 flex items-center gap-3">
-
-                    <input
-                      type="checkbox"
-                      checked={shuffleQuestions}
-                      onChange={(e) =>
-                        setShuffleQuestions(
-                          e.target.checked
-                        )
-                      }
-                      className="w-5 h-5 accent-orange-500"
-                    />
-
-                    <p className="font-medium text-slate-700">
-                      Auto-shuffle questions per student
-                    </p>
-                  </div> */}
                 </div>
 
                 {/* ===================================================== */}
