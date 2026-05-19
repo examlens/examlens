@@ -192,79 +192,273 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0d426a] via-[#005b8f] to-[#00a0dc] px-4">
+  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-500 via-amber-400 to-orange-300 px-4 relative overflow-hidden">
 
-      <div className="bg-white/95 backdrop-blur-lg p-8 rounded-2xl shadow-2xl w-full max-w-md">
+    {/* BACKGROUND BLUR EFFECTS */}
 
-        <h1 className="text-3xl font-bold text-center text-[#0d426a] mb-2">
-          ExamLens
-        </h1>
+    <div className="absolute top-[-120px] left-[-120px] w-96 h-96 bg-white/20 rounded-full blur-3xl" />
 
-        <p className="text-center text-gray-500 mb-6">
-          {isSignup ? "Create your account" : "Welcome back"}
+    <div className="absolute bottom-[-150px] right-[-100px] w-[450px] h-[450px] bg-orange-200/30 rounded-full blur-3xl" />
+
+    {/* LOGIN CARD */}
+
+    <div className="relative z-10 w-full max-w-lg mx-10">
+
+  <div className="bg-white/92 backdrop-blur-2xl border border-white/40 shadow-[0_15px_50px_rgba(0,0,0,0.12)] rounded-[28px] overflow-hidden">
+
+    {/* TOP HEADER */}
+
+    <div className="bg-gradient-to-r from-orange-500 via-amber-500 to-orange-400 px-6 py-6 text-center">
+
+      <div className="w-16 h-16 rounded-[20px] bg-white/20 backdrop-blur-md flex items-center justify-center mx-auto shadow-lg border border-white/20">
+
+        <span className="text-3xl">🎓</span>
+      </div>
+
+      <h1 className="text-3xl font-black text-white mt-4 tracking-tight">
+        ExamLens
+      </h1>
+
+      <p className="text-orange-100 mt-1 text-xs">
+        AI Powered Exam Evaluation Platform
+      </p>
+    </div>
+
+    {/* FORM */}
+
+    <div className="p-6">
+
+      <div className="mb-5 text-center">
+
+        <h2 className="text-xl font-bold text-slate-800">
+          {isSignup
+            ? "Create Account"
+            : "Welcome Back"}
+        </h2>
+
+        <p className="text-slate-500 mt-1 text-xs">
+          {isSignup
+            ? "Start managing exams smarter with AI"
+            : "Login to continue to your dashboard"}
         </p>
+      </div>
 
-        {isSignup && (
+      {/* NAME */}
+
+      {isSignup && (
+        <div className="mb-3">
+
+          <label className="text-xs font-semibold text-slate-700 mb-2 block">
+            Full Name
+          </label>
+
           <input
             type="text"
-            placeholder="Full Name"
-            className="w-full mb-3 p-3 border rounded-lg"
+            placeholder="Enter your full name"
+            className="
+              w-full
+              bg-orange-50/60
+              border
+              border-orange-100
+              rounded-xl
+              px-4
+              py-3
+              outline-none
+              focus:ring-4
+              focus:ring-orange-100
+              focus:border-orange-400
+              transition-all
+              text-sm
+              text-slate-700
+            "
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) =>
+              setName(e.target.value)
+            }
           />
-        )}
+        </div>
+      )}
+
+      {/* EMAIL */}
+
+      <div className="mb-3">
+
+        <label className="text-xs font-semibold text-slate-700 mb-2 block">
+          Email Address
+        </label>
 
         <input
           type="email"
-          placeholder="Email"
-          className="w-full mb-3 p-3 border rounded-lg"
+          placeholder="Enter your email"
+          className="
+            w-full
+            bg-orange-50/60
+            border
+            border-orange-100
+            rounded-xl
+            px-4
+            py-3
+            outline-none
+            focus:ring-4
+            focus:ring-orange-100
+            focus:border-orange-400
+            transition-all
+            text-sm
+            text-slate-700
+          "
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) =>
+            setEmail(e.target.value)
+          }
         />
+      </div>
 
-        <div className="relative mb-3">
+      {/* PASSWORD */}
+
+      <div className="mb-4">
+
+        <label className="text-xs font-semibold text-slate-700 mb-2 block">
+          Password
+        </label>
+
+        <div className="relative">
+
           <input
-            type={showPassword ? "text" : "password"}
-            placeholder="Password"
-            className="w-full p-3 border rounded-lg"
+            type={
+              showPassword
+                ? "text"
+                : "password"
+            }
+            placeholder="Enter your password"
+            className="
+              w-full
+              bg-orange-50/60
+              border
+              border-orange-100
+              rounded-xl
+              px-4
+              py-3
+              pr-20
+              outline-none
+              focus:ring-4
+              focus:ring-orange-100
+              focus:border-orange-400
+              transition-all
+              text-sm
+              text-slate-700
+            "
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) =>
+              setPassword(e.target.value)
+            }
           />
-          <span
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-3 cursor-pointer text-sm"
+
+          <button
+            type="button"
+            onClick={() =>
+              setShowPassword(
+                !showPassword
+              )
+            }
+            className="
+              absolute
+              right-3
+              top-1/2
+              -translate-y-1/2
+              text-xs
+              font-semibold
+              text-orange-500
+              hover:text-orange-600
+              transition-all
+            "
           >
-            {showPassword ? "Hide" : "Show"}
-          </span>
+            {showPassword
+              ? "Hide"
+              : "Show"}
+          </button>
         </div>
+      </div>
 
-        <button
-          onClick={handleAuth}
-          disabled={loading}
-          className="w-full py-3 bg-[#0d426a] text-white rounded-lg"
+      {/* LOGIN BUTTON */}
+
+      <button
+        onClick={handleAuth}
+        disabled={loading}
+        className={`
+          w-full
+          py-3
+          rounded-xl
+          font-bold
+          text-sm
+          text-white
+          transition-all
+          duration-300
+          shadow-lg
+          ${
+            loading
+              ? "bg-orange-300 cursor-not-allowed"
+              : "bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
+          }
+        `}
+      >
+        {loading
+          ? "Please wait..."
+          : isSignup
+          ? "Create Account"
+          : "Login"}
+      </button>
+
+      {/* FORGOT PASSWORD */}
+
+      {!isSignup && (
+        <p
+          onClick={
+            handleForgotPassword
+          }
+          className="
+            text-xs
+            text-orange-500
+            hover:text-orange-600
+            mt-4
+            text-center
+            cursor-pointer
+            font-semibold
+            transition-all
+          "
         >
-          {loading ? "Please wait..." : isSignup ? "Sign Up" : "Login"}
-        </button>
-
-        {!isSignup && (
-          <p
-            onClick={handleForgotPassword}
-            className="text-sm text-[#00a0dc] mt-3 text-center cursor-pointer"
-          >
-            Forgot Password?
-          </p>
-        )}
-
-        <p className="text-center text-sm mt-5">
-          {isSignup ? "Already have account?" : "New here?"}{" "}
-          <span
-            className="text-[#00a0dc] cursor-pointer"
-            onClick={() => setIsSignup(!isSignup)}
-          >
-            {isSignup ? "Login" : "Sign up"}
-          </span>
+          Forgot Password?
         </p>
+      )}
+
+      {/* TOGGLE */}
+
+      <div className="mt-5 text-center text-xs text-slate-500">
+
+        {isSignup
+          ? "Already have an account?"
+          : "New to ExamLens?"}
+
+        <span
+          className="
+            ml-1
+            text-orange-500
+            hover:text-orange-600
+            font-bold
+            cursor-pointer
+            transition-all
+          "
+          onClick={() =>
+            setIsSignup(!isSignup)
+          }
+        >
+          {isSignup
+            ? "Login"
+            : "Create Account"}
+        </span>
       </div>
     </div>
-  );
+  </div>
+</div>
+  </div>
+);
 }

@@ -38,7 +38,7 @@ export default function AdminStudentsPage() {
       if (!res.ok) {
         throw new Error(
           data.error ||
-            "Failed to fetch students"
+          "Failed to fetch students"
         );
       }
 
@@ -93,7 +93,7 @@ export default function AdminStudentsPage() {
       if (!res.ok) {
         throw new Error(
           data.error ||
-            "Failed to remove student"
+          "Failed to remove student"
         );
       }
 
@@ -112,7 +112,7 @@ export default function AdminStudentsPage() {
 
       alert(
         err.message ||
-          "Failed to remove student"
+        "Failed to remove student"
       );
     }
   };
@@ -145,83 +145,119 @@ export default function AdminStudentsPage() {
     ).length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-slate-200 p-4 md:p-6">
+  <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 p-4 md:p-6">
+
+    <div className="max-w-7xl mx-auto">
 
       {/* ====================================================== */}
-      {/* HEADER */}
+      {/* HERO HEADER */}
       {/* ====================================================== */}
 
-      <div className="mb-8 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-5">
+      <div className="relative overflow-hidden bg-white border border-orange-100 rounded-[36px] shadow-xl mb-8">
 
-        {/* LEFT */}
-        <div>
-          <h1 className="text-3xl md:text-4xl font-black text-slate-800 tracking-tight">
-            Student Management
-          </h1>
+        {/* BACKGROUND DECOR */}
 
-          <p className="text-slate-500 mt-2 text-base md:text-lg">
-            Monitor attendance,
-            evaluation status and
-            manage student accounts
-          </p>
-        </div>
+        <div className="absolute -top-24 -right-24 w-80 h-80 bg-orange-200 rounded-full blur-3xl opacity-30" />
 
-        {/* RIGHT STATS */}
-        <div className="flex flex-wrap gap-4">
+        <div className="absolute bottom-0 left-0 w-72 h-72 bg-amber-100 rounded-full blur-3xl opacity-30" />
 
-          {/* TOTAL */}
-          <div className="bg-white border border-slate-200 rounded-3xl px-5 py-4 shadow-sm min-w-[170px]">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center">
-                <Users className="text-blue-600" />
+        <div className="relative z-10 p-7 md:p-10">
+
+          <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-8">
+
+            {/* LEFT */}
+
+            <div className="max-w-2xl">
+
+              <div className="inline-flex items-center gap-2 bg-orange-100 text-orange-700 px-4 py-2 rounded-full text-sm font-bold mb-5">
+                <div className="w-2 h-2 rounded-full bg-orange-500" />
+                SaaS Student Dashboard
               </div>
 
-              <div>
-                <p className="text-sm text-slate-500">
-                  Total Students
-                </p>
+              <h1 className="text-4xl md:text-5xl font-black text-slate-900 leading-tight tracking-tight">
+                Student Management
+              </h1>
 
-                <h2 className="text-2xl font-black text-slate-800">
-                  {students.length}
-                </h2>
-              </div>
+              <p className="text-slate-500 mt-5 text-lg leading-relaxed">
+                Monitor attendance, evaluation progress, performance analytics,
+                and manage all student activities from one modern dashboard.
+              </p>
             </div>
-          </div>
 
-          {/* EVALUATED */}
-          <div className="bg-white border border-slate-200 rounded-3xl px-5 py-4 shadow-sm min-w-[170px]">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-green-100 flex items-center justify-center">
-                <CheckCircle2 className="text-green-600" />
+            {/* RIGHT STATS */}
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full xl:w-auto">
+
+              {/* TOTAL */}
+
+              <div className="bg-gradient-to-br from-orange-500 to-amber-500 text-white rounded-[28px] px-6 py-5 shadow-2xl shadow-orange-200 min-w-[210px]">
+
+                <div className="flex items-center justify-between">
+
+                  <div>
+                    <p className="text-orange-100 text-sm font-medium">
+                      Total Students
+                    </p>
+
+                    <h2 className="text-4xl font-black mt-2">
+                      {students.length}
+                    </h2>
+                  </div>
+
+                  <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center">
+                    <Users size={28} />
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <p className="text-sm text-slate-500">
-                  Evaluated
-                </p>
+              {/* EVALUATED */}
 
-                <h2 className="text-2xl font-black text-green-600">
-                  {evaluatedCount}
-                </h2>
+              <div className="bg-white z-1 border border-orange-100 rounded-[28px] px-6 py-5 shadow-lg min-w-[210px]">
+
+                <div className="flex items-center justify-between">
+
+                  <div>
+                    <p className="text-slate-500 text-sm font-medium">
+                      Evaluated
+                    </p>
+
+                    <h2 className="text-4xl font-black text-green-600 mt-2">
+                      {evaluatedCount}
+                    </h2>
+                  </div>
+
+                  <div className="w-14 h-14 rounded-2xl bg-green-100 flex items-center justify-center">
+                    <CheckCircle2
+                      size={28}
+                      className="text-green-600"
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
 
-          {/* PENDING */}
-          <div className="bg-white border border-slate-200 rounded-3xl px-5 py-4 shadow-sm min-w-[170px]">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-yellow-100 flex items-center justify-center">
-                <Clock3 className="text-yellow-600" />
-              </div>
+              {/* PENDING */}
 
-              <div>
-                <p className="text-sm text-slate-500">
-                  Pending
-                </p>
+              <div className="bg-white z-2 border border-orange-100 rounded-[28px] px-6 py-5 shadow-lg min-w-[210px]">
 
-                <h2 className="text-2xl font-black text-yellow-600">
-                  {pendingCount}
-                </h2>
+                <div className="flex items-center justify-between">
+
+                  <div>
+                    <p className="text-slate-500 text-sm font-medium">
+                      Pending
+                    </p>
+
+                    <h2 className="text-4xl font-black text-yellow-500 mt-2">
+                      {pendingCount}
+                    </h2>
+                  </div>
+
+                  <div className="w-14 h-14 rounded-2xl bg-yellow-100 flex items-center justify-center">
+                    <Clock3
+                      size={28}
+                      className="text-yellow-600"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -229,26 +265,59 @@ export default function AdminStudentsPage() {
       </div>
 
       {/* ====================================================== */}
-      {/* SEARCH BAR */}
+      {/* SEARCH + FILTER */}
       {/* ====================================================== */}
 
-      <div className="bg-white border border-slate-200 rounded-[26px] shadow-sm p-4 mb-8">
+      <div className="bg-white border border-orange-100 rounded-[30px] shadow-lg p-5 mb-8">
 
-        <div className="relative max-w-md">
-          <Search
-            className="absolute left-4 top-4 text-slate-400"
-            size={20}
-          />
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
 
-          <input
-            type="text"
-            placeholder="Search students..."
-            value={search}
-            onChange={(e) =>
-              setSearch(e.target.value)
-            }
-            className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-12 pr-4 py-4 outline-none focus:ring-2 focus:ring-blue-500 text-slate-700"
-          />
+          {/* SEARCH */}
+
+          <div className="relative w-full lg:max-w-xl">
+
+            <Search
+              className="absolute left-5 top-1/2 -translate-y-1/2 text-orange-400"
+              size={20}
+            />
+
+            <input
+              type="text"
+              placeholder="Search students by name or email..."
+              value={search}
+              onChange={(e) =>
+                setSearch(e.target.value)
+              }
+              className="
+                w-full
+                bg-orange-50/50
+                border
+                border-orange-100
+                rounded-2xl
+                pl-14
+                pr-5
+                py-4
+                outline-none
+                focus:ring-4
+                focus:ring-orange-100
+                focus:border-orange-400
+                text-slate-700
+                placeholder:text-slate-400
+                transition-all
+              "
+            />
+          </div>
+
+          {/* SMALL INFO */}
+
+          <div className="flex items-center gap-3 bg-orange-50 border border-orange-100 rounded-2xl px-5 py-3">
+
+            <div className="w-3 h-3 rounded-full bg-orange-500 animate-pulse" />
+
+            <p className="text-sm font-semibold text-slate-700">
+              {filteredStudents.length} Students Available
+            </p>
+          </div>
         </div>
       </div>
 
@@ -257,175 +326,270 @@ export default function AdminStudentsPage() {
       {/* ====================================================== */}
 
       {loading ? (
-        <div className="bg-white rounded-[26px] shadow-sm p-16 text-center">
-          <div className="animate-spin w-14 h-14 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-5" />
+        <div className="bg-white border border-orange-100 rounded-[32px] shadow-xl p-16 text-center">
 
-          <p className="text-slate-500 text-lg">
-            Loading students...
-          </p>
-        </div>
-      ) : filteredStudents.length ===
-        0 ? (
-        <div className="bg-white rounded-[26px] shadow-sm p-16 text-center">
-          <Users
-            size={60}
-            className="mx-auto text-slate-300 mb-5"
-          />
+          <div className="w-16 h-16 border-[5px] border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-6" />
 
-          <h2 className="text-2xl font-bold text-slate-700">
-            No Students Found
+          <h2 className="text-2xl font-black text-slate-800">
+            Loading Students...
           </h2>
 
           <p className="text-slate-500 mt-2">
-            Try searching with another
-            name
+            Fetching latest student data
+          </p>
+        </div>
+      ) : filteredStudents.length === 0 ? (
+        <div className="bg-white border border-orange-100 rounded-[32px] shadow-xl p-16 text-center">
+
+          <div className="mx-auto w-28 h-28 rounded-[30px] bg-orange-100 flex items-center justify-center mb-7">
+            <Users
+              size={50}
+              className="text-orange-500"
+            />
+          </div>
+
+          <h2 className="text-3xl font-black text-slate-900">
+            No Students Found
+          </h2>
+
+          <p className="text-slate-500 mt-4 text-lg">
+            Try searching with another student name or email.
           </p>
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-4 gap-5">
 
-          {filteredStudents.map(
-            (student: any) => (
-              <div
-                key={student.id}
-                className="group relative bg-white rounded-[24px] border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden"
-              >
+        /* ====================================================== */
+        /* TABLE */
+        /* ====================================================== */
 
-                {/* TOP */}
-                <div className="h-20 bg-gradient-to-br from-blue-600 via-indigo-600 to-cyan-500" />
+        <div className="overflow-hidden rounded-[32px] border border-orange-100 bg-white shadow-2xl">
 
-                {/* CONTENT */}
-                <div className="px-4 pb-4 relative">
+          {/* TABLE HEADER */}
 
-                  {/* AVATAR */}
-                  <div className="-mt-10 relative z-10">
-                    <div className="w-20 h-20 rounded-[22px] bg-white shadow-lg border-[5px] border-white flex items-center justify-center mx-auto">
-                      <span className="text-2xl font-black text-blue-700">
-                        {(student.name ||
-                          "S")
-                          .charAt(0)
-                          .toUpperCase()}
-                      </span>
-                    </div>
-                  </div>
+          <div className="overflow-x-auto">
 
-                  {/* NAME */}
-                  <div className="text-center mt-3">
-                    <h2 className="text-lg font-black text-slate-800 truncate">
-                      {student.name ||
-                        "Student"}
-                    </h2>
+            <table className="w-full min-w-[1100px]">
 
-                    <div className="flex items-center justify-center gap-2 text-slate-500 text-xs mt-2">
-                      <Mail size={13} />
+              <thead className="bg-gradient-to-r from-orange-500 to-amber-500 text-white">
 
-                      <span className="truncate max-w-[180px]">
-                        {student.email}
-                      </span>
-                    </div>
-                  </div>
+                <tr>
 
-                  {/* SCORE */}
-                  <div className="mt-4 bg-gradient-to-br from-orange-500 to-red-500 rounded-[22px] p-4 text-white shadow-md">
+                  <th className="px-6 py-5 text-left text-sm font-bold uppercase tracking-wider">
+                    Student
+                  </th>
 
-                    <p className="text-orange-100 text-xs">
-                      Average Score
-                    </p>
+                  <th className="px-6 py-5 text-left text-sm font-bold uppercase tracking-wider">
+                    Email
+                  </th>
 
-                    <h1 className="text-4xl font-black mt-1">
-                      {student.avgScore}%
-                    </h1>
-                  </div>
+                  <th className="px-6 py-5 text-center text-sm font-bold uppercase tracking-wider">
+                    Avg Score
+                  </th>
 
-                  {/* STATUS */}
-                  <div className="flex items-center justify-between mt-4">
+                  {/* <th className="px-6 py-5 text-center text-sm font-bold uppercase tracking-wider">
+                    Attendance
+                  </th> */}
 
-                    <div
-                      className={`px-3 py-1.5 rounded-full text-xs font-bold ${
-                        student.status ===
-                        "Evaluated"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-yellow-100 text-yellow-700"
-                      }`}
-                    >
-                      {student.status ===
-                      "Evaluated"
-                        ? "✓ Evaluated"
-                        : "⏳ Pending"}
-                    </div>
+                  <th className="px-6 py-5 text-center text-sm font-bold uppercase tracking-wider">
+                    Status
+                  </th>
 
-                    <div className="flex items-center gap-1 text-slate-700 font-semibold text-sm">
-                      <GraduationCap size={15} />
+                  <th className="px-6 py-5 text-center text-sm font-bold uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
 
-                      <span>
-                        {
-                          student.attendance
+              <tbody>
+
+                {filteredStudents.map(
+                  (student: any, index: number) => (
+                    <tr
+                      key={student.id}
+                      className={`
+                        border-b border-orange-100
+                        hover:bg-orange-50/50
+                        transition-all
+                        duration-300
+                        ${index % 2 === 0
+                          ? "bg-white"
+                          : "bg-orange-50/20"
                         }
-                        %
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* ATTENDANCE */}
-                  <div className="mt-4">
-
-                    <div className="flex justify-between text-xs mb-2">
-                      <span className="text-slate-500">
-                        Attendance
-                      </span>
-
-                      <span className="font-bold text-slate-700">
-                        {
-                          student.attendance
-                        }
-                        %
-                      </span>
-                    </div>
-
-                    <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
-
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-500"
-                        style={{
-                          width: `${student.attendance}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* BUTTONS */}
-                  <div className="mt-5 flex gap-2">
-
-                    {/* VIEW */}
-                    {/* <Link
-                      href={`/admin/students/${student.id}`}
-                      className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition-all duration-300 text-sm"
+                      `}
                     >
-                      <Eye size={16} />
 
-                      View
-                    </Link> */}
+                      {/* STUDENT */}
 
-                    {/* DELETE */}
-                    <button
-                      onClick={() =>
-                        handleDelete(
-                          student.id
-                        )
-                      }
-                      className="flex-1 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-semibold transition-all duration-300 text-sm"
-                    >
-                      <Trash2 size={16} />
+                      <td className="px-6 py-5">
 
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )
-          )}
+                        <div className="flex items-center gap-4">
+
+                          <div className="
+                            w-14
+                            h-14
+                            rounded-2xl
+                            bg-gradient-to-br
+                            from-orange-500
+                            to-amber-500
+                            flex
+                            items-center
+                            justify-center
+                            text-white
+                            font-black
+                            text-lg
+                            shadow-lg
+                          ">
+                            {(student.name || "S")
+                              .charAt(0)
+                              .toUpperCase()}
+                          </div>
+
+                          <div>
+
+                            <h2 className="font-black text-slate-900 text-lg">
+                              {student.name || "Student"}
+                            </h2>
+
+                            {/* <p className="text-sm text-slate-500 mt-1">
+                              Student ID: {student.id?.slice(0, 8)}
+                            </p> */}
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* EMAIL */}
+
+                      <td className="px-6 py-5">
+
+                        <div className="flex items-center gap-2 text-slate-600">
+
+                          <Mail
+                            size={16}
+                            className="text-orange-500"
+                          />
+
+                          <span className="font-medium">
+                            {student.email}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* SCORE */}
+
+                      <td className="px-6 py-5 text-center">
+
+                        <div className="inline-flex items-center justify-center bg-gradient-to-r from-orange-500 to-amber-500 text-white px-5 py-2 rounded-2xl shadow-lg min-w-[100px]">
+
+                          <span className="text-2xl font-black">
+                            {student.avgScore}%
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* ATTENDANCE */}
+
+                      {/* <td className="px-6 py-5">
+
+                        <div className="min-w-[180px]">
+
+                          <div className="flex justify-between mb-2 text-sm">
+
+                            <span className="text-slate-500">
+                              Attendance
+                            </span>
+
+                            <span className="font-bold text-slate-700">
+                              {student.attendance}%
+                            </span>
+                          </div>
+
+                          <div className="w-full h-3 bg-orange-100 rounded-full overflow-hidden">
+
+                            <div
+                              className="h-full bg-gradient-to-r from-orange-500 to-amber-500 rounded-full transition-all duration-500"
+                              style={{
+                                width: `${student.attendance}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </td> */}
+
+                      {/* STATUS */}
+
+                      <td className="px-6 py-5 text-center">
+
+                        <div
+                          className={`
+                            inline-flex
+                            items-center
+                            gap-2
+                            px-4
+                            py-2
+                            rounded-full
+                            text-sm
+                            font-bold
+                            ${
+                              student.status === "Evaluated"
+                                ? "bg-green-100 text-green-700"
+                                : "bg-yellow-100 text-yellow-700"
+                            }
+                          `}
+                        >
+                          {student.status === "Evaluated" ? (
+                            <>
+                              <CheckCircle2 size={16} />
+                              Evaluated
+                            </>
+                          ) : (
+                            <>
+                              <Clock3 size={16} />
+                              Pending
+                            </>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* ACTIONS */}
+
+                      <td className="px-6 py-5">
+
+                        <div className="flex items-center justify-center">
+
+                          <button
+                            onClick={() =>
+                              handleDelete(student.id)
+                            }
+                            className="
+                              flex
+                              items-center
+                              gap-2
+                              bg-red-500
+                              hover:bg-red-600
+                              text-white
+                              px-5
+                              py-3
+                              rounded-2xl
+                              font-bold
+                              shadow-lg
+                              transition-all
+                              duration-300
+                            "
+                          >
+                            <Trash2 size={17} />
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
-  );
+  </div>
+);
 }
