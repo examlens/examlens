@@ -8,7 +8,6 @@ export default function AuthPage() {
   const router = useRouter();
 
   const [isSignup, setIsSignup] = useState(false);
-
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -16,7 +15,9 @@ export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // ✅ AUTO REDIRECT
+  // =========================
+  // AUTO LOGIN CHECK
+  // =========================
   useEffect(() => {
     const checkUser = async () => {
       const { data } = await supabase.auth.getSession();
@@ -30,30 +31,32 @@ export default function AuthPage() {
         .from("profiles")
         .select("role")
         .eq("id", user.id)
-        .maybeSingle(); // ✅ FIXED
+        .maybeSingle();
 
       if (!profile) {
-        // ✅ auto create profile
         await supabase.from("profiles").insert({
           id: user.id,
           role: "student",
+          name: user.email,
         });
 
         router.push("/student/dashboard");
         return;
       }
 
-      if (profile.role === "admin") {
-        router.push("/admin/dashboard");
-      } else {
-        router.push("/student/dashboard");
-      }
+      router.push(
+        profile.role === "admin"
+          ? "/admin/dashboard"
+          : "/student/dashboard"
+      );
     };
 
     checkUser();
   }, []);
 
-  // ✅ AUTH HANDLER
+  // =========================
+  // AUTH HANDLER
+  // =========================
   const handleAuth = async () => {
     if (!email || !password) {
       alert("Email & password required");
@@ -63,9 +66,9 @@ export default function AuthPage() {
     try {
       setLoading(true);
 
-      // =====================
-      // 🔹 SIGNUP
-      // =====================
+      // =========================
+      // SIGNUP
+      // =========================
       if (isSignup) {
         if (!name.trim()) {
           alert("Enter your name");
@@ -75,35 +78,28 @@ export default function AuthPage() {
         const { data, error } = await supabase.auth.signUp({
           email: email.trim(),
           password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/login`,
+          },
         });
 
-        if (error) {
-          if (error.message.includes("User already registered")) {
-            alert("⚠️ Email already exists. Please login.");
-            return;
-          }
-          throw error;
+        if (error) throw error;
+
+        // IMPORTANT: user may be null until email verified
+        const user = data.user;
+
+        if (user) {
+          await supabase.from("profiles").upsert({
+            id: user.id,
+            role: "student",
+            name: name.trim(),
+            email: email.trim(),
+          });
         }
 
-        const user = data.user;
-        if (!user) throw new Error("Signup failed");
-
-        // ✅ insert users table
-        await supabase.from("users").insert({
-          id: user.id,
-          name: name.trim(),
-          email: email.trim(),
-        });
-
-        // ✅ profile
-        await supabase.from("profiles").upsert({
-          id: user.id,
-          role: "student",
-          name,
-          email,
-        });
-
-        alert("✅ Signup successful. Please login");
+        alert(
+          "✅ Signup successful! Please check your email to verify your account."
+        );
 
         setIsSignup(false);
         setName("");
@@ -111,9 +107,9 @@ export default function AuthPage() {
         setPassword("");
       }
 
-      // =====================
-      // 🔹 LOGIN
-      // =====================
+      // =========================
+      // LOGIN
+      // =========================
       else {
         const { data, error } =
           await supabase.auth.signInWithPassword({
@@ -126,33 +122,28 @@ export default function AuthPage() {
         const user = data.user;
         if (!user) throw new Error("Login failed");
 
-        // alert("✅ Login successful");
-
-        const { data: profiles } = await supabase
+        const { data: profile } = await supabase
           .from("profiles")
           .select("role")
-          .eq("id", user.id);
-
-        const profile = profiles?.[0] ?? null;
-
-        // alert(`User role: ${profile?.role || "not found"}`);
+          .eq("id", user.id)
+          .maybeSingle();
 
         if (!profile) {
-          await supabase.from("profiles").upsert({
+          await supabase.from("profiles").insert({
             id: user.id,
             role: "student",
+            name: user.email,
           });
 
           router.push("/student/dashboard");
           return;
         }
 
-        if (profile.role === "admin") {
-          router.push("/admin/dashboard");
-        } else {
-          // alert("✅ Login successful2");
-          router.push("/student/dashboard");
-        }
+        router.push(
+          profile.role === "admin"
+            ? "/admin/dashboard"
+            : "/student/dashboard"
+        );
       }
     } catch (err: any) {
       console.error("❌ AUTH ERROR:", err);
@@ -162,303 +153,161 @@ export default function AuthPage() {
     }
   };
 
-  // ✅ FORGOT PASSWORD
+  // =========================
+  // FORGOT PASSWORD (FIXED)
+  // =========================
   const handleForgotPassword = async () => {
     if (!email) {
       alert("Enter email first");
       return;
     }
 
-    const { data } = await supabase.auth.getSession();
-    const user = data?.session?.user;
+    try {
+      const { error } =
+        await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/login`,
+        });
 
-    if (user) {
-      await supabase.from("students").insert([
-  {
-    auth_user_id: user.id,
-    student_name: name,
-    student_code: "CS2024-01",
-    email: email,
-    attendance: 90,
-  },
-]);
+      if (error) throw error;
+
+      alert("📩 Password reset email sent!");
+    } catch (err: any) {
+      alert(err.message);
     }
-
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
-
-    if (error) alert(error.message);
-    else alert("📩 Reset email sent");
-    
   };
 
   return (
-  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-500 via-amber-400 to-orange-300 px-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-500 via-amber-400 to-orange-300 px-4 relative overflow-hidden">
 
-    {/* BACKGROUND BLUR EFFECTS */}
+      {/* BACKGROUND BLUR EFFECTS */}
+      <div className="absolute top-[-120px] left-[-120px] w-96 h-96 bg-white/20 rounded-full blur-3xl" />
+      <div className="absolute bottom-[-150px] right-[-100px] w-[450px] h-[450px] bg-orange-200/30 rounded-full blur-3xl" />
 
-    <div className="absolute top-[-120px] left-[-120px] w-96 h-96 bg-white/20 rounded-full blur-3xl" />
+      {/* LOGIN CARD */}
+      <div className="relative z-10 w-full max-w-lg mx-10">
+        <div className="bg-white/92 backdrop-blur-2xl border border-white/40 shadow-[0_15px_50px_rgba(0,0,0,0.12)] rounded-[28px] overflow-hidden">
 
-    <div className="absolute bottom-[-150px] right-[-100px] w-[450px] h-[450px] bg-orange-200/30 rounded-full blur-3xl" />
+          {/* TOP HEADER */}
+          <div className="bg-gradient-to-r from-orange-500 via-amber-500 to-orange-400 px-6 py-6 text-center">
+            <div className="w-16 h-16 rounded-[20px] bg-white/20 backdrop-blur-md flex items-center justify-center mx-auto shadow-lg border border-white/20">
+              <span className="text-3xl">🎓</span>
+            </div>
 
-    {/* LOGIN CARD */}
+            <h1 className="text-3xl font-black text-white mt-4 tracking-tight">
+              ExamLens
+            </h1>
 
-    <div className="relative z-10 w-full max-w-lg mx-10">
+            <p className="text-orange-100 mt-1 text-xs">
+              AI Powered Exam Evaluation Platform
+            </p>
+          </div>
 
-  <div className="bg-white/92 backdrop-blur-2xl border border-white/40 shadow-[0_15px_50px_rgba(0,0,0,0.12)] rounded-[28px] overflow-hidden">
+          {/* FORM */}
+          <div className="p-6">
 
-    {/* TOP HEADER */}
+            <div className="mb-5 text-center">
+              <h2 className="text-xl font-bold text-slate-800">
+                {isSignup ? "Create Account" : "Welcome Back"}
+              </h2>
 
-    <div className="bg-gradient-to-r from-orange-500 via-amber-500 to-orange-400 px-6 py-6 text-center">
+              <p className="text-slate-500 mt-1 text-xs">
+                {isSignup
+                  ? "Start managing exams smarter with AI"
+                  : "Login to continue to your dashboard"}
+              </p>
+            </div>
 
-      <div className="w-16 h-16 rounded-[20px] bg-white/20 backdrop-blur-md flex items-center justify-center mx-auto shadow-lg border border-white/20">
+            {/* NAME */}
+            {isSignup && (
+              <div className="mb-3">
+                <label className="text-xs font-semibold text-slate-700 mb-2 block">
+                  Full Name
+                </label>
 
-        <span className="text-3xl">🎓</span>
-      </div>
+                <input
+                  type="text"
+                  placeholder="Enter your full name"
+                  className="w-full bg-orange-50/60 border border-orange-100 rounded-xl px-4 py-3 text-sm"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+            )}
 
-      <h1 className="text-3xl font-black text-white mt-4 tracking-tight">
-        ExamLens
-      </h1>
+            {/* EMAIL */}
+            <div className="mb-3">
+              <label className="text-xs font-semibold text-slate-700 mb-2 block">
+                Email Address
+              </label>
 
-      <p className="text-orange-100 mt-1 text-xs">
-        AI Powered Exam Evaluation Platform
-      </p>
-    </div>
+              <input
+                type="email"
+                placeholder="Enter your Email"
+                className="w-full bg-orange-50/60 border border-orange-100 rounded-xl px-4 py-3 text-sm"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
 
-    {/* FORM */}
+            {/* PASSWORD */}
+            <div className="mb-4">
+              <label className="text-xs font-semibold text-slate-700 mb-2 block">
+                Password
+              </label>
 
-    <div className="p-6">
+              <div className="relative">
+                <input
+                  placeholder="Enter your Password"
+                  type={showPassword ? "text" : "password"}
+                  className="w-full bg-orange-50/60 border border-orange-100 rounded-xl px-4 py-3 pr-20 text-sm"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
 
-      <div className="mb-5 text-center">
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-orange-500"
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+            </div>
 
-        <h2 className="text-xl font-bold text-slate-800">
-          {isSignup
-            ? "Create Account"
-            : "Welcome Back"}
-        </h2>
+            {/* LOGIN BUTTON */}
+            <button
+              onClick={handleAuth}
+              disabled={loading}
+              className="w-full py-3 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-orange-500 to-amber-500"
+            >
+              {loading ? "Please wait..." : isSignup ? "Create Account" : "Login"}
+            </button>
 
-        <p className="text-slate-500 mt-1 text-xs">
-          {isSignup
-            ? "Start managing exams smarter with AI"
-            : "Login to continue to your dashboard"}
-        </p>
-      </div>
+            {/* FORGOT PASSWORD */}
+            {!isSignup && (
+              <p
+                onClick={handleForgotPassword}
+                className="text-xs text-orange-500 mt-4 text-center cursor-pointer font-semibold"
+              >
+                Forgot Password?
+              </p>
+            )}
 
-      {/* NAME */}
+            {/* TOGGLE */}
+            <div className="mt-5 text-center text-xs text-slate-500">
+              {isSignup ? "Already have an account?" : "New to ExamLens?"}
 
-      {isSignup && (
-        <div className="mb-3">
+              <span
+                className="ml-1 text-orange-500 font-bold cursor-pointer"
+                onClick={() => setIsSignup(!isSignup)}
+              >
+                {isSignup ? "Login" : "Create Account"}
+              </span>
+            </div>
 
-          <label className="text-xs font-semibold text-slate-700 mb-2 block">
-            Full Name
-          </label>
-
-          <input
-            type="text"
-            placeholder="Enter your full name"
-            className="
-              w-full
-              bg-orange-50/60
-              border
-              border-orange-100
-              rounded-xl
-              px-4
-              py-3
-              outline-none
-              focus:ring-4
-              focus:ring-orange-100
-              focus:border-orange-400
-              transition-all
-              text-sm
-              text-slate-700
-            "
-            value={name}
-            onChange={(e) =>
-              setName(e.target.value)
-            }
-          />
-        </div>
-      )}
-
-      {/* EMAIL */}
-
-      <div className="mb-3">
-
-        <label className="text-xs font-semibold text-slate-700 mb-2 block">
-          Email Address
-        </label>
-
-        <input
-          type="email"
-          placeholder="Enter your email"
-          className="
-            w-full
-            bg-orange-50/60
-            border
-            border-orange-100
-            rounded-xl
-            px-4
-            py-3
-            outline-none
-            focus:ring-4
-            focus:ring-orange-100
-            focus:border-orange-400
-            transition-all
-            text-sm
-            text-slate-700
-          "
-          value={email}
-          onChange={(e) =>
-            setEmail(e.target.value)
-          }
-        />
-      </div>
-
-      {/* PASSWORD */}
-
-      <div className="mb-4">
-
-        <label className="text-xs font-semibold text-slate-700 mb-2 block">
-          Password
-        </label>
-
-        <div className="relative">
-
-          <input
-            type={
-              showPassword
-                ? "text"
-                : "password"
-            }
-            placeholder="Enter your password"
-            className="
-              w-full
-              bg-orange-50/60
-              border
-              border-orange-100
-              rounded-xl
-              px-4
-              py-3
-              pr-20
-              outline-none
-              focus:ring-4
-              focus:ring-orange-100
-              focus:border-orange-400
-              transition-all
-              text-sm
-              text-slate-700
-            "
-            value={password}
-            onChange={(e) =>
-              setPassword(e.target.value)
-            }
-          />
-
-          <button
-            type="button"
-            onClick={() =>
-              setShowPassword(
-                !showPassword
-              )
-            }
-            className="
-              absolute
-              right-3
-              top-1/2
-              -translate-y-1/2
-              text-xs
-              font-semibold
-              text-orange-500
-              hover:text-orange-600
-              transition-all
-            "
-          >
-            {showPassword
-              ? "Hide"
-              : "Show"}
-          </button>
+          </div>
         </div>
       </div>
-
-      {/* LOGIN BUTTON */}
-
-      <button
-        onClick={handleAuth}
-        disabled={loading}
-        className={`
-          w-full
-          py-3
-          rounded-xl
-          font-bold
-          text-sm
-          text-white
-          transition-all
-          duration-300
-          shadow-lg
-          ${
-            loading
-              ? "bg-orange-300 cursor-not-allowed"
-              : "bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
-          }
-        `}
-      >
-        {loading
-          ? "Please wait..."
-          : isSignup
-          ? "Create Account"
-          : "Login"}
-      </button>
-
-      {/* FORGOT PASSWORD */}
-
-      {!isSignup && (
-        <p
-          onClick={
-            handleForgotPassword
-          }
-          className="
-            text-xs
-            text-orange-500
-            hover:text-orange-600
-            mt-4
-            text-center
-            cursor-pointer
-            font-semibold
-            transition-all
-          "
-        >
-          Forgot Password?
-        </p>
-      )}
-
-      {/* TOGGLE */}
-
-      <div className="mt-5 text-center text-xs text-slate-500">
-
-        {isSignup
-          ? "Already have an account?"
-          : "New to ExamLens?"}
-
-        <span
-          className="
-            ml-1
-            text-orange-500
-            hover:text-orange-600
-            font-bold
-            cursor-pointer
-            transition-all
-          "
-          onClick={() =>
-            setIsSignup(!isSignup)
-          }
-        >
-          {isSignup
-            ? "Login"
-            : "Create Account"}
-        </span>
-      </div>
     </div>
-  </div>
-</div>
-  </div>
-);
+  );
 }

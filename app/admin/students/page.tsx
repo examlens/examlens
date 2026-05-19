@@ -65,25 +65,25 @@ export default function AdminStudentsPage() {
   // ======================================================
 
   const handleDelete = async (
-    id: string
+    userId: string
   ) => {
     const confirmDelete = confirm(
-      "Are you sure you want to permanently remove this student?"
+      "Delete this student permanently?"
     );
 
     if (!confirmDelete) return;
 
     try {
       const res = await fetch(
-        "/api/admin/students",
+        "/api/admin/delete-user",
         {
-          method: "DELETE",
+          method: "POST",
           headers: {
             "Content-Type":
               "application/json",
           },
           body: JSON.stringify({
-            id,
+            userId,
           }),
         }
       );
@@ -91,28 +91,18 @@ export default function AdminStudentsPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(
-          data.error ||
-          "Failed to remove student"
-        );
+        throw new Error(data.error);
       }
 
-      setStudents((prev) =>
-        prev.filter(
-          (student) =>
-            student.id !== id
-        )
-      );
+      alert("✅ Student deleted");
 
-      alert(
-        "Student removed successfully"
-      );
+      fetchStudents();
     } catch (err: any) {
-      console.log(err);
+      console.error(err);
 
       alert(
         err.message ||
-        "Failed to remove student"
+        "Failed to delete student"
       );
     }
   };
@@ -145,150 +135,150 @@ export default function AdminStudentsPage() {
     ).length;
 
   return (
-  <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 p-4 md:p-6">
 
-    <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto">
 
-      {/* ====================================================== */}
-      {/* HERO HEADER */}
-      {/* ====================================================== */}
+        {/* ====================================================== */}
+        {/* HERO HEADER */}
+        {/* ====================================================== */}
 
-      <div className="relative overflow-hidden bg-white border border-orange-100 rounded-[36px] shadow-xl mb-8">
+        <div className="relative overflow-hidden bg-white border border-orange-100 rounded-[36px] shadow-xl mb-8">
 
-        {/* BACKGROUND DECOR */}
+          {/* BACKGROUND DECOR */}
 
-        <div className="absolute -top-24 -right-24 w-80 h-80 bg-orange-200 rounded-full blur-3xl opacity-30" />
+          <div className="absolute -top-24 -right-24 w-80 h-80 bg-orange-200 rounded-full blur-3xl opacity-30" />
 
-        <div className="absolute bottom-0 left-0 w-72 h-72 bg-amber-100 rounded-full blur-3xl opacity-30" />
+          <div className="absolute bottom-0 left-0 w-72 h-72 bg-amber-100 rounded-full blur-3xl opacity-30" />
 
-        <div className="relative z-10 p-7 md:p-10">
+          <div className="relative z-10 p-7 md:p-10">
 
-          <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-8">
+            <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-8">
 
-            {/* LEFT */}
+              {/* LEFT */}
 
-            <div className="max-w-2xl">
+              <div className="max-w-2xl">
 
-              <div className="inline-flex items-center gap-2 bg-orange-100 text-orange-700 px-4 py-2 rounded-full text-sm font-bold mb-5">
-                <div className="w-2 h-2 rounded-full bg-orange-500" />
-                SaaS Student Dashboard
+                <div className="inline-flex items-center gap-2 bg-orange-100 text-orange-700 px-4 py-2 rounded-full text-sm font-bold mb-5">
+                  <div className="w-2 h-2 rounded-full bg-orange-500" />
+                  SaaS Student Dashboard
+                </div>
+
+                <h1 className="text-4xl md:text-5xl font-black text-slate-900 leading-tight tracking-tight">
+                  Student Management
+                </h1>
+
+                <p className="text-slate-500 mt-5 text-lg leading-relaxed">
+                  Monitor attendance, evaluation progress, performance analytics,
+                  and manage all student activities from one modern dashboard.
+                </p>
               </div>
 
-              <h1 className="text-4xl md:text-5xl font-black text-slate-900 leading-tight tracking-tight">
-                Student Management
-              </h1>
+              {/* RIGHT STATS */}
 
-              <p className="text-slate-500 mt-5 text-lg leading-relaxed">
-                Monitor attendance, evaluation progress, performance analytics,
-                and manage all student activities from one modern dashboard.
-              </p>
-            </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full xl:w-auto">
 
-            {/* RIGHT STATS */}
+                {/* TOTAL */}
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full xl:w-auto">
+                <div className="bg-gradient-to-br from-orange-500 to-amber-500 text-white rounded-[28px] px-6 py-5 shadow-2xl shadow-orange-200 min-w-[210px]">
 
-              {/* TOTAL */}
+                  <div className="flex items-center justify-between">
 
-              <div className="bg-gradient-to-br from-orange-500 to-amber-500 text-white rounded-[28px] px-6 py-5 shadow-2xl shadow-orange-200 min-w-[210px]">
+                    <div>
+                      <p className="text-orange-100 text-sm font-medium">
+                        Total Students
+                      </p>
 
-                <div className="flex items-center justify-between">
+                      <h2 className="text-4xl font-black mt-2">
+                        {students.length}
+                      </h2>
+                    </div>
 
-                  <div>
-                    <p className="text-orange-100 text-sm font-medium">
-                      Total Students
-                    </p>
-
-                    <h2 className="text-4xl font-black mt-2">
-                      {students.length}
-                    </h2>
-                  </div>
-
-                  <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center">
-                    <Users size={28} />
+                    <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center">
+                      <Users size={28} />
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* EVALUATED */}
+                {/* EVALUATED */}
 
-              <div className="bg-white z-1 border border-orange-100 rounded-[28px] px-6 py-5 shadow-lg min-w-[210px]">
+                <div className="bg-white z-1 border border-orange-100 rounded-[28px] px-6 py-5 shadow-lg min-w-[210px]">
 
-                <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between">
 
-                  <div>
-                    <p className="text-slate-500 text-sm font-medium">
-                      Evaluated
-                    </p>
+                    <div>
+                      <p className="text-slate-500 text-sm font-medium">
+                        Evaluated
+                      </p>
 
-                    <h2 className="text-4xl font-black text-green-600 mt-2">
-                      {evaluatedCount}
-                    </h2>
-                  </div>
+                      <h2 className="text-4xl font-black text-green-600 mt-2">
+                        {evaluatedCount}
+                      </h2>
+                    </div>
 
-                  <div className="w-14 h-14 rounded-2xl bg-green-100 flex items-center justify-center">
-                    <CheckCircle2
-                      size={28}
-                      className="text-green-600"
-                    />
+                    <div className="w-14 h-14 rounded-2xl bg-green-100 flex items-center justify-center">
+                      <CheckCircle2
+                        size={28}
+                        className="text-green-600"
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* PENDING */}
+                {/* PENDING */}
 
-              <div className="bg-white z-2 border border-orange-100 rounded-[28px] px-6 py-5 shadow-lg min-w-[210px]">
+                <div className="bg-white z-2 border border-orange-100 rounded-[28px] px-6 py-5 shadow-lg min-w-[210px]">
 
-                <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between">
 
-                  <div>
-                    <p className="text-slate-500 text-sm font-medium">
-                      Pending
-                    </p>
+                    <div>
+                      <p className="text-slate-500 text-sm font-medium">
+                        Pending
+                      </p>
 
-                    <h2 className="text-4xl font-black text-yellow-500 mt-2">
-                      {pendingCount}
-                    </h2>
-                  </div>
+                      <h2 className="text-4xl font-black text-yellow-500 mt-2">
+                        {pendingCount}
+                      </h2>
+                    </div>
 
-                  <div className="w-14 h-14 rounded-2xl bg-yellow-100 flex items-center justify-center">
-                    <Clock3
-                      size={28}
-                      className="text-yellow-600"
-                    />
+                    <div className="w-14 h-14 rounded-2xl bg-yellow-100 flex items-center justify-center">
+                      <Clock3
+                        size={28}
+                        className="text-yellow-600"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* ====================================================== */}
-      {/* SEARCH + FILTER */}
-      {/* ====================================================== */}
+        {/* ====================================================== */}
+        {/* SEARCH + FILTER */}
+        {/* ====================================================== */}
 
-      <div className="bg-white border border-orange-100 rounded-[30px] shadow-lg p-5 mb-8">
+        <div className="bg-white border border-orange-100 rounded-[30px] shadow-lg p-5 mb-8">
 
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
 
-          {/* SEARCH */}
+            {/* SEARCH */}
 
-          <div className="relative w-full lg:max-w-xl">
+            <div className="relative w-full lg:max-w-xl">
 
-            <Search
-              className="absolute left-5 top-1/2 -translate-y-1/2 text-orange-400"
-              size={20}
-            />
+              <Search
+                className="absolute left-5 top-1/2 -translate-y-1/2 text-orange-400"
+                size={20}
+              />
 
-            <input
-              type="text"
-              placeholder="Search students by name or email..."
-              value={search}
-              onChange={(e) =>
-                setSearch(e.target.value)
-              }
-              className="
+              <input
+                type="text"
+                placeholder="Search students by name or email..."
+                value={search}
+                onChange={(e) =>
+                  setSearch(e.target.value)
+                }
+                className="
                 w-full
                 bg-orange-50/50
                 border
@@ -305,126 +295,126 @@ export default function AdminStudentsPage() {
                 placeholder:text-slate-400
                 transition-all
               "
-            />
+              />
+            </div>
+
+            {/* SMALL INFO */}
+
+            <div className="flex items-center gap-3 bg-orange-50 border border-orange-100 rounded-2xl px-5 py-3">
+
+              <div className="w-3 h-3 rounded-full bg-orange-500 animate-pulse" />
+
+              <p className="text-sm font-semibold text-slate-700">
+                {filteredStudents.length} Students Available
+              </p>
+            </div>
           </div>
+        </div>
 
-          {/* SMALL INFO */}
+        {/* ====================================================== */}
+        {/* LOADING */}
+        {/* ====================================================== */}
 
-          <div className="flex items-center gap-3 bg-orange-50 border border-orange-100 rounded-2xl px-5 py-3">
+        {loading ? (
+          <div className="bg-white border border-orange-100 rounded-[32px] shadow-xl p-16 text-center">
 
-            <div className="w-3 h-3 rounded-full bg-orange-500 animate-pulse" />
+            <div className="w-16 h-16 border-[5px] border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-6" />
 
-            <p className="text-sm font-semibold text-slate-700">
-              {filteredStudents.length} Students Available
+            <h2 className="text-2xl font-black text-slate-800">
+              Loading Students...
+            </h2>
+
+            <p className="text-slate-500 mt-2">
+              Fetching latest student data
             </p>
           </div>
-        </div>
-      </div>
+        ) : filteredStudents.length === 0 ? (
+          <div className="bg-white border border-orange-100 rounded-[32px] shadow-xl p-16 text-center">
 
-      {/* ====================================================== */}
-      {/* LOADING */}
-      {/* ====================================================== */}
+            <div className="mx-auto w-28 h-28 rounded-[30px] bg-orange-100 flex items-center justify-center mb-7">
+              <Users
+                size={50}
+                className="text-orange-500"
+              />
+            </div>
 
-      {loading ? (
-        <div className="bg-white border border-orange-100 rounded-[32px] shadow-xl p-16 text-center">
+            <h2 className="text-3xl font-black text-slate-900">
+              No Students Found
+            </h2>
 
-          <div className="w-16 h-16 border-[5px] border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-6" />
-
-          <h2 className="text-2xl font-black text-slate-800">
-            Loading Students...
-          </h2>
-
-          <p className="text-slate-500 mt-2">
-            Fetching latest student data
-          </p>
-        </div>
-      ) : filteredStudents.length === 0 ? (
-        <div className="bg-white border border-orange-100 rounded-[32px] shadow-xl p-16 text-center">
-
-          <div className="mx-auto w-28 h-28 rounded-[30px] bg-orange-100 flex items-center justify-center mb-7">
-            <Users
-              size={50}
-              className="text-orange-500"
-            />
+            <p className="text-slate-500 mt-4 text-lg">
+              Try searching with another student name or email.
+            </p>
           </div>
+        ) : (
 
-          <h2 className="text-3xl font-black text-slate-900">
-            No Students Found
-          </h2>
+          /* ====================================================== */
+          /* TABLE */
+          /* ====================================================== */
 
-          <p className="text-slate-500 mt-4 text-lg">
-            Try searching with another student name or email.
-          </p>
-        </div>
-      ) : (
+          <div className="overflow-hidden rounded-[32px] border border-orange-100 bg-white shadow-2xl">
 
-        /* ====================================================== */
-        /* TABLE */
-        /* ====================================================== */
+            {/* TABLE HEADER */}
 
-        <div className="overflow-hidden rounded-[32px] border border-orange-100 bg-white shadow-2xl">
+            <div className="overflow-x-auto">
 
-          {/* TABLE HEADER */}
+              <table className="w-full min-w-[1100px]">
 
-          <div className="overflow-x-auto">
+                <thead className="bg-gradient-to-r from-orange-500 to-amber-500 text-white">
 
-            <table className="w-full min-w-[1100px]">
+                  <tr>
 
-              <thead className="bg-gradient-to-r from-orange-500 to-amber-500 text-white">
+                    <th className="px-6 py-5 text-left text-sm font-bold uppercase tracking-wider">
+                      Student
+                    </th>
 
-                <tr>
+                    <th className="px-6 py-5 text-left text-sm font-bold uppercase tracking-wider">
+                      Email
+                    </th>
 
-                  <th className="px-6 py-5 text-left text-sm font-bold uppercase tracking-wider">
-                    Student
-                  </th>
+                    <th className="px-6 py-5 text-center text-sm font-bold uppercase tracking-wider">
+                      Avg Score
+                    </th>
 
-                  <th className="px-6 py-5 text-left text-sm font-bold uppercase tracking-wider">
-                    Email
-                  </th>
-
-                  <th className="px-6 py-5 text-center text-sm font-bold uppercase tracking-wider">
-                    Avg Score
-                  </th>
-
-                  {/* <th className="px-6 py-5 text-center text-sm font-bold uppercase tracking-wider">
+                    {/* <th className="px-6 py-5 text-center text-sm font-bold uppercase tracking-wider">
                     Attendance
                   </th> */}
 
-                  <th className="px-6 py-5 text-center text-sm font-bold uppercase tracking-wider">
-                    Status
-                  </th>
+                    <th className="px-6 py-5 text-center text-sm font-bold uppercase tracking-wider">
+                      Status
+                    </th>
 
-                  <th className="px-6 py-5 text-center text-sm font-bold uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
+                    <th className="px-6 py-5 text-center text-sm font-bold uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
 
-              <tbody>
+                <tbody>
 
-                {filteredStudents.map(
-                  (student: any, index: number) => (
-                    <tr
-                      key={student.id}
-                      className={`
+                  {filteredStudents.map(
+                    (student: any, index: number) => (
+                      <tr
+                        key={student.id}
+                        className={`
                         border-b border-orange-100
                         hover:bg-orange-50/50
                         transition-all
                         duration-300
                         ${index % 2 === 0
-                          ? "bg-white"
-                          : "bg-orange-50/20"
-                        }
+                            ? "bg-white"
+                            : "bg-orange-50/20"
+                          }
                       `}
-                    >
+                      >
 
-                      {/* STUDENT */}
+                        {/* STUDENT */}
 
-                      <td className="px-6 py-5">
+                        <td className="px-6 py-5">
 
-                        <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-4">
 
-                          <div className="
+                            <div className="
                             w-14
                             h-14
                             rounded-2xl
@@ -439,56 +429,56 @@ export default function AdminStudentsPage() {
                             text-lg
                             shadow-lg
                           ">
-                            {(student.name || "S")
-                              .charAt(0)
-                              .toUpperCase()}
-                          </div>
+                              {(student.name || "S")
+                                .charAt(0)
+                                .toUpperCase()}
+                            </div>
 
-                          <div>
+                            <div>
 
-                            <h2 className="font-black text-slate-900 text-lg">
-                              {student.name || "Student"}
-                            </h2>
+                              <h2 className="font-black text-slate-900 text-lg">
+                                {student.name || "Student"}
+                              </h2>
 
-                            {/* <p className="text-sm text-slate-500 mt-1">
+                              {/* <p className="text-sm text-slate-500 mt-1">
                               Student ID: {student.id?.slice(0, 8)}
                             </p> */}
+                            </div>
                           </div>
-                        </div>
-                      </td>
+                        </td>
 
-                      {/* EMAIL */}
+                        {/* EMAIL */}
 
-                      <td className="px-6 py-5">
+                        <td className="px-6 py-5">
 
-                        <div className="flex items-center gap-2 text-slate-600">
+                          <div className="flex items-center gap-2 text-slate-600">
 
-                          <Mail
-                            size={16}
-                            className="text-orange-500"
-                          />
+                            <Mail
+                              size={16}
+                              className="text-orange-500"
+                            />
 
-                          <span className="font-medium">
-                            {student.email}
-                          </span>
-                        </div>
-                      </td>
+                            <span className="font-medium">
+                              {student.email}
+                            </span>
+                          </div>
+                        </td>
 
-                      {/* SCORE */}
+                        {/* SCORE */}
 
-                      <td className="px-6 py-5 text-center">
+                        <td className="px-6 py-5 text-center">
 
-                        <div className="inline-flex items-center justify-center bg-gradient-to-r from-orange-500 to-amber-500 text-white px-5 py-2 rounded-2xl shadow-lg min-w-[100px]">
+                          <div className="inline-flex items-center justify-center bg-gradient-to-r from-orange-500 to-amber-500 text-white px-5 py-2 rounded-2xl shadow-lg min-w-[100px]">
 
-                          <span className="text-2xl font-black">
-                            {student.avgScore}%
-                          </span>
-                        </div>
-                      </td>
+                            <span className="text-2xl font-black">
+                              {student.avgScore}%
+                            </span>
+                          </div>
+                        </td>
 
-                      {/* ATTENDANCE */}
+                        {/* ATTENDANCE */}
 
-                      {/* <td className="px-6 py-5">
+                        {/* <td className="px-6 py-5">
 
                         <div className="min-w-[180px]">
 
@@ -515,12 +505,12 @@ export default function AdminStudentsPage() {
                         </div>
                       </td> */}
 
-                      {/* STATUS */}
+                        {/* STATUS */}
 
-                      <td className="px-6 py-5 text-center">
+                        <td className="px-6 py-5 text-center">
 
-                        <div
-                          className={`
+                          <div
+                            className={`
                             inline-flex
                             items-center
                             gap-2
@@ -529,38 +519,37 @@ export default function AdminStudentsPage() {
                             rounded-full
                             text-sm
                             font-bold
-                            ${
-                              student.status === "Evaluated"
+                            ${student.status === "Evaluated"
                                 ? "bg-green-100 text-green-700"
                                 : "bg-yellow-100 text-yellow-700"
-                            }
+                              }
                           `}
-                        >
-                          {student.status === "Evaluated" ? (
-                            <>
-                              <CheckCircle2 size={16} />
-                              Evaluated
-                            </>
-                          ) : (
-                            <>
-                              <Clock3 size={16} />
-                              Pending
-                            </>
-                          )}
-                        </div>
-                      </td>
+                          >
+                            {student.status === "Evaluated" ? (
+                              <>
+                                <CheckCircle2 size={16} />
+                                Evaluated
+                              </>
+                            ) : (
+                              <>
+                                <Clock3 size={16} />
+                                Pending
+                              </>
+                            )}
+                          </div>
+                        </td>
 
-                      {/* ACTIONS */}
+                        {/* ACTIONS */}
 
-                      <td className="px-6 py-5">
+                        <td className="px-6 py-5">
 
-                        <div className="flex items-center justify-center">
+                          <div className="flex items-center justify-center">
 
-                          <button
-                            onClick={() =>
-                              handleDelete(student.id)
-                            }
-                            className="
+                            <button
+                              onClick={() =>
+                                handleDelete(student.id)
+                              }
+                              className="
                               flex
                               items-center
                               gap-2
@@ -575,21 +564,21 @@ export default function AdminStudentsPage() {
                               transition-all
                               duration-300
                             "
-                          >
-                            <Trash2 size={17} />
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                )}
-              </tbody>
-            </table>
+                            >
+                              <Trash2 size={17} />
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
 }
