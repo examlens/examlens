@@ -91,6 +91,46 @@ export async function GET(req: Request) {
     );
 
     // ==================================================
+    // ✅ ENSURE STUDENT EXISTS IN USERS TABLE
+    // ==================================================
+
+    const userPayload = {
+      id: student_id,
+      email: user.email || null,
+      name:
+        user.user_metadata?.full_name ||
+        user.user_metadata?.name ||
+        user.email ||
+        "Student",
+    };
+
+    const {
+      error: userUpsertError,
+    } = await supabase
+      .from("users")
+      .upsert([userPayload], {
+        onConflict: "id",
+      });
+
+    if (userUpsertError) {
+      console.error(
+        "❌ UPSERT USER ERROR:",
+        userUpsertError
+      );
+
+      return new Response(
+        JSON.stringify({
+          error:
+            userUpsertError.message ||
+            "Failed to verify user record",
+        }),
+        {
+          status: 500,
+        }
+      );
+    }
+
+    // ==================================================
     // ✅ GET EXAM DETAILS
     // ==================================================
 
