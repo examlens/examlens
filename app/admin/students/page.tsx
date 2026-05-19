@@ -22,6 +22,33 @@ export default function AdminStudentsPage() {
 
   const [search, setSearch] =
     useState("");
+  // TOAST
+
+  const [toast, setToast] = useState<{
+    show: boolean;
+    message: string;
+    type: "success" | "error";
+  }>({
+    show: false,
+    message: "",
+    type: "success",
+  });
+
+  // ======================================================
+  // TOAST FUNCTION
+  // ======================================================
+
+  const showToast = (message: string, type: "success" | "error" = "success") => {
+    setToast({
+      show: true,
+      message,
+      type,
+    });
+
+    setTimeout(() => {
+      setToast((prev) => ({ ...prev, show: false }));
+    }, 2500);
+  };
 
   // ======================================================
   // FETCH STUDENTS
@@ -67,7 +94,7 @@ export default function AdminStudentsPage() {
   const handleDelete = async (
     userId: string
   ) => {
-    const confirmDelete = confirm(
+    const confirmDelete = confirm (
       "Delete this student permanently?"
     );
 
@@ -94,16 +121,13 @@ export default function AdminStudentsPage() {
         throw new Error(data.error);
       }
 
-      alert("✅ Student deleted");
+      showToast("✅ Student deleted", "success");
 
       fetchStudents();
     } catch (err: any) {
       console.error(err);
 
-      alert(
-        err.message ||
-        "Failed to delete student"
-      );
+      showToast(err.message || "Failed to delete student", "error");
     }
   };
 
@@ -579,6 +603,40 @@ export default function AdminStudentsPage() {
           </div>
         )}
       </div>
+
+      
+      // ======================================================
+      // TOAST NOTIFICATION
+      // ======================================================
+
+
+      {toast.show && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+
+          {/* BACKDROP */}
+          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
+
+          {/* TOAST CARD */}
+          <div className="relative bg-white border border-orange-200 shadow-2xl rounded-2xl px-6 py-5 w-[320px] text-center animate-fadeIn">
+
+            {/* ICON */}
+            <div className={`w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center ${toast.type === "success"
+                ? "bg-orange-100 text-orange-500"
+                : "bg-red-100 text-red-500"
+              }`}>
+              {toast.type === "success" ? "✔" : "✖"}
+            </div>
+
+            {/* MESSAGE */}
+            <p className="text-sm font-semibold text-slate-700">
+              {toast.message}
+            </p>
+
+            {/* ACCENT BAR */}
+            <div className="mt-3 h-1 w-full bg-orange-500 rounded-full"></div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

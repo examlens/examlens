@@ -15,6 +15,35 @@ export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // TOAST STATE
+
+  const [toast, setToast] = useState<{
+    show: boolean;
+    message: string;
+    type: "success" | "error";
+  }>({
+    show: false,
+    message: "",
+    type: "success",
+  });
+
+  // =========================
+  // TOAST FUNCTION
+  // =========================
+
+
+  const showToast = (message: string, type: "success" | "error" = "success") => {
+    setToast({
+      show: true,
+      message,
+      type,
+    });
+
+    setTimeout(() => {
+      setToast({ show: false, message: "", type: "success" });
+    }, 3000);
+  };
+
   // =========================
   // AUTO LOGIN CHECK
   // =========================
@@ -59,7 +88,7 @@ export default function AuthPage() {
   // =========================
   const handleAuth = async () => {
     if (!email || !password) {
-      alert("Email & password required");
+      showToast("Email & password required", "error");
       return;
     }
 
@@ -71,7 +100,7 @@ export default function AuthPage() {
       // =========================
       if (isSignup) {
         if (!name.trim()) {
-          alert("Enter your name");
+          showToast("Enter your name", "error");
           return;
         }
 
@@ -97,8 +126,9 @@ export default function AuthPage() {
           });
         }
 
-        alert(
-          "✅ Signup successful! Please check your email to verify your account."
+        showToast(
+          "Check your email to verify your account.",
+          "success"
         );
 
         setIsSignup(false);
@@ -147,7 +177,7 @@ export default function AuthPage() {
       }
     } catch (err: any) {
       console.error("❌ AUTH ERROR:", err);
-      alert(err.message);
+      showToast(err.message, "error");
     } finally {
       setLoading(false);
     }
@@ -158,7 +188,7 @@ export default function AuthPage() {
   // =========================
   const handleForgotPassword = async () => {
     if (!email) {
-      alert("Enter email first");
+      showToast("Enter email first", "error");
       return;
     }
 
@@ -170,9 +200,9 @@ export default function AuthPage() {
 
       if (error) throw error;
 
-      alert("📩 Password reset email sent!");
+      showToast("📩 Password reset email sent!", "success");
     } catch (err: any) {
-      alert(err.message);
+      showToast(err.message, "error");
     }
   };
 
@@ -308,6 +338,49 @@ export default function AuthPage() {
           </div>
         </div>
       </div>
+
+
+
+      {/* TOAST */}
+      {toast.show && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30 backdrop-blur-sm">
+
+          <div className="bg-white border border-orange-200 shadow-2xl rounded-2xl px-6 py-5 w-[90%] max-w-md text-center animate-fadeIn">
+
+            {/* ICON */}
+            <div className="w-14 h-14 mx-auto rounded-full bg-orange-100 flex items-center justify-center mb-3">
+              {toast.type === "success" ? (
+                <span className="text-2xl">✅</span>
+              ) : (
+                <span className="text-2xl">⚠️</span>
+              )}
+            </div>
+
+            {/* TITLE */}
+            <h2 className="text-lg font-bold text-orange-600">
+              {toast.type === "success" ? "Success" : "Error"}
+            </h2>
+
+            {/* MESSAGE */}
+            <p className="text-sm text-slate-600 mt-2">
+              {toast.message}
+            </p>
+
+            {/* BUTTON */}
+            <button
+              onClick={() =>
+                setToast({ show: false, message: "", type: "success" })
+              }
+              className="mt-4 px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-semibold transition"
+            >
+              OK
+            </button>
+
+          </div>
+        </div>
+      )}
+
+
     </div>
   );
 }

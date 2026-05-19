@@ -13,10 +13,10 @@ export async function POST(req: Request) {
     const { userId } = body;
 
     if (!userId) {
-      return NextResponse.json(
-        { error: "User ID missing" },
-        { status: 400 }
-      );
+      return NextResponse.json({
+        success: true,
+        message: "User ID is required",
+      });
     }
 
     // DELETE PROFILE
@@ -46,6 +46,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
+      message: "User deleted successfully",
     });
   } catch (err: any) {
     console.error(err);
