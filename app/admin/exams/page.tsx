@@ -522,7 +522,7 @@ export default function ExamsPage() {
               <button
                 onClick={() =>
                   router.push(
-                    `/admin/submissions/${exam.id}`
+                    `/admin/submissions`
                   )
                 }
                 className="
