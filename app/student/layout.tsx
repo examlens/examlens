@@ -54,6 +54,11 @@ export default function StudentLayout({
       name: "My Dashboard",
       path: "/student/dashboard",
     },
+
+    {
+        name:"Revision Notes",
+        path: "/student/revision"
+    },
     {
       name: "Take Exam",
       path: "/student/exams",

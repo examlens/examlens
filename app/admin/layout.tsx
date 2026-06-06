@@ -13,7 +13,8 @@ export default function AdminLayout({ children }: any) {
     { name: "Exams", path: "/admin/exams" },
     { name: "Students", path: "/admin/students" },
     { name: "Submissions", path: "/admin/submissions" },
-    { name: "questions", path: "/admin/questions" }
+    { name: "questions", path: "/admin/questions" },
+    { name: "Revision Notes", path: "/admin/revision" }
   ];
 
   const router = useRouter();
