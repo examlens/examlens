@@ -4,6 +4,7 @@ import {
   useEffect,
   useState
 } from "react";
+import { useRouter } from "next/navigation";
 
 import {
   BookOpen,
@@ -24,6 +25,8 @@ import "katex/dist/katex.min.css";
 
 
 export default function RevisionPage(){
+  
+  const router = useRouter();
 
 
 const [data,setData]=useState<any[]>([]);
@@ -36,6 +39,8 @@ const [activeQuestion,setActiveQuestion]=useState<any>(null);
 const [message,setMessage]=useState("");
 
 const [chat,setChat]=useState<any[]>([]);
+
+
 
 
 const [loading,setLoading]=useState(false);
@@ -372,6 +377,27 @@ Questions
 
 
 
+<button
+
+onClick={()=>
+router.push(
+"/student/revision/upload"
+)
+}
+
+className="
+bg-orange-500
+text-white
+px-5
+py-3
+rounded-xl
+"
+
+>
+
+Upload My Notes
+
+</button>
 
 
 
