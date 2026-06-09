@@ -1,5 +1,8 @@
-import {supabase} from "@/app/lib/supabase";
+import {NextResponse} from "next/server";
+import {cookies} from "next/headers";
+import {createServerClient} from "@supabase/ssr";
 import {supabaseAdmin} from "@/app/lib/supabaseAdmin";
+
 
 
 export async function POST(req:Request){
@@ -12,7 +15,6 @@ const formData =
 await req.formData();
 
 
-
 const file =
 formData.get("file") as File;
 
@@ -21,20 +23,42 @@ const title =
 formData.get("title") as string;
 
 
-
 const subject =
 formData.get("subject") as string;
 
 
 
 if(!file)
-{
-return Response.json(
+return NextResponse.json(
 {error:"No file"},
 {status:400}
 );
+
+
+
+
+
+const cookieStore =
+await cookies();
+
+
+
+const supabase =
+createServerClient(
+
+process.env.NEXT_PUBLIC_SUPABASE_URL!,
+
+process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+
+{
+cookies:{
+get(name){
+return cookieStore.get(name)?.value
+}
+}
 }
 
+);
 
 
 
@@ -42,17 +66,17 @@ const {
 data:{
 user
 }
-}=await supabase.auth.getUser();
+}
+=
+await supabase.auth.getUser();
 
 
 
 if(!user)
-{
-return Response.json(
+return NextResponse.json(
 {error:"Unauthorized"},
 {status:401}
 );
-}
 
 
 
@@ -65,35 +89,63 @@ await file.arrayBuffer()
 
 
 
-const filePath =
+
+
+const path =
 `${user.id}/${Date.now()}-${file.name}`;
 
 
-const upload =
-await supabaseAdmin
-.storage
+
+const {error:uploadError} =
+await supabaseAdmin.storage
 .from("student-notes")
 .upload(
-filePath,
-buffer
+path,
+buffer,
+{
+contentType:file.type
+}
 );
 
 
 
-if(upload.error)
-throw upload.error;
+if(uploadError)
+throw uploadError;
+
 
 
 
 const url =
-supabaseAdmin
-.storage
+supabaseAdmin.storage
 .from("student-notes")
-.getPublicUrl(
-filePath
-)
+.getPublicUrl(path)
 .data
 .publicUrl;
+
+
+
+
+
+/*
+temporary content
+later replace with pdf extraction
+*/
+
+const content = `
+
+Student uploaded notes.
+
+Subject:
+${subject}
+
+Title:
+${title}
+
+File:
+${url}
+
+`;
+
 
 
 
@@ -111,9 +163,10 @@ subject,
 
 file_url:url,
 
-content:""
+content
 
 });
+
 
 
 
@@ -122,12 +175,10 @@ throw error;
 
 
 
-return Response.json(
-{
-success:true,
-url
-}
-);
+
+return NextResponse.json({
+success:true
+});
 
 
 
@@ -135,7 +186,7 @@ url
 catch(e:any){
 
 
-return Response.json(
+return NextResponse.json(
 {
 error:e.message
 },
