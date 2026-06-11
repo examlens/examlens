@@ -279,6 +279,7 @@ Learn from admin notes with AI Tutor
 </p>
 
 
+
 </div>
 
 
@@ -377,27 +378,7 @@ Questions
 
 
 
-<button
 
-onClick={()=>
-router.push(
-"/student/revision/upload"
-)
-}
-
-className="
-bg-orange-500
-text-white
-px-5
-py-3
-rounded-xl
-"
-
->
-
-Upload My Notes
-
-</button>
 
 
 

@@ -59,6 +59,12 @@ export default function StudentLayout({
         name:"Revision Notes",
         path: "/student/revision"
     },
+
+    {
+       name:"AI Learning",
+       path: "/student/ai-learning"
+    },
+    
     {
       name: "Take Exam",
       path: "/student/exams",
