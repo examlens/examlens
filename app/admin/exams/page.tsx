@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/app/lib/supabase";
+import { storage } from "@/app/lib/firebase";
+import { ref, uploadBytes } from "firebase/storage";
 import { useRouter } from "next/navigation";
 
 interface Exam {
@@ -214,26 +216,19 @@ export default function ExamsPage() {
       if (referenceFile) {
         const fileName = `${Date.now()}-${referenceFile.name}`;
 
-        const { error: uploadError } =
-          await supabase.storage
-            .from("exam-notes")
-            .upload(
-              fileName,
-              referenceFile
-            );
+        const fileRef = ref(
+          storage,
+          `exam-notes/${fileName}`
+        );
 
-        if (uploadError) {
-          throw new Error(
-            uploadError.message
-          );
-        }
+        await uploadBytes(
+          fileRef,
+          referenceFile
+        );
 
-        const { data } = supabase.storage
-          .from("exam-notes")
-          .getPublicUrl(fileName);
-
-        referenceUrl =
-          data.publicUrl;
+        referenceUrl = `https://firebasestorage.googleapis.com/v0/b/${process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}/o/${encodeURIComponent(
+          `exam-notes/${fileName}`
+        )}?alt=media`;
       }
 
       // =========================================

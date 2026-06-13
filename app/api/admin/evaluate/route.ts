@@ -218,16 +218,10 @@ export async function POST(req: Request) {
     // ✅ DOWNLOAD ANSWER FILE
     // ==================================================
 
-    const answerPath =
-      submission.answer_file_url.split(
-        "/exam-answers/"
-      )[1];
-
-    if (!answerPath) {
+    if (!submission.answer_file_url) {
       return NextResponse.json(
         {
-          error:
-            "Invalid answer file path",
+          error: "Invalid answer file URL",
         },
         {
           status: 400,
@@ -235,26 +229,23 @@ export async function POST(req: Request) {
       );
     }
 
-    const {
-      data: answerFile,
-      error: answerDownloadError,
-    } = await supabase.storage
-      .from("exam-answers")
-      .download(answerPath);
-
-    if (
-      answerDownloadError ||
-      !answerFile
-    ) {
+    let answerFile: Blob | null = null;
+    try {
+      const response = await fetch(submission.answer_file_url);
+      if (!response.ok) {
+        throw new Error("Failed to download answer file");
+      }
+      answerFile = await response.blob();
+    } catch (downloadError: any) {
       console.error(
         "❌ Download Error:",
-        answerDownloadError
+        downloadError
       );
 
       return NextResponse.json(
         {
           error:
-            answerDownloadError?.message ||
+            downloadError.message ||
             "Failed to download answer file",
         },
         {
@@ -275,49 +266,36 @@ export async function POST(req: Request) {
 
     if (exam.reference_file_url) {
       try {
-        const referencePath =
-          exam.reference_file_url.split(
-            "/exam-answers/"
-          )[1];
-
-        if (referencePath) {
-          const {
-            data: referenceFile,
-          } = await supabase.storage
-            .from("exam-answers")
-            .download(
-              referencePath
+        const response = await fetch(exam.reference_file_url);
+        if (response.ok) {
+          const referenceFile = await response.blob();
+          const referenceBuffer =
+            Buffer.from(
+              await referenceFile.arrayBuffer()
             );
 
-          if (referenceFile) {
-            const referenceBuffer =
-              Buffer.from(
-                await referenceFile.arrayBuffer()
-              );
-
-            const pdfParseModule =
-              await import(
-                "pdf-parse"
-              );
-
-            const pdfParse =
-              (pdfParseModule as any)
-                .default ||
-              pdfParseModule;
-
-            const parsedReference =
-              await pdfParse(
-                referenceBuffer
-              );
-
-            referenceText =
-              parsedReference.text ||
-              "";
-
-            console.log(
-              "📘 Reference Text Extracted"
+          const pdfParseModule =
+            await import(
+              "pdf-parse"
             );
-          }
+
+          const pdfParse =
+            (pdfParseModule as any)
+              .default ||
+            pdfParseModule;
+
+          const parsedReference =
+            await pdfParse(
+              referenceBuffer
+            );
+
+          referenceText =
+            parsedReference.text ||
+            "";
+
+          console.log(
+            "📘 Reference Text Extracted"
+          );
         }
       } catch (err) {
         console.warn(

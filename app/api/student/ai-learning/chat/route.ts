@@ -1,98 +1,52 @@
-import {NextResponse} from "next/server";
+import { NextResponse } from "next/server";
 import OpenAI from "openai";
-import {supabaseAdmin} from "@/app/lib/supabaseAdmin";
+import { supabaseAdmin } from "@/app/lib/supabaseAdmin";
 
-
-const openai =
-new OpenAI({
-apiKey:
-process.env.OPENAI_API_KEY
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
+export async function POST(req: Request) {
+  try {
+    const { noteId, message } = await req.json();
 
+    if (!noteId || !message) {
+      return NextResponse.json(
+        {
+          error: "Missing data",
+        },
+        {
+          status: 400,
+        },
+      );
+    }
 
-export async function POST(req:Request){
+    // ===============================
+    // GET UPLOADED STUDENT NOTE
+    // ===============================
 
-try{
+    const { data: note, error } = await supabaseAdmin
+      .from("student_notes")
+      .select("*")
+      .eq("id", noteId)
+      .single();
 
+    if (error || !note) {
+      return NextResponse.json(
+        {
+          error: "Note not found",
+        },
+        {
+          status: 404,
+        },
+      );
+    }
 
-const {
-noteId,
-message
-}
-=
-await req.json();
+    // ===============================
+    // AI REVISION STYLE PROMPT
+    // ===============================
 
-
-
-
-
-if(!noteId || !message){
-
-return NextResponse.json(
-{
-error:"Missing data"
-},
-{
-status:400
-}
-);
-
-}
-
-
-
-
-
-
-// ===============================
-// GET UPLOADED STUDENT NOTE
-// ===============================
-
-
-const {
-data:note,
-error
-}
-=
-await supabaseAdmin
-.from("student_notes")
-.select("*")
-.eq(
-"id",
-noteId
-)
-.single();
-
-
-
-
-
-if(error || !note){
-
-return NextResponse.json(
-{
-error:"Note not found"
-},
-{
-status:404
-}
-);
-
-}
-
-
-
-
-
-
-
-// ===============================
-// AI REVISION STYLE PROMPT
-// ===============================
-
-
-const prompt = `
+    const prompt = `
 
 
 You are an expert exam tutor.
@@ -109,9 +63,7 @@ ${note.subject}
 
 Reference Notes:
 
-${note.notes_text || 
-"No extracted notes available"
-}
+${note.notes_text || "No extracted notes available"}
 
 
 
@@ -268,87 +220,42 @@ Rules:
 
 `;
 
+    // ===============================
+    // OPENAI CALL
+    // ===============================
 
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4.1-mini",
 
+      messages: [
+        {
+          role: "system",
+          content: "You are ExamLens AI Tutor.",
+        },
 
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
 
+      temperature: 0.3,
+    });
 
+    return NextResponse.json({
+      answer:
+        completion.choices?.[0]?.message?.content || "No answer generated",
+    });
+  } catch (e: any) {
+    console.log("STUDENT AI ERROR", e);
 
-// ===============================
-// OPENAI CALL
-// ===============================
-
-
-const completion =
-await openai.chat.completions.create({
-
-
-model:
-"gpt-4.1-mini",
-
-
-
-messages:[
-
-{
-role:"system",
-content:
-"You are ExamLens AI Tutor."
-},
-
-{
-role:"user",
-content:prompt
-}
-
-],
-
-
-temperature:0.3
-
-
-});
-
-
-
-
-
-
-return NextResponse.json({
-
-answer:
-completion
-.choices?.[0]
-?.message
-?.content || "No answer generated"
-
-});
-
-
-
-
-
-}
-catch(e:any){
-
-
-console.log(
-"STUDENT AI ERROR",
-e
-);
-
-
-
-return NextResponse.json(
-{
-error:e.message
-},
-{
-status:500
-}
-);
-
-
-}
-
+    return NextResponse.json(
+      {
+        error: e.message,
+      },
+      {
+        status: 500,
+      },
+    );
+  }
 }

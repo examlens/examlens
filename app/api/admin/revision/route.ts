@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/app/lib/supabase";
 import { PDFParse } from "pdf-parse";
+import { adminStorage } from "@/app/lib/firebaseAdmin";
 
 
 export async function POST(req: Request) {
@@ -61,7 +62,7 @@ export async function POST(req: Request) {
 
 
     // ===============================
-    // UPLOAD PDF
+    // UPLOAD PDF TO FIREBASE
     // ===============================
 
 
@@ -69,33 +70,27 @@ export async function POST(req: Request) {
       `${Date.now()}-${file.name}`;
 
 
-    const { error: uploadError } =
-      await supabase.storage
-        .from("revision-notes")
-        .upload(
-          fileName,
-          file
-        );
-
-
-    if (uploadError) {
+    let notesUrl: string;
+    try {
+      const bucket = adminStorage.bucket();
+      const fileRef = bucket.file(`revision-notes/${fileName}`);
+      const buffer = Buffer.from(await file.arrayBuffer());
+      await fileRef.save(buffer, {
+        metadata: {
+          contentType: file.type,
+        },
+      });
+      
+      // Generate public URL for Firebase Storage
+      const storageBucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
+      notesUrl = `https://firebasestorage.googleapis.com/v0/b/${storageBucket}/o/revision-notes%2F${encodeURIComponent(fileName)}?alt=media`;
+    } catch (uploadError: any) {
       throw uploadError;
     }
-
-
-
-    const { data: urlData } =
-      supabase.storage
-        .from("revision-notes")
-        .getPublicUrl(fileName);
-
-
-
 
     // ===============================
     // SAVE REVISION
     // ===============================
-
 
     const { data: revision, error } =
       await supabase
@@ -105,7 +100,7 @@ export async function POST(req: Request) {
           subject,
 
           notes_url:
-            urlData.publicUrl,
+            notesUrl,
 
           notes_text:
             notesText
@@ -113,8 +108,6 @@ export async function POST(req: Request) {
         })
         .select()
         .single();
-
-
 
     if (error) {
       throw error;

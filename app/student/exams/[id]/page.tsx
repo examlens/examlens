@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabase";
+import { storage } from "@/app/lib/firebase";
+import { ref, uploadBytes } from "firebase/storage";
 
 interface Question {
   id: string;
@@ -340,41 +342,16 @@ export default function ExamPage() {
         // ✅ UPLOAD FILE
         // =====================================================
 
-        const {
-          error: uploadError,
-        } =
-          await supabase.storage
-            .from(
-              "exam-answers"
-            )
-            .upload(
-              fileName,
-              file,
-              {
-                upsert: true,
-              }
-            );
-
-        if (uploadError) {
+        let fileUrl: string;
+        try {
+          const fileRef = ref(storage, `exam-answers/${fileName}`);
+          await uploadBytes(fileRef, file);
+          fileUrl = `https://firebasestorage.googleapis.com/v0/b/${process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}/o/${encodeURIComponent(
+            `exam-answers/${fileName}`
+          )}?alt=media`;
+        } catch (uploadError: any) {
           throw uploadError;
         }
-
-        // =====================================================
-        // ✅ GET PUBLIC URL
-        // =====================================================
-
-        const {
-          data: urlData,
-        } = supabase.storage
-          .from(
-            "exam-answers"
-          )
-          .getPublicUrl(
-            fileName
-          );
-
-        const fileUrl =
-          urlData.publicUrl;
 
         console.log(
           "📂 Uploaded File:",

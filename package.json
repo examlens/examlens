@@ -14,6 +14,8 @@
     "@supabase/supabase-js": "^2.103.3",
     "axios": "^1.16.1",
     "chart.js": "^4.5.1",
+    "firebase": "^12.14.0",
+    "firebase-admin": "^14.0.0",
     "framer-motion": "^12.38.0",
     "katex": "^0.17.0",
     "lucide-react": "^1.16.0",
