@@ -14,7 +14,7 @@ export default function AdminLayout({ children }: any) {
     { name: "Students", path: "/admin/students" },
     { name: "Submissions", path: "/admin/submissions" },
     { name: "questions", path: "/admin/questions" },
-    { name: "Revision Notes", path: "/admin/revision" }
+    { name: "Revision Notes", path: "/admin/revision" },
   ];
 
   const router = useRouter();
@@ -25,46 +25,52 @@ export default function AdminLayout({ children }: any) {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex overflow-hidden">
       {/* Sidebar */}
-      <div className="sticky top-0 h-screen w-64 bg-black text-white p-5">
+      <aside
+        className="sticky top-0 h-screen w-64 min-w-64 shrink-0 bg-black text-white p-5"
+      >
         <h1 className="text-xl font-bold text-white">
           Exam
-          <span className="text-orange-500">
-            Lens
-          </span>
+          <span className="text-orange-500">Lens</span>
         </h1>
 
-         <p className="text-xs text-gray-400 mt-1">
-              AI Evaluation Platform
-            </p>
-            <div className="mt-6">
+        <p className="text-xs text-gray-400 mt-1">AI Evaluation Platform</p>
 
-        {menu.map((item) => (
-          <Link key={item.path} href={item.path}>
-            <div
-              className={`p-2 rounded mb-2 cursor-pointer ${path === item.path
-                ? "bg-orange-600"
-                : "hover:bg-gray-700"
+        <div className="mt-6">
+          {menu.map((item) => (
+            <Link key={item.path} href={item.path}>
+              <div
+                className={`p-2 rounded mb-2 cursor-pointer ${
+                  path === item.path ? "bg-orange-600" : "hover:bg-gray-700"
                 }`}
-            >
-              {item.name}
-            </div>
-          </Link>
-        ))}
+              >
+                {item.name}
+              </div>
+            </Link>
+          ))}
         </div>
-        {/* BOTTOM */}
-        <div className="p-4 border-t border-gray-800">
+
+        <div className="absolute bottom-5 left-5 right-5">
           <button
             onClick={handleLogout}
-            className="w-full bg-red-500 hover:bg-red-600 py-2 rounded-lg transition-all"
+            className="
+            w-full
+            bg-red-500
+            hover:bg-red-600
+            py-2
+            rounded-lg
+          "
           >
             Logout
           </button>
         </div>
-      </div>
+      </aside>
+
       {/* Content */}
-      <main className="flex-1 bg-gray-100 p-6 min-h-screen">{children}</main>
+      <main className="flex-1 min-w-0 overflow-y-auto bg-gray-100 p-6 h-screen">
+        {children}
+      </main>
     </div>
   );
 }

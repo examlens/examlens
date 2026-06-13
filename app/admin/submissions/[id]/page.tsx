@@ -244,20 +244,11 @@ Marks: ${result?.result?.marks}/${result?.result?.total_marks}`,
   // ✅ FILE URL FIX
   // ==================================================
 
-  let fileUrl =
-    data?.answer_file_url || "";
-
-  // 🔥 HANDLE STORAGE PATH ONLY
-  if (
-    fileUrl &&
-    !fileUrl.startsWith("http")
-  ) {
-    fileUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/exam-answers/${fileUrl}`;
-  }
+  let fileUrl = data?.answer_file_url || "";
 
   // 🔥 REMOVE CACHE
   if (fileUrl) {
-    fileUrl = `${fileUrl}?t=${Date.now()}`;
+    fileUrl = `${fileUrl}${fileUrl.includes('?') ? '&' : '?'}t=${Date.now()}`;
   }
 
   // ==================================================

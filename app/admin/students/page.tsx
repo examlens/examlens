@@ -159,15 +159,14 @@ export default function AdminStudentsPage() {
     ).length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 p-4 md:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 p-6">
+      <div className="max-w-5xl mx-auto">
 
-      <div className="max-w-7xl mx-auto">
+      {/* ====================================================== */}
+      {/* HERO HEADER */}
+      {/* ====================================================== */}
 
-        {/* ====================================================== */}
-        {/* HERO HEADER */}
-        {/* ====================================================== */}
-
-        <div className="relative overflow-hidden bg-white border border-orange-100 rounded-[36px] shadow-xl mb-8">
+      <div className="relative overflow-hidden bg-white border border-orange-100 rounded-[36px] shadow-xl mb-8">
 
           {/* BACKGROUND DECOR */}
 
@@ -380,23 +379,23 @@ export default function AdminStudentsPage() {
 
             {/* TABLE HEADER */}
 
-            <div className="overflow-x-auto">
+              <div className="w-full overflow-x-auto">
 
-              <table className="w-full min-w-[1100px]">
+                <table className="w-full table-fixed text-sm">
 
                 <thead className="bg-gradient-to-r from-orange-500 to-amber-500 text-white">
 
                   <tr>
 
-                    <th className="px-6 py-5 text-left text-sm font-bold uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-sm font-bold uppercase tracking-wider">
                       Student
                     </th>
 
-                    <th className="px-6 py-5 text-left text-sm font-bold uppercase tracking-wider">
+                    <th className="px-4 py-3 text-left text-sm font-bold uppercase tracking-wider">
                       Email
                     </th>
 
-                    <th className="px-6 py-5 text-center text-sm font-bold uppercase tracking-wider">
+                    <th className="px-4 py-3 text-center text-sm font-bold uppercase tracking-wider">
                       Avg Score
                     </th>
 
@@ -404,11 +403,11 @@ export default function AdminStudentsPage() {
                     Attendance
                   </th> */}
 
-                    <th className="px-6 py-5 text-center text-sm font-bold uppercase tracking-wider">
+                    <th className="px-4 py-3 text-center text-sm font-bold uppercase tracking-wider">
                       Status
                     </th>
 
-                    <th className="px-6 py-5 text-center text-sm font-bold uppercase tracking-wider">
+                    <th className="px-4 py-3 text-center text-sm font-bold uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -434,13 +433,15 @@ export default function AdminStudentsPage() {
 
                         {/* STUDENT */}
 
-                        <td className="px-6 py-5">
+                        <td className="px-4 py-3">
 
-                          <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-4 min-w-0">
 
                             <div className="
-                            w-14
-                            h-14
+                            flex-shrink-0
+                            w-12
+                            h-12
+                            min-w-[48px]
                             rounded-2xl
                             bg-gradient-to-br
                             from-orange-500
@@ -450,17 +451,18 @@ export default function AdminStudentsPage() {
                             justify-center
                             text-white
                             font-black
-                            text-lg
+                            text-base
                             shadow-lg
+                            text-center
                           ">
                               {(student.name || "S")
                                 .charAt(0)
                                 .toUpperCase()}
                             </div>
 
-                            <div>
+                            <div className="min-w-0">
 
-                              <h2 className="font-black text-slate-900 text-lg">
+                              <h2 className="font-black text-slate-900 text-lg truncate max-w-[160px]">
                                 {student.name || "Student"}
                               </h2>
 
@@ -473,16 +475,16 @@ export default function AdminStudentsPage() {
 
                         {/* EMAIL */}
 
-                        <td className="px-6 py-5">
+                        <td className="px-4 py-3 max-w-[260px] overflow-hidden">
 
-                          <div className="flex items-center gap-2 text-slate-600">
+                          <div className="flex items-center gap-2 text-slate-600 min-w-0">
 
                             <Mail
                               size={16}
                               className="text-orange-500"
                             />
 
-                            <span className="font-medium">
+                            <span className="font-medium truncate block max-w-[200px]">
                               {student.email}
                             </span>
                           </div>
@@ -490,11 +492,11 @@ export default function AdminStudentsPage() {
 
                         {/* SCORE */}
 
-                        <td className="px-6 py-5 text-center">
+                        <td className="px-4 py-3 text-center">
 
-                          <div className="inline-flex items-center justify-center bg-gradient-to-r from-orange-500 to-amber-500 text-white px-5 py-2 rounded-2xl shadow-lg min-w-[100px]">
+                          <div className="inline-flex items-center justify-center bg-gradient-to-r from-orange-500 to-amber-500 text-white px-3 py-1.5 rounded-2xl shadow-lg min-w-0">
 
-                            <span className="text-2xl font-black">
+                            <span className="text-xl font-black">
                               {student.avgScore}%
                             </span>
                           </div>
@@ -531,7 +533,7 @@ export default function AdminStudentsPage() {
 
                         {/* STATUS */}
 
-                        <td className="px-6 py-5 text-center">
+                        <td className="px-4 py-3 text-center">
 
                           <div
                             className={`
@@ -565,7 +567,7 @@ export default function AdminStudentsPage() {
 
                         {/* ACTIONS */}
 
-                        <td className="px-6 py-5">
+                        <td className="px-4 py-3">
 
                           <div className="flex items-center justify-center">
 
@@ -580,13 +582,13 @@ export default function AdminStudentsPage() {
                               bg-red-500
                               hover:bg-red-600
                               text-white
-                              px-5
-                              py-3
+                              px-3
+                              py-2
                               rounded-2xl
                               font-bold
-                              shadow-lg
+                              shadow-md
                               transition-all
-                              duration-300
+                              duration-200
                             "
                             >
                               <Trash2 size={17} />
@@ -602,9 +604,8 @@ export default function AdminStudentsPage() {
             </div>
           </div>
         )}
-      </div>
 
-      
+      </div>
       {/* ====================================================== */}
       {/* TOAST NOTIFICATION */}
       {/* ====================================================== */}
@@ -637,6 +638,9 @@ export default function AdminStudentsPage() {
           </div>
         </div>
       )}
+
     </div>
+
   );
+
 }
