@@ -61,7 +61,7 @@ export default function AdminLayout({ children }: any) {
             py-2
             rounded-lg
           "
-          >
+          > 
             Logout
           </button>
         </div>

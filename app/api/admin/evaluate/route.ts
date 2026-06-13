@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { supabase } from "@/app/lib/supabase";
 
+export const runtime = "nodejs";
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
 });
@@ -10,10 +12,7 @@ export async function POST(req: Request) {
   try {
     const { submission_id } = await req.json();
 
-    console.log(
-      "📥 submission_id:",
-      submission_id
-    );
+    console.log("📥 submission_id:", submission_id);
 
     // ==================================================
     // ✅ VALIDATION
@@ -21,13 +20,8 @@ export async function POST(req: Request) {
 
     if (!submission_id) {
       return NextResponse.json(
-        {
-          error:
-            "submission_id required",
-        },
-        {
-          status: 400,
-        }
+        { error: "submission_id required" },
+        { status: 400 }
       );
     }
 
@@ -35,10 +29,7 @@ export async function POST(req: Request) {
     // ✅ GET SUBMISSION
     // ==================================================
 
-    const {
-      data: submission,
-      error: submissionError,
-    } = await supabase
+    const { data: submission, error: submissionError } = await supabase
       .from("submissions")
       .select(`
         id,
@@ -52,46 +43,21 @@ export async function POST(req: Request) {
       .eq("id", submission_id)
       .single();
 
-    if (
-      submissionError ||
-      !submission
-    ) {
-      console.error(
-        "❌ Submission Error:",
-        submissionError
-      );
-
-      return NextResponse.json(
-        {
-          error:
-            "Submission not found",
-        },
-        {
-          status: 404,
-        }
-      );
+    if (submissionError || !submission) {
+      console.error("❌ Submission Error:", submissionError);
+      return NextResponse.json({ error: "Submission not found" }, { status: 404 });
     }
 
-    console.log(
-      "📂 Answer File:",
-      submission.answer_file_url
-    );
+    console.log("📂 Answer File:", submission.answer_file_url);
 
     // ==================================================
     // ✅ CHECK FILE
     // ==================================================
 
-    if (
-      !submission.answer_file_url
-    ) {
+    if (!submission.answer_file_url) {
       return NextResponse.json(
-        {
-          error:
-            "No answer file uploaded",
-        },
-        {
-          status: 400,
-        }
+        { error: "No answer file uploaded" },
+        { status: 400 }
       );
     }
 
@@ -99,10 +65,7 @@ export async function POST(req: Request) {
     // ✅ GET EXAM DETAILS
     // ==================================================
 
-    const {
-      data: exam,
-      error: examError,
-    } = await supabase
+    const { data: exam, error: examError } = await supabase
       .from("exams")
       .select(`
         id,
@@ -113,29 +76,15 @@ export async function POST(req: Request) {
       .single();
 
     if (examError || !exam) {
-      console.error(
-        "❌ Exam Error:",
-        examError
-      );
-
-      return NextResponse.json(
-        {
-          error: "Exam not found",
-        },
-        {
-          status: 404,
-        }
-      );
+      console.error("❌ Exam Error:", examError);
+      return NextResponse.json({ error: "Exam not found" }, { status: 404 });
     }
 
     // ==================================================
     // ✅ GET QUESTIONS
     // ==================================================
 
-    const {
-      data: questionData,
-      error: questionError,
-    } = await supabase
+    const { data: questionData, error: questionError } = await supabase
       .from("exam_questions")
       .select(`
         question_id,
@@ -148,19 +97,10 @@ export async function POST(req: Request) {
       .eq("exam_id", submission.exam_id);
 
     if (questionError) {
-      console.error(
-        "❌ Question Error:",
-        questionError
-      );
-
+      console.error("❌ Question Error:", questionError);
       return NextResponse.json(
-        {
-          error:
-            "Failed to fetch questions",
-        },
-        {
-          status: 500,
-        }
+        { error: "Failed to fetch questions" },
+        { status: 500 }
       );
     }
 
@@ -169,94 +109,47 @@ export async function POST(req: Request) {
     // ==================================================
 
     const questions =
-      questionData?.map(
-        (
-          q: any,
-          index: number
-        ) => {
-          const questionObj =
-            Array.isArray(
-              q.questions
-            )
-              ? q.questions[0]
-              : q.questions;
+      questionData?.map((q: any, index: number) => {
+        const questionObj = Array.isArray(q.questions)
+          ? q.questions[0]
+          : q.questions;
 
-          return {
-            question_number:
-              index + 1,
-
-            question:
-              questionObj?.question ||
-              "",
-
-            marks: Number(
-              questionObj?.marks || 0
-            ),
-          };
-        }
-      ) || [];
+        return {
+          question_number: index + 1,
+          question: questionObj?.question || "",
+          marks: Number(questionObj?.marks || 0),
+        };
+      }) || [];
 
     // ==================================================
     // ✅ TOTAL MARKS
     // ==================================================
 
-    const totalMaxMarks =
-      questions.reduce(
-        (
-          sum: number,
-          q: any
-        ) => sum + q.marks,
-        0
-      );
-
-    console.log(
-      "🎯 Total Exam Marks:",
-      totalMaxMarks
+    const totalMaxMarks = questions.reduce(
+      (sum: number, q: any) => sum + q.marks,
+      0
     );
+
+    console.log("🎯 Total Exam Marks:", totalMaxMarks);
 
     // ==================================================
     // ✅ DOWNLOAD ANSWER FILE
     // ==================================================
 
-    if (!submission.answer_file_url) {
-      return NextResponse.json(
-        {
-          error: "Invalid answer file URL",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
-
     let answerFile: Blob | null = null;
     try {
       const response = await fetch(submission.answer_file_url);
-      if (!response.ok) {
-        throw new Error("Failed to download answer file");
-      }
+      if (!response.ok) throw new Error("Failed to download answer file");
       answerFile = await response.blob();
     } catch (downloadError: any) {
-      console.error(
-        "❌ Download Error:",
-        downloadError
-      );
-
+      console.error("❌ Download Error:", downloadError);
       return NextResponse.json(
-        {
-          error:
-            downloadError.message ||
-            "Failed to download answer file",
-        },
-        {
-          status: 400,
-        }
+        { error: downloadError.message || "Failed to download answer file" },
+        { status: 400 }
       );
     }
 
-    const answerBuffer = Buffer.from(
-      await answerFile.arrayBuffer()
-    );
+    const answerBuffer = Buffer.from(await answerFile.arrayBuffer());
 
     // ==================================================
     // ✅ EXTRACT REFERENCE TEXT
@@ -269,38 +162,35 @@ export async function POST(req: Request) {
         const response = await fetch(exam.reference_file_url);
         if (response.ok) {
           const referenceFile = await response.blob();
-          const referenceBuffer =
-            Buffer.from(
-              await referenceFile.arrayBuffer()
+          const referenceBuffer = Buffer.from(await referenceFile.arrayBuffer());
+          const uint8 = new Uint8Array(referenceBuffer);
+          const { PDFParse } = await import("pdf-parse");
+          try {
+            const fs = await import("fs");
+            const path = await import("path");
+            const workerPath = path.join(
+              process.cwd(),
+              "node_modules",
+              "pdf-parse",
+              "dist",
+              "pdf-parse",
+              "web",
+              "pdf.worker.mjs"
             );
-
-          const pdfParseModule =
-            await import(
-              "pdf-parse"
-            );
-
-          const pdfParse =
-            (pdfParseModule as any)
-              .default ||
-            pdfParseModule;
-
-          const parsedReference =
-            await pdfParse(
-              referenceBuffer
-            );
-
-          referenceText =
-            parsedReference.text ||
-            "";
-
-          console.log(
-            "📘 Reference Text Extracted"
-          );
+            const code = fs.readFileSync(workerPath, "utf8");
+            const base64 = Buffer.from(code).toString("base64");
+            PDFParse.setWorker(`data:application/javascript;base64,${base64}`);
+          } catch (e) {
+            PDFParse.setWorker("");
+          }
+          const parserRef = new PDFParse({ data: uint8 });
+          const parsedReference = await parserRef.getText();
+          await parserRef.destroy();
+          referenceText = parsedReference.text || "";
+          console.log("📘 Reference Text Extracted");
         }
       } catch (err) {
-        console.warn(
-          "⚠️ Failed to parse reference file"
-        );
+        console.warn("⚠️ Failed to parse reference file");
       }
     }
 
@@ -308,10 +198,7 @@ export async function POST(req: Request) {
     // ✅ DETECT FILE TYPE
     // ==================================================
 
-    const isPDF =
-      submission.answer_file_url
-        .toLowerCase()
-        .endsWith(".pdf");
+    const isPDF = submission.answer_file_url.toLowerCase().endsWith(".pdf");
 
     let studentText = "";
 
@@ -321,33 +208,34 @@ export async function POST(req: Request) {
 
     if (isPDF) {
       try {
-        const pdfParseModule =
-          await import(
-            "pdf-parse"
+        const uint8 = new Uint8Array(answerBuffer);
+        const { PDFParse } = await import("pdf-parse");
+        try {
+          const fs = await import("fs");
+          const path = await import("path");
+          const workerPath = path.join(
+            process.cwd(),
+            "node_modules",
+            "pdf-parse",
+            "dist",
+            "pdf-parse",
+            "web",
+            "pdf.worker.mjs"
           );
+          const code = fs.readFileSync(workerPath, "utf8");
+          const base64 = Buffer.from(code).toString("base64");
+          PDFParse.setWorker(`data:application/javascript;base64,${base64}`);
+        } catch (e) {
+          PDFParse.setWorker("");
+        }
+        const parser = new PDFParse({ data: uint8 });
+        const parsed = await parser.getText();
+        await parser.destroy();
 
-        const pdfParse =
-          (pdfParseModule as any)
-            .default ||
-          pdfParseModule;
-
-        const parsed =
-          await pdfParse(
-            answerBuffer
-          );
-
-        studentText =
-          parsed.text || "";
-
-        console.log(
-          "📄 Student Text Length:",
-          studentText.length
-        );
+        studentText = parsed.text || "";
+        console.log("📄 Student Text Length:", studentText.length);
       } catch (err) {
-        console.error(
-          "❌ PDF Parse Error:",
-          err
-        );
+        console.error("❌ PDF Parse Error:", err);
       }
     }
 
@@ -355,17 +243,16 @@ export async function POST(req: Request) {
     // ✅ BUILD QUESTION LIST
     // ==================================================
 
-    const formattedQuestions =
-      questions
-        .map(
-          (q: any) => `
+    const formattedQuestions = questions
+      .map(
+        (q: any) => `
 Question ${q.question_number}:
 ${q.question}
 
 Maximum Marks: ${q.marks}
 `
-        )
-        .join("\n");
+      )
+      .join("\n");
 
     // ==================================================
     // ✅ AI PROMPT
@@ -439,106 +326,54 @@ OUTPUT FORMAT:
     let aiResponse: any;
 
     if (!isPDF) {
-      const base64 =
-        answerBuffer.toString(
-          "base64"
-        );
+      const base64 = answerBuffer.toString("base64");
+      const mimeType = submission.answer_file_url.endsWith(".png")
+        ? "image/png"
+        : "image/jpeg";
 
-      const mimeType =
-        submission.answer_file_url.endsWith(
-          ".png"
-        )
-          ? "image/png"
-          : "image/jpeg";
-
-      aiResponse =
-        await openai.chat.completions.create(
+      aiResponse = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
           {
-            model:
-              "gpt-4o-mini",
-
-            messages: [
+            role: "user",
+            content: [
+              { type: "text", text: prompt },
               {
-                role: "user",
-
-                content: [
-                  {
-                    type: "text",
-                    text: prompt,
-                  },
-
-                  {
-                    type:
-                      "image_url",
-
-                    image_url: {
-                      url: `data:${mimeType};base64,${base64}`,
-                    },
-                  },
-                ],
+                type: "image_url",
+                image_url: { url: `data:${mimeType};base64,${base64}` },
               },
             ],
-
-            temperature: 0.2,
-          }
-        );
+          },
+        ],
+        temperature: 0.2,
+      });
     } else {
-      aiResponse =
-        await openai.chat.completions.create(
-          {
-            model:
-              "gpt-4o-mini",
-
-            messages: [
-              {
-                role: "user",
-                content: prompt,
-              },
-            ],
-
-            temperature: 0.2,
-          }
-        );
+      aiResponse = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.2,
+      });
     }
 
     // ==================================================
     // ✅ PARSE AI RESPONSE
     // ==================================================
 
-    const rawResponse =
-      aiResponse.choices[0]
-        ?.message?.content ||
-      "{}";
-
-    console.log(
-      "🤖 RAW AI RESPONSE:",
-      rawResponse
-    );
+    const rawResponse = aiResponse.choices[0]?.message?.content || "{}";
+    console.log("🤖 RAW AI RESPONSE:", rawResponse);
 
     let result: any;
-
     try {
-      result = JSON.parse(
-        rawResponse
-      );
+      // Strip possible markdown code fences
+      const clean = rawResponse.replace(/```json|```/g, "").trim();
+      result = JSON.parse(clean);
     } catch (err) {
-      console.error(
-        "❌ JSON Parse Error:",
-        err
-      );
-
+      console.error("❌ JSON Parse Error:", err);
       result = {
         marks: 0,
-
-        feedback:
-          "AI response parsing failed",
-
+        feedback: "AI response parsing failed",
         mistakes: [],
-
-        knowledge_analysis: {
-          strong_areas: [],
-          weak_areas: [],
-        },
+        knowledge_analysis: { strong_areas: [], weak_areas: [] },
       };
     }
 
@@ -547,19 +382,11 @@ OUTPUT FORMAT:
     // ==================================================
 
     const finalMarks = Math.min(
-      Math.max(
-        Number(
-          result.marks || 0
-        ),
-        0
-      ),
+      Math.max(Number(result.marks || 0), 0),
       totalMaxMarks
     );
 
-    console.log(
-      "✅ Final Marks:",
-      finalMarks
-    );
+    console.log("✅ Final Marks:", finalMarks);
 
     // ==================================================
     // ✅ CALCULATE PERCENTAGE
@@ -567,79 +394,35 @@ OUTPUT FORMAT:
 
     const percentage =
       totalMaxMarks > 0
-        ? Math.round(
-            (finalMarks /
-              totalMaxMarks) *
-              100
-          )
+        ? Math.round((finalMarks / totalMaxMarks) * 100)
         : 0;
 
-    console.log(
-      "📊 Percentage:",
-      percentage
-    );
+    console.log("📊 Percentage:", percentage);
 
     // ==================================================
     // ✅ SAVE TO RESULTS TABLE
     // ==================================================
 
-    const {
-      error: resultInsertError,
-    } = await supabase
-      .from("results")
-      .upsert([
-        {
-          submission_id:
-            submission.id,
-
-          exam_id:
-            submission.exam_id,
-
-          student_id:
-            submission.student_id,
-
-          total_marks:
-            totalMaxMarks,
-
-          score: finalMarks,
-
-          percentage:
-            percentage,
-
-          feedback:
-            result.feedback || "",
-
-          mistakes:
-            result.mistakes || [],
-
-          strong_areas:
-            result
-              ?.knowledge_analysis
-              ?.strong_areas ||
-            [],
-
-          weak_areas:
-            result
-              ?.knowledge_analysis
-              ?.weak_areas ||
-            [],
-        },
-      ]);
+    const { error: resultInsertError } = await supabase.from("results").upsert([
+      {
+        submission_id: submission.id,
+        exam_id: submission.exam_id,
+        student_id: submission.student_id,
+        total_marks: totalMaxMarks,
+        score: finalMarks,
+        percentage,
+        feedback: result.feedback || "",
+        mistakes: result.mistakes || [],
+        strong_areas: result?.knowledge_analysis?.strong_areas || [],
+        weak_areas: result?.knowledge_analysis?.weak_areas || [],
+      },
+    ]);
 
     if (resultInsertError) {
-      console.error(
-        "❌ Result Insert Error:",
-        resultInsertError
-      );
-
+      console.error("❌ Result Insert Error:", resultInsertError);
       return NextResponse.json(
-        {
-          error:
-            resultInsertError.message,
-        },
-        {
-          status: 500,
-        }
+        { error: resultInsertError.message },
+        { status: 500 }
       );
     }
 
@@ -647,39 +430,21 @@ OUTPUT FORMAT:
     // ✅ UPDATE SUBMISSION
     // ==================================================
 
-    const {
-      error: updateError,
-    } = await supabase
+    const { error: updateError } = await supabase
       .from("submissions")
       .update({
-        total_score:
-          finalMarks,
-
-        feedback:
-          result.feedback || "",
-
-        status:
-          "evaluated",
-
-        evaluated_at:
-          new Date().toISOString(),
+        total_score: finalMarks,
+        feedback: result.feedback || "",
+        status: "evaluated",
+        evaluated_at: new Date().toISOString(),
       })
       .eq("id", submission_id);
 
     if (updateError) {
-      console.error(
-        "❌ Submission Update Error:",
-        updateError
-      );
-
+      console.error("❌ Submission Update Error:", updateError);
       return NextResponse.json(
-        {
-          error:
-            "Failed to update submission",
-        },
-        {
-          status: 500,
-        }
+        { error: "Failed to update submission" },
+        { status: 500 }
       );
     }
 
@@ -687,25 +452,13 @@ OUTPUT FORMAT:
     // ✅ FETCH ALL RESULTS
     // ==================================================
 
-    const {
-      data: allResults,
-      error: allResultsError,
-    } = await supabase
+    const { data: allResults, error: allResultsError } = await supabase
       .from("results")
-      .select(`
-        score,
-        percentage
-      `)
-      .eq(
-        "student_id",
-        submission.student_id
-      );
+      .select("score, percentage")
+      .eq("student_id", submission.student_id);
 
     if (allResultsError) {
-      console.error(
-        "❌ Results Fetch Error:",
-        allResultsError
-      );
+      console.error("❌ Results Fetch Error:", allResultsError);
     }
 
     // ==================================================
@@ -713,170 +466,86 @@ OUTPUT FORMAT:
     // ==================================================
 
     let averagePercentage = 0;
-
-    if (
-      allResults &&
-      allResults.length > 0
-    ) {
-      const totalPercentage =
-        allResults.reduce(
-          (
-            sum: number,
-            item: any
-          ) =>
-            sum +
-            Number(
-              item.percentage || 0
-            ),
-          0
-        );
-
-      averagePercentage =
-        Math.round(
-          totalPercentage /
-            allResults.length
-        );
+    if (allResults && allResults.length > 0) {
+      const totalPercentage = allResults.reduce(
+        (sum: number, item: any) => sum + Number(item.percentage || 0),
+        0
+      );
+      averagePercentage = Math.round(totalPercentage / allResults.length);
     }
 
-    console.log(
-      "📊 Average Percentage:",
-      averagePercentage
-    );
+    console.log("📊 Average Percentage:", averagePercentage);
 
     // ==================================================
     // ✅ TOTAL SUBMISSIONS
     // ==================================================
 
-    const {
-      count: totalSubmissionCount,
-      error:
-        totalSubmissionError,
-    } = await supabase
-      .from("submissions")
-      .select("*", {
-        count: "exact",
-        head: true,
-      })
-      .eq(
-        "student_id",
-        submission.student_id
-      );
+    const { count: totalSubmissionCount, error: totalSubmissionError } =
+      await supabase
+        .from("submissions")
+        .select("*", { count: "exact", head: true })
+        .eq("student_id", submission.student_id);
 
     if (totalSubmissionError) {
-      console.error(
-        "❌ Submission Count Error:",
-        totalSubmissionError
-      );
+      console.error("❌ Submission Count Error:", totalSubmissionError);
     }
 
     // ==================================================
     // ✅ TOTAL EVALUATED
     // ==================================================
 
-    const {
-      count: totalEvaluatedCount,
-      error:
-        totalEvaluatedError,
-    } = await supabase
-      .from("submissions")
-      .select("*", {
-        count: "exact",
-        head: true,
-      })
-      .eq(
-        "student_id",
-        submission.student_id
-      )
-      .eq("status", "evaluated");
+    const { count: totalEvaluatedCount, error: totalEvaluatedError } =
+      await supabase
+        .from("submissions")
+        .select("*", { count: "exact", head: true })
+        .eq("student_id", submission.student_id)
+        .eq("status", "evaluated");
 
     if (totalEvaluatedError) {
-      console.error(
-        "❌ Evaluated Count Error:",
-        totalEvaluatedError
-      );
+      console.error("❌ Evaluated Count Error:", totalEvaluatedError);
     }
 
-    console.log(
-      "📘 Total Submissions:",
-      totalSubmissionCount
-    );
-
-    console.log(
-      "✅ Total Evaluated:",
-      totalEvaluatedCount
-    );
+    console.log("📘 Total Submissions:", totalSubmissionCount);
+    console.log("✅ Total Evaluated:", totalEvaluatedCount);
 
     // ==================================================
     // ✅ ATTENDANCE %
     // ==================================================
 
     const attendancePercentage =
-      totalSubmissionCount &&
-      totalSubmissionCount > 0
+      totalSubmissionCount && totalSubmissionCount > 0
         ? Math.round(
-            (Number(
-              totalEvaluatedCount ||
-                0
-            ) /
-              Number(
-                totalSubmissionCount
-              )) *
+            (Number(totalEvaluatedCount || 0) / Number(totalSubmissionCount)) *
               100
           )
         : 0;
 
-    console.log(
-      "🎓 Attendance:",
-      attendancePercentage
-    );
+    console.log("🎓 Attendance:", attendancePercentage);
 
     // ==================================================
     // ✅ UPDATE PROFILE TABLE
     // ==================================================
 
     const profilePayload = {
-      attendance:
-        attendancePercentage,
-
-      avg_score:
-        averagePercentage,
-
+      attendance: attendancePercentage,
+      avg_score: averagePercentage,
       evaluation_status:
-        totalEvaluatedCount &&
-        totalEvaluatedCount > 0
-          ? "evaluated"
-          : "pending",
+        totalEvaluatedCount && totalEvaluatedCount > 0 ? "evaluated" : "pending",
     };
 
-    console.log(
-      "🛠 Updating Profile:",
-      profilePayload
-    );
+    console.log("🛠 Updating Profile:", profilePayload);
+    console.log("🎯 Student ID:", submission.student_id);
 
-    console.log(
-      "🎯 Student ID:",
-      submission.student_id
-    );
-
-    const {
-      data: updatedProfile,
-      error: profileUpdateError,
-    } = await supabase
+    const { data: updatedProfile, error: profileUpdateError } = await supabase
       .from("profiles")
       .update(profilePayload)
       .eq("id", submission.student_id)
       .select();
 
     if (profileUpdateError) {
-      console.error(
-        "❌ Profile Update Error:",
-        profileUpdateError
-      );
+      console.error("❌ Profile Update Error:", profileUpdateError);
     } else {
-      console.log(
-        "✅ Profile Updated:",
-        updatedProfile
-      );
+      console.log("✅ Profile Updated:", updatedProfile);
     }
 
     // ==================================================
@@ -885,59 +554,26 @@ OUTPUT FORMAT:
 
     return NextResponse.json({
       success: true,
-
       result: {
         marks: finalMarks,
-
-        total_marks:
-          totalMaxMarks,
-
-        percentage:
-          percentage,
-
-        feedback:
-          result.feedback || "",
-
-        mistakes:
-          result.mistakes || [],
-
-        strong_areas:
-          result
-            ?.knowledge_analysis
-            ?.strong_areas ||
-          [],
-
-        weak_areas:
-          result
-            ?.knowledge_analysis
-            ?.weak_areas ||
-          [],
+        total_marks: totalMaxMarks,
+        percentage,
+        feedback: result.feedback || "",
+        mistakes: result.mistakes || [],
+        strong_areas: result?.knowledge_analysis?.strong_areas || [],
+        weak_areas: result?.knowledge_analysis?.weak_areas || [],
       },
-
       submission: {
         id: submission.id,
-
-        answer_file_url:
-          submission.answer_file_url,
-
+        answer_file_url: submission.answer_file_url,
         status: "evaluated",
       },
     });
   } catch (err: any) {
-    console.error(
-      "🔥 EVALUATION ERROR:",
-      err
-    );
-
+    console.error("🔥 EVALUATION ERROR:", err);
     return NextResponse.json(
-      {
-        error:
-          err.message ||
-          "Evaluation failed",
-      },
-      {
-        status: 500,
-      }
+      { error: err.message || "Evaluation failed" },
+      { status: 500 }
     );
   }
 }

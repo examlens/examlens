@@ -21,6 +21,7 @@
     "lucide-react": "^1.16.0",
     "next": "^16.2.4",
     "openai": "^6.42.0",
+    "pdf-extraction": "^1.0.2",
     "pdf-parse": "^2.4.5",
     "pdfkit": "^0.18.0",
     "postcss": "^8.5.14",
@@ -37,6 +38,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.4",
     "@types/node": "^20",
+    "@types/pdf-parse": "^1.1.5",
     "@types/pdfkit": "^0.17.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
