@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/app/lib/supabase";
 import { adminStorage } from "@/app/lib/firebaseAdmin";
+import { getDownloadURL } from "firebase-admin/storage";
 
 export const runtime = "nodejs";
 
@@ -10,66 +11,62 @@ export async function POST(req: Request) {
 
     const subject = formData.get("subject") as string;
     const file = formData.get("file") as File;
+
     const questions = JSON.parse(formData.get("questions") as string);
 
+    if (!file) {
+      return NextResponse.json({ error: "PDF missing" }, { status: 400 });
+    }
+
     let notesText = "";
-    let fileArrayBuffer: ArrayBuffer | undefined;
 
     // ===============================
     // PDF TEXT EXTRACTION
     // ===============================
 
-    if (file) {
-      fileArrayBuffer = await file.arrayBuffer();
-      const uint8Array = new Uint8Array(fileArrayBuffer);
+    try {
+      const buffer = Buffer.from(await file.arrayBuffer());
 
       const { PDFParse } = await import("pdf-parse");
-      try {
-        const fs = await import("fs");
-        const path = await import("path");
-        const workerPath = path.join(
-          process.cwd(),
-          "node_modules",
-          "pdf-parse",
-          "dist",
-          "pdf-parse",
-          "web",
-          "pdf.worker.mjs"
-        );
-        const code = fs.readFileSync(workerPath, "utf8");
-        const base64 = Buffer.from(code).toString("base64");
-        PDFParse.setWorker(`data:application/javascript;base64,${base64}`);
-      } catch (e) {
-        PDFParse.setWorker("");
-      }
-      const parser = new PDFParse({ data: uint8Array });
-      const parsed = await parser.getText();
-      await parser.destroy();
 
-      notesText = parsed.text || "";
+      const parser = new PDFParse({
+        data: buffer,
+      });
+
+      const result = await parser.getText();
+
+      notesText = result.text || "";
+
+      await parser.destroy();
+    } catch (pdfError) {
+      console.log("PDF EXTRACTION ERROR", pdfError);
+
+      notesText = "";
     }
 
     // ===============================
-    // UPLOAD PDF TO FIREBASE
+    // FIREBASE STORAGE UPLOAD
     // ===============================
 
-    const fileName = `${Date.now()}-${file?.name || "revision.pdf"}`;
+    const buffer = Buffer.from(await file.arrayBuffer());
+
+    const fileName = `revision-notes/${Date.now()}-${file.name}`;
 
     const bucket = adminStorage.bucket();
-    const fileRef = bucket.file(`revision-notes/${fileName}`);
-    // reuse array buffer from above when available to avoid double reads
-    const uploadBuffer = fileArrayBuffer
-      ? Buffer.from(new Uint8Array(fileArrayBuffer))
-      : Buffer.from("");
 
-    await fileRef.save(uploadBuffer, {
+    const fileRef = bucket.file(fileName);
+
+    await fileRef.save(buffer, {
       metadata: {
         contentType: file.type,
       },
     });
 
-    const storageBucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
-    const notesUrl = `https://firebasestorage.googleapis.com/v0/b/${storageBucket}/o/revision-notes%2F${encodeURIComponent(fileName)}?alt=media`;
+    // make public url
+
+    await fileRef.makePublic();
+
+    const notesUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
 
     // ===============================
     // SAVE REVISION
@@ -79,7 +76,9 @@ export async function POST(req: Request) {
       .from("revisions")
       .insert({
         subject,
+
         notes_url: notesUrl,
+
         notes_text: notesText,
       })
       .select()
@@ -95,7 +94,9 @@ export async function POST(req: Request) {
 
     const questionRows = questions.map((q: any) => ({
       revision_id: revision.id,
+
       question: q.question,
+
       marks: q.marks,
     }));
 
@@ -107,9 +108,20 @@ export async function POST(req: Request) {
       throw qError;
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      revision,
+    });
   } catch (err: any) {
-    console.log(err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.log("REVISION UPLOAD ERROR", err);
+
+    return NextResponse.json(
+      {
+        error: err.message,
+      },
+      {
+        status: 500,
+      },
+    );
   }
 }

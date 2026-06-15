@@ -33,35 +33,26 @@ export default function ExamsPage() {
   const [exams, setExams] = useState<Exam[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
 
-  const [selectedQuestions, setSelectedQuestions] =
-    useState<string[]>([]);
+  const [selectedQuestions, setSelectedQuestions] = useState<string[]>([]);
 
-  const [referenceFile, setReferenceFile] =
-    useState<File | null>(null);
+  const [referenceFile, setReferenceFile] = useState<File | null>(null);
 
-  const [showModal, setShowModal] =
-    useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   const [title, setTitle] = useState("");
 
-  const [description, setDescription] =
-    useState("");
+  const [description, setDescription] = useState("");
 
-  const [duration, setDuration] =
-    useState("");
+  const [duration, setDuration] = useState("");
 
-  const [totalMarks, setTotalMarks] =
-    useState("");
+  const [totalMarks, setTotalMarks] = useState("");
 
   // ✅ SUBJECT DEFAULT EMPTY
-  const [subject, setSubject] =
-    useState("");
+  const [subject, setSubject] = useState("");
 
-  const [examDate, setExamDate] =
-    useState("");
+  const [examDate, setExamDate] = useState("");
 
-  const [loading, setLoading] =
-    useState(false);
+  const [loading, setLoading] = useState(false);
 
   // =====================================================
   // TOAST NOTIFICATION
@@ -79,7 +70,10 @@ export default function ExamsPage() {
 
   // SHOW TOAST
 
-  const showToast = (message: string, type: "success" | "error" = "success") => {
+  const showToast = (
+    message: string,
+    type: "success" | "error" = "success",
+  ) => {
     setToast({
       show: true,
       message,
@@ -97,9 +91,7 @@ export default function ExamsPage() {
 
   const fetchExams = async () => {
     try {
-      const res = await fetch(
-        "/api/admin/exams"
-      );
+      const res = await fetch("/api/admin/exams");
 
       const data = await res.json();
 
@@ -115,15 +107,11 @@ export default function ExamsPage() {
 
   const fetchQuestions = async () => {
     try {
-      const res = await fetch(
-        "/api/questions"
-      );
+      const res = await fetch("/api/questions");
 
       const data = await res.json();
 
-      setQuestions(
-        Array.isArray(data) ? data : []
-      );
+      setQuestions(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
     }
@@ -139,9 +127,7 @@ export default function ExamsPage() {
   // =====================================================
 
   const uniqueSubjects = useMemo(() => {
-    const subjects = questions
-      .map((q) => q.subject?.trim())
-      .filter(Boolean);
+    const subjects = questions.map((q) => q.subject?.trim()).filter(Boolean);
 
     return [...new Set(subjects)];
   }, [questions]);
@@ -151,9 +137,7 @@ export default function ExamsPage() {
   // =====================================================
 
   const filteredQuestions = useMemo(() => {
-    return questions.filter(
-      (q) => q.subject === subject
-    );
+    return questions.filter((q) => q.subject === subject);
   }, [questions, subject]);
 
   // =====================================================
@@ -162,9 +146,7 @@ export default function ExamsPage() {
 
   const toggleQuestion = (id: string) => {
     setSelectedQuestions((prev) =>
-      prev.includes(id)
-        ? prev.filter((q) => q !== id)
-        : [...prev, id]
+      prev.includes(id) ? prev.filter((q) => q !== id) : [...prev, id],
     );
   };
 
@@ -173,13 +155,7 @@ export default function ExamsPage() {
   // =====================================================
 
   const createExam = async () => {
-    if (
-      !title ||
-      !duration ||
-      !totalMarks ||
-      !subject ||
-      !examDate
-    ) {
+    if (!title || !duration || !totalMarks || !subject || !examDate) {
       showToast("Fill all required fields", "error");
       return;
     }
@@ -192,8 +168,7 @@ export default function ExamsPage() {
     try {
       setLoading(true);
 
-      let referenceUrl: string | null =
-        null;
+      let referenceUrl: string | null = null;
 
       // =========================================
       // GET SESSION
@@ -204,9 +179,7 @@ export default function ExamsPage() {
       } = await supabase.auth.getSession();
 
       if (!session?.access_token) {
-        throw new Error(
-          "Please login again"
-        );
+        throw new Error("Please login again");
       }
 
       // =========================================
@@ -216,18 +189,12 @@ export default function ExamsPage() {
       if (referenceFile) {
         const fileName = `${Date.now()}-${referenceFile.name}`;
 
-        const fileRef = ref(
-          storage,
-          `exam-notes/${fileName}`
-        );
+        const fileRef = ref(storage, `exam-notes/${fileName}`);
 
-        await uploadBytes(
-          fileRef,
-          referenceFile
-        );
+        await uploadBytes(fileRef, referenceFile);
 
         referenceUrl = `https://firebasestorage.googleapis.com/v0/b/${process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET}/o/${encodeURIComponent(
-          `exam-notes/${fileName}`
+          `exam-notes/${fileName}`,
         )}?alt=media`;
       }
 
@@ -235,80 +202,56 @@ export default function ExamsPage() {
       // CREATE EXAM
       // =========================================
 
-      const examRes = await fetch(
-        "/api/admin/exams",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json",
-            Authorization: `Bearer ${session.access_token}`,
-          },
+      const examRes = await fetch("/api/admin/exams", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
 
-          body: JSON.stringify({
-            title,
-            description,
-            duration:
-              Number(duration),
-            total_marks:
-              Number(totalMarks),
-            subject,
-            exam_date: examDate,
-            reference_file_url:
-              referenceUrl,
-          }),
-        }
-      );
+        body: JSON.stringify({
+          title,
+          description,
+          duration: Number(duration),
+          total_marks: Number(totalMarks),
+          subject,
+          exam_date: examDate,
+          reference_file_url: referenceUrl,
+        }),
+      });
 
-      const examData =
-        await examRes.json();
+      const examData = await examRes.json();
 
       if (!examRes.ok) {
-        throw new Error(
-          examData.error ||
-          "Failed to create exam"
-        );
+        throw new Error(examData.error || "Failed to create exam");
       }
 
-      const examId =
-        examData?.exam?.id;
+      const examId = examData?.exam?.id;
 
-      console.log(
-        "✅ Created Exam ID:",
-        examId
-      );
+      console.log("✅ Created Exam ID:", examId);
 
       // =========================================
       // ASSIGN QUESTIONS
       // =========================================
 
-      const assignRes = await fetch(
-        "/api/admin/exam-questions",
-        {
-          method: "POST",
+      const assignRes = await fetch("/api/admin/exam-questions", {
+        method: "POST",
 
-          headers: {
-            "Content-Type":
-              "application/json",
-            Authorization: `Bearer ${session.access_token}`,
-          },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
 
-          body: JSON.stringify({
-            exam_id: examId,
-            question_ids:
-              selectedQuestions,
-          }),
-        }
-      );
+        body: JSON.stringify({
+          exam_id: examId,
+          question_ids: selectedQuestions,
+        }),
+      });
 
-      const assignData =
-        await assignRes.json();
+      const assignData = await assignRes.json();
 
       if (!assignRes.ok) {
-        throw new Error(
-          assignData.error ||
-          "Failed to assign questions"
-        );
+        throw new Error(assignData.error || "Failed to assign questions");
       }
 
       showToast("✅ Exam created", "success");
@@ -332,11 +275,7 @@ export default function ExamsPage() {
     } catch (err: any) {
       console.error(err);
 
-      showToast(
-        err.message ||
-        "Failed to create exam",
-        "error"
-      );
+      showToast(err.message || "Failed to create exam", "error");
     } finally {
       setLoading(false);
     }
@@ -346,12 +285,8 @@ export default function ExamsPage() {
   // DELETE EXAM
   // =====================================================
 
-  const handleDelete = async (
-    id: string
-  ) => {
-    const confirmDelete = confirm(
-      "Delete this exam?"
-    );
+  const handleDelete = async (id: string) => {
+    const confirmDelete = confirm("Delete this exam?");
 
     if (!confirmDelete) return;
 
@@ -360,15 +295,12 @@ export default function ExamsPage() {
         data: { session },
       } = await supabase.auth.getSession();
 
-      const res = await fetch(
-        `/api/admin/exams?id=${id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${session?.access_token}`,
-          },
-        }
-      );
+      const res = await fetch(`/api/admin/exams?id=${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+      });
 
       const data = await res.json();
 
@@ -387,9 +319,7 @@ export default function ExamsPage() {
   // BADGE COLORS
   // =====================================================
 
-  const getDifficultyColor = (
-    difficulty: string
-  ) => {
+  const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case "Easy":
         return "bg-green-100 text-green-700";
@@ -405,28 +335,23 @@ export default function ExamsPage() {
     }
   };
 
-
   // =====================================================
   // UI
   // =====================================================
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 p-6">
-
       {/* ===================================================== */}
       {/* HEADER */}
       {/* ===================================================== */}
 
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 mb-8">
-
         <div>
           <p className="text-orange-500 font-semibold uppercase tracking-widest text-sm">
             Exam Management
           </p>
 
-          <h1 className="text-4xl font-black text-slate-800 mt-2">
-            Exams
-          </h1>
+          <h1 className="text-4xl font-black text-slate-800 mt-2">Exams</h1>
 
           <p className="text-slate-500 mt-2 text-lg">
             Create and manage exams with subject-based question filtering
@@ -434,9 +359,7 @@ export default function ExamsPage() {
         </div>
 
         <button
-          onClick={() =>
-            setShowModal(true)
-          }
+          onClick={() => setShowModal(true)}
           className="
           px-7
           py-4
@@ -466,13 +389,10 @@ export default function ExamsPage() {
             No Exams Created
           </h2>
 
-          <p className="text-slate-500 mt-3">
-            Create your first exam
-          </p>
+          <p className="text-slate-500 mt-3">Create your first exam</p>
         </div>
       ) : (
         <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-
           {exams.map((exam) => (
             <div
               key={exam.id}
@@ -489,11 +409,9 @@ export default function ExamsPage() {
               duration-300
             "
             >
-
               {/* TOP */}
 
               <div className="flex justify-between items-start gap-3">
-
                 <div>
                   <h2 className="text-2xl font-black text-slate-800">
                     {exam.title}
@@ -512,7 +430,6 @@ export default function ExamsPage() {
               {/* TAGS */}
 
               <div className="flex flex-wrap gap-3 mt-5">
-
                 <span className="px-4 py-2 rounded-full bg-orange-50 text-orange-600 font-semibold text-sm">
                   {exam.subject}
                 </span>
@@ -541,13 +458,8 @@ export default function ExamsPage() {
               {/* ACTIONS */}
 
               <div className="flex gap-3 mt-6">
-
                 <button
-                  onClick={() =>
-                    router.push(
-                      `/admin/submissions`
-                    )
-                  }
+                  onClick={() => router.push(`/admin/submissions`)}
                   className="
                   flex-1
                   bg-orange-500
@@ -563,11 +475,7 @@ export default function ExamsPage() {
                 </button>
 
                 <button
-                  onClick={() =>
-                    handleDelete(
-                      exam.id
-                    )
-                  }
+                  onClick={() => handleDelete(exam.id)}
                   className="
                   px-5
                   py-3
@@ -593,9 +501,7 @@ export default function ExamsPage() {
 
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm overflow-y-auto">
-
           <div className="min-h-screen flex items-start justify-center p-4 md:p-8">
-
             <div
               className="
         relative
@@ -610,13 +516,11 @@ export default function ExamsPage() {
         overflow-hidden
       "
             >
-
               {/* ===================================================== */}
               {/* HEADER */}
               {/* ===================================================== */}
 
               <div className="sticky top-0 z-20 bg-white border-b border-orange-100 px-6 md:px-8 py-6">
-
                 <button
                   onClick={() => setShowModal(false)}
                   className="
@@ -658,13 +562,11 @@ export default function ExamsPage() {
               {/* ===================================================== */}
 
               <div className="grid lg:grid-cols-[420px_1fr]">
-
                 {/* ===================================================== */}
                 {/* LEFT PANEL */}
                 {/* ===================================================== */}
 
                 <div className="border-r border-orange-100 bg-orange-50/40 p-6 md:p-8 space-y-6">
-
                   {/* EXAM NAME */}
 
                   <div>
@@ -675,9 +577,7 @@ export default function ExamsPage() {
                     <input
                       type="text"
                       value={title}
-                      onChange={(e) =>
-                        setTitle(e.target.value)
-                      }
+                      onChange={(e) => setTitle(e.target.value)}
                       placeholder="e.g Mid-Term Exam"
                       className="
                 w-full
@@ -705,9 +605,7 @@ export default function ExamsPage() {
 
                     <select
                       value={subject}
-                      onChange={(e) =>
-                        setSubject(e.target.value)
-                      }
+                      onChange={(e) => setSubject(e.target.value)}
                       className="
                 w-full
                 bg-white
@@ -723,19 +621,19 @@ export default function ExamsPage() {
                 focus:ring-orange-100
               "
                     >
+                      {/* Placeholder */}
+                      <option value="" disabled>
+                        Select Subject
+                      </option>
+
                       {[
                         ...new Set(
                           questions
-                            .map((q) =>
-                              q.subject?.trim()
-                            )
-                            .filter(Boolean)
+                            .map((q) => q.subject?.trim())
+                            .filter(Boolean),
                         ),
                       ].map((sub) => (
-                        <option
-                          key={sub}
-                          value={sub}
-                        >
+                        <option key={sub} value={sub}>
                           {sub}
                         </option>
                       ))}
@@ -752,9 +650,7 @@ export default function ExamsPage() {
                     <input
                       type="date"
                       value={examDate}
-                      onChange={(e) =>
-                        setExamDate(e.target.value)
-                      }
+                      onChange={(e) => setExamDate(e.target.value)}
                       className="
                 w-full
                 bg-white
@@ -775,7 +671,6 @@ export default function ExamsPage() {
                   {/* DURATION + MARKS */}
 
                   <div className="grid grid-cols-2 gap-4">
-
                     <div>
                       <label className="block text-sm font-bold text-slate-700 mb-3">
                         Duration
@@ -784,9 +679,7 @@ export default function ExamsPage() {
                       <input
                         type="number"
                         value={duration}
-                        onChange={(e) =>
-                          setDuration(e.target.value)
-                        }
+                        onChange={(e) => setDuration(e.target.value)}
                         placeholder="120"
                         className="
                   w-full
@@ -813,9 +706,7 @@ export default function ExamsPage() {
                       <input
                         type="number"
                         value={totalMarks}
-                        onChange={(e) =>
-                          setTotalMarks(e.target.value)
-                        }
+                        onChange={(e) => setTotalMarks(e.target.value)}
                         placeholder="100"
                         className="
                   w-full
@@ -845,9 +736,7 @@ export default function ExamsPage() {
                     <textarea
                       rows={5}
                       value={description}
-                      onChange={(e) =>
-                        setDescription(e.target.value)
-                      }
+                      onChange={(e) => setDescription(e.target.value)}
                       className="
                 w-full
                 bg-white
@@ -877,9 +766,7 @@ export default function ExamsPage() {
                       type="file"
                       accept=".pdf,.jpg,.png,.jpeg"
                       onChange={(e) =>
-                        setReferenceFile(
-                          e.target.files?.[0] || null
-                        )
+                        setReferenceFile(e.target.files?.[0] || null)
                       }
                       className="
                 w-full
@@ -898,11 +785,9 @@ export default function ExamsPage() {
                 {/* ===================================================== */}
 
                 <div className="p-6 md:p-8 flex flex-col">
-
                   {/* HEADER */}
 
                   <div className="flex items-center justify-between mb-6">
-
                     <div>
                       <h3 className="text-3xl font-black text-slate-800">
                         Question Selection
@@ -921,13 +806,10 @@ export default function ExamsPage() {
                   {/* QUESTIONS */}
 
                   <div className="space-y-4 overflow-y-auto max-h-[650px] pr-2">
-
                     {filteredQuestions.map((q) => (
                       <div
                         key={q.id}
-                        onClick={() =>
-                          toggleQuestion(q.id)
-                        }
+                        onClick={() => toggleQuestion(q.id)}
                         className={`
                   rounded-3xl
                   border
@@ -935,41 +817,34 @@ export default function ExamsPage() {
                   cursor-pointer
                   transition-all
                   duration-300
-                  ${selectedQuestions.includes(
-                          q.id
-                        )
-                            ? "border-orange-500 bg-orange-50 shadow-lg"
-                            : "border-slate-200 hover:border-orange-300 hover:shadow-md bg-white"
-                          }
+                  ${
+                    selectedQuestions.includes(q.id)
+                      ? "border-orange-500 bg-orange-50 shadow-lg"
+                      : "border-slate-200 hover:border-orange-300 hover:shadow-md bg-white"
+                  }
                 `}
                       >
-
                         <div className="flex gap-4">
-
                           <input
                             type="checkbox"
-                            checked={selectedQuestions.includes(
-                              q.id
-                            )}
+                            checked={selectedQuestions.includes(q.id)}
                             readOnly
                             className="mt-1 w-5 h-5 accent-orange-500"
                           />
 
                           <div className="flex-1">
-
                             <h2 className="text-lg font-bold text-slate-800 leading-relaxed">
                               {q.question}
                             </h2>
 
                             <div className="flex flex-wrap gap-2 mt-4">
-
                               <span className="px-3 py-1 rounded-full bg-orange-100 text-orange-700 text-xs font-bold">
                                 {q.category}
                               </span>
 
                               <span
                                 className={`px-3 py-1 rounded-full text-xs font-bold ${getDifficultyColor(
-                                  q.difficulty
+                                  q.difficulty,
                                 )}`}
                               >
                                 {q.difficulty}
@@ -986,7 +861,6 @@ export default function ExamsPage() {
 
                     {filteredQuestions.length === 0 && (
                       <div className="bg-orange-50 border border-orange-100 rounded-3xl p-10 text-center">
-
                         <p className="text-xl font-bold text-slate-700">
                           No Questions Found
                         </p>
@@ -1005,11 +879,8 @@ export default function ExamsPage() {
               {/* ===================================================== */}
 
               <div className="border-t border-orange-100 bg-white px-6 md:px-8 py-5 flex justify-end gap-4">
-
                 <button
-                  onClick={() =>
-                    setShowModal(false)
-                  }
+                  onClick={() => setShowModal(false)}
                   className="
             px-6
             py-3
@@ -1040,9 +911,7 @@ export default function ExamsPage() {
             transition-all
           "
                 >
-                  {loading
-                    ? "Creating..."
-                    : "Create Exam"}
+                  {loading ? "Creating..." : "Create Exam"}
                 </button>
               </div>
             </div>
@@ -1050,25 +919,25 @@ export default function ExamsPage() {
         </div>
       )}
 
-
       {/* ===================================================== */}
       {/* TOAST NOTIFICATION */}
       {/* ===================================================== */}
 
       {toast.show && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
-
           {/* BACKDROP */}
           <div className="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
 
           {/* TOAST CARD */}
           <div className="relative bg-white border border-orange-200 shadow-2xl rounded-2xl px-6 py-5 w-[320px] text-center animate-fadeIn">
-
             {/* ICON */}
-            <div className={`w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center ${toast.type === "success"
-                ? "bg-orange-100 text-orange-500"
-                : "bg-red-100 text-red-500"
-              }`}>
+            <div
+              className={`w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center ${
+                toast.type === "success"
+                  ? "bg-orange-100 text-orange-500"
+                  : "bg-red-100 text-red-500"
+              }`}
+            >
               {toast.type === "success" ? "✔" : "✖"}
             </div>
 
