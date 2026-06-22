@@ -98,13 +98,13 @@ export default function AdminDashboardPage() {
 }
 
 return (
-  <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 p-6">
+  <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 p-4 md:p-6">
 
     {/* ====================================================== */}
     {/* TOP HEADER */}
     {/* ====================================================== */}
 
-    <div className="relative overflow-hidden rounded-[38px] bg-black p-8 mb-10 shadow-2xl">
+    <div className="relative overflow-hidden rounded-[38px] bg-black p-6 sm:p-8 mb-10 shadow-2xl">
 
       {/* GLOW EFFECTS */}
 
@@ -121,14 +121,14 @@ return (
             ADMIN PANEL
           </div>
 
-          <h1 className="text-5xl font-black text-white leading-tight">
+          <h1 className="text-4xl sm:text-5xl font-black text-white leading-tight">
             Smart Exam
             <span className="block text-orange-500">
               Analytics Dashboard
             </span>
           </h1>
 
-          <p className="text-slate-400 text-lg mt-5 max-w-2xl leading-relaxed">
+          <p className="text-slate-400 text-base sm:text-lg mt-5 max-w-full sm:max-w-2xl leading-relaxed">
             Track student performance, monitor evaluations,
             manage submissions and gain real-time academic insights.
           </p>
@@ -136,7 +136,7 @@ return (
 
         {/* RIGHT */}
 
-        <div className="grid grid-cols-2 gap-5 min-w-[320px]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 min-w-0">
 
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-5">
             <p className="text-slate-400 text-sm">
@@ -197,14 +197,14 @@ return (
 
         <div className="px-8 py-7 border-b border-orange-100 bg-gradient-to-r from-orange-500 to-orange-600">
 
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
 
             <div>
-              <h2 className="text-3xl font-black text-white">
+              <h2 className="text-3xl sm:text-4xl font-black text-white">
                 Student Performance
               </h2>
 
-              <p className="text-orange-100 mt-2">
+              <p className="text-orange-100 mt-2 text-sm sm:text-base">
                 Top performing students overview
               </p>
             </div>
@@ -223,7 +223,7 @@ return (
 
         {/* STUDENTS */}
 
-        <div className="p-7 space-y-5">
+        <div className="p-5 sm:p-7 space-y-5">
 
           {dashboard.topStudents.length === 0 ? (
             <div className="py-24 text-center">
@@ -247,10 +247,10 @@ return (
               (student, index) => (
                 <div
                   key={student.id}
-                  className="group border border-orange-100 hover:border-orange-300 rounded-[30px] p-6 transition-all duration-300 hover:shadow-lg bg-gradient-to-r from-white to-orange-50/40"
+                  className="group border border-orange-100 hover:border-orange-300 rounded-[30px] p-5 sm:p-6 transition-all duration-300 hover:shadow-lg bg-gradient-to-r from-white to-orange-50/40"
                 >
 
-                  <div className="flex items-center justify-between gap-5">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
 
                     {/* LEFT */}
 
@@ -265,11 +265,11 @@ return (
                       </div>
 
                       <div>
-                        <h3 className="text-2xl font-black text-slate-800">
+                        <h3 className="text-xl sm:text-2xl font-black text-slate-800">
                           {student.name}
                         </h3>
 
-                        <p className="text-slate-500 mt-1">
+                        <p className="text-sm text-slate-500 mt-1 break-words">
                           {student.email}
                         </p>
                       </div>
@@ -277,7 +277,7 @@ return (
 
                     {/* RIGHT */}
 
-                    <div className="text-right min-w-[140px]">
+                    <div className="text-right sm:min-w-[140px] w-full sm:w-auto">
 
                       <div
                         className={`inline-flex px-4 py-2 rounded-2xl text-sm font-bold mb-3 ${
@@ -329,7 +329,7 @@ return (
 
         {/* PENDING CARD */}
 
-        <div className="relative overflow-hidden rounded-[36px] bg-gradient-to-br from-orange-500 to-orange-600 p-8 shadow-2xl shadow-orange-200">
+        <div className="relative overflow-hidden rounded-[36px] bg-gradient-to-br from-orange-500 to-orange-600 p-6 sm:p-8 shadow-2xl shadow-orange-200">
 
           <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
 
@@ -339,19 +339,14 @@ return (
               Pending Reviews
             </p>
 
-            <h2 className="text-7xl font-black text-white mt-5">
-              {dashboard.pendingSubmissions}
-            </h2>
-
-            <p className="text-orange-100 mt-5 leading-relaxed">
-              Submissions waiting for AI evaluation and admin review.
-            </p>
+            <h2 className="text-5xl sm:text-7xl font-black text-white mt-5">
+              </h2>
           </div>
         </div>
 
         {/* QUICK STATS */}
 
-        <div className="bg-white rounded-[36px] border border-orange-100 shadow-xl p-7">
+        <div className="bg-white rounded-[36px] border border-orange-100 shadow-xl p-6 sm:p-7">
 
           <h2 className="text-2xl font-black text-slate-800 mb-7">
             Quick Insights
