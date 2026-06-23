@@ -6,597 +6,236 @@ import {
   Search,
   Trash2,
   Users,
-  GraduationCap,
-  Mail,
   CheckCircle2,
   Clock3,
-  Eye,
+  Mail,
 } from "lucide-react";
 
 export default function AdminStudentsPage() {
-  const [students, setStudents] =
-    useState<any[]>([]);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  const [search, setSearch] =
-    useState("");
-  // TOAST
+  const [students, setStudents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
 
   const [toast, setToast] = useState<{
     show: boolean;
     message: string;
     type: "success" | "error";
-  }>({
-    show: false,
-    message: "",
-    type: "success",
-  });
-
-  // ======================================================
-  // TOAST FUNCTION
-  // ======================================================
+  }>({ show: false, message: "", type: "success" });
 
   const showToast = (message: string, type: "success" | "error" = "success") => {
-    setToast({
-      show: true,
-      message,
-      type,
-    });
-
-    setTimeout(() => {
-      setToast((prev) => ({ ...prev, show: false }));
-    }, 2500);
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast((prev) => ({ ...prev, show: false })), 2500);
   };
-
-  // ======================================================
-  // FETCH STUDENTS
-  // ======================================================
 
   const fetchStudents = async () => {
     try {
-      const res = await fetch(
-        "/api/admin/students"
-      );
-
+      const res = await fetch("/api/admin/students");
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(
-          data.error ||
-          "Failed to fetch students"
-        );
-      }
-
-      setStudents(
-        Array.isArray(data)
-          ? data
-          : []
-      );
-    } catch (err) {
-
+      if (!res.ok) throw new Error(data.error || "Failed to fetch students");
+      setStudents(Array.isArray(data) ? data : []);
+    } catch {
       setStudents([]);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchStudents();
-  }, []);
+  useEffect(() => { fetchStudents(); }, []);
 
-  // ======================================================
-  // DELETE STUDENT
-  // ======================================================
-
-  const handleDelete = async (
-    userId: string
-  ) => {
-    const confirmDelete = confirm (
-      "Delete this student permanently?"
-    );
-
-    if (!confirmDelete) return;
-
+  const handleDelete = async (userId: string) => {
+    if (!confirm("Delete this student permanently?")) return;
     try {
-      const res = await fetch(
-        "/api/admin/delete-user",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-          body: JSON.stringify({
-            userId,
-          }),
-        }
-      );
-
+      const res = await fetch("/api/admin/delete-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error);
-      }
-
+      if (!res.ok) throw new Error(data.error);
       showToast("✅ Student deleted", "success");
-
       fetchStudents();
     } catch (err: any) {
-
       showToast(err.message || "Failed to delete student", "error");
     }
   };
 
-  // ======================================================
-  // FILTER STUDENTS
-  // ======================================================
+  const filteredStudents = students.filter((s) =>
+    (s.name || "").toLowerCase().includes(search.toLowerCase())
+  );
 
-  const filteredStudents =
-    students.filter((student) =>
-      (student.name || "")
-        .toLowerCase()
-        .includes(search.toLowerCase())
-    );
-
-  // ======================================================
-  // STATS
-  // ======================================================
-
-  const evaluatedCount =
-    students.filter(
-      (s) =>
-        s.status === "Evaluated"
-    ).length;
-
-  const pendingCount =
-    students.filter(
-      (s) =>
-        s.status === "Pending"
-    ).length;
+  const evaluatedCount = students.filter((s) => s.status === "Evaluated").length;
+  const pendingCount = students.filter((s) => s.status === "Pending").length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 p-6">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 p-4 sm:p-6">
+      <div className="max-w-5xl mx-auto space-y-5">
 
-      {/* ====================================================== */}
-      {/* HERO HEADER */}
-      {/* ====================================================== */}
+        {/* ── HERO HEADER ── */}
+        <div className="relative overflow-hidden bg-white border border-orange-100 rounded-3xl shadow-lg">
+          <div className="absolute -top-16 -right-16 w-56 h-56 bg-orange-200 rounded-full blur-3xl opacity-30 pointer-events-none" />
+          <div className="relative z-10 p-5 sm:p-8">
 
-      <div className="relative overflow-hidden bg-white border border-orange-100 rounded-[36px] shadow-xl mb-8">
-
-          {/* BACKGROUND DECOR */}
-
-          <div className="absolute -top-24 -right-24 w-80 h-80 bg-orange-200 rounded-full blur-3xl opacity-30" />
-
-          <div className="absolute bottom-0 left-0 w-72 h-72 bg-amber-100 rounded-full blur-3xl opacity-30" />
-
-          <div className="relative z-10 p-7 md:p-10">
-
-            <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-8">
-
-              {/* LEFT */}
-
-              <div className="max-w-2xl">
-
-                <div className="inline-flex items-center gap-2 bg-orange-100 text-orange-700 px-4 py-2 rounded-full text-sm font-bold mb-5">
-                  <div className="w-2 h-2 rounded-full bg-orange-500" />
-                  SaaS Student Dashboard
-                </div>
-
-                <h1 className="text-4xl md:text-5xl font-black text-slate-900 leading-tight tracking-tight">
-                  Student Management
-                </h1>
-
-                <p className="text-slate-500 mt-5 text-lg leading-relaxed">
-                  Monitor attendance, evaluation progress, performance analytics,
-                  and manage all student activities from one modern dashboard.
-                </p>
-              </div>
-
-              {/* RIGHT STATS */}
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full xl:w-auto">
-
-                {/* TOTAL */}
-
-                <div className="bg-gradient-to-br from-orange-500 to-amber-500 text-white rounded-[28px] px-6 py-5 shadow-2xl shadow-orange-200 min-w-[210px]">
-
-                  <div className="flex items-center justify-between">
-
-                    <div>
-                      <p className="text-orange-100 text-sm font-medium">
-                        Total Students
-                      </p>
-
-                      <h2 className="text-4xl font-black mt-2">
-                        {students.length}
-                      </h2>
-                    </div>
-
-                    <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center">
-                      <Users size={28} />
-                    </div>
-                  </div>
-                </div>
-
-                {/* EVALUATED */}
-
-                <div className="bg-white z-1 border border-orange-100 rounded-[28px] px-6 py-5 shadow-lg min-w-[210px]">
-
-                  <div className="flex items-center justify-between">
-
-                    <div>
-                      <p className="text-slate-500 text-sm font-medium">
-                        Evaluated
-                      </p>
-
-                      <h2 className="text-4xl font-black text-green-600 mt-2">
-                        {evaluatedCount}
-                      </h2>
-                    </div>
-
-                    <div className="w-14 h-14 rounded-2xl bg-green-100 flex items-center justify-center">
-                      <CheckCircle2
-                        size={28}
-                        className="text-green-600"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* PENDING */}
-
-                <div className="bg-white z-2 border border-orange-100 rounded-[28px] px-6 py-5 shadow-lg min-w-[210px]">
-
-                  <div className="flex items-center justify-between">
-
-                    <div>
-                      <p className="text-slate-500 text-sm font-medium">
-                        Pending
-                      </p>
-
-                      <h2 className="text-4xl font-black text-yellow-500 mt-2">
-                        {pendingCount}
-                      </h2>
-                    </div>
-
-                    <div className="w-14 h-14 rounded-2xl bg-yellow-100 flex items-center justify-center">
-                      <Clock3
-                        size={28}
-                        className="text-yellow-600"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ====================================================== */}
-        {/* SEARCH + FILTER */}
-        {/* ====================================================== */}
-
-        <div className="bg-white border border-orange-100 rounded-[30px] shadow-lg p-5 mb-8">
-
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-
-            {/* SEARCH */}
-
-            <div className="relative w-full lg:max-w-xl">
-
-              <Search
-                className="absolute left-5 top-1/2 -translate-y-1/2 text-orange-400"
-                size={20}
-              />
-
-              <input
-                type="text"
-                placeholder="Search students by name or email..."
-                value={search}
-                onChange={(e) =>
-                  setSearch(e.target.value)
-                }
-                className="
-                w-full
-                bg-orange-50/50
-                border
-                border-orange-100
-                rounded-2xl
-                pl-14
-                pr-5
-                py-4
-                outline-none
-                focus:ring-4
-                focus:ring-orange-100
-                focus:border-orange-400
-                text-slate-700
-                placeholder:text-slate-400
-                transition-all
-              "
-              />
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 bg-orange-100 text-orange-700 px-3 py-1.5 rounded-full text-xs font-bold mb-4">
+              <div className="w-2 h-2 rounded-full bg-orange-500" />
+              SaaS Student Dashboard
             </div>
 
-            {/* SMALL INFO */}
-
-            <div className="flex items-center gap-3 bg-orange-50 border border-orange-100 rounded-2xl px-5 py-3">
-
-              <div className="w-3 h-3 rounded-full bg-orange-500 animate-pulse" />
-
-              <p className="text-sm font-semibold text-slate-700">
-                {filteredStudents.length} Students Available
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* ====================================================== */}
-        {/* LOADING */}
-        {/* ====================================================== */}
-
-        {loading ? (
-          <div className="bg-white border border-orange-100 rounded-[32px] shadow-xl p-16 text-center">
-
-            <div className="w-16 h-16 border-[5px] border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-6" />
-
-            <h2 className="text-2xl font-black text-slate-800">
-              Loading Students...
-            </h2>
-
-            <p className="text-slate-500 mt-2">
-              Fetching latest student data
+            {/* Title */}
+            <h1 className="text-2xl sm:text-4xl font-black text-slate-900 leading-tight tracking-tight">
+              Student Management
+            </h1>
+            <p className="text-slate-500 mt-2 text-sm sm:text-base leading-relaxed">
+              Monitor attendance, evaluation progress, and manage all students from one dashboard.
             </p>
+
+            {/* Stat Cards */}
+            <div className="grid grid-cols-3 gap-3 mt-5">
+
+              {/* Total */}
+              <div className="bg-gradient-to-br from-orange-500 to-amber-500 text-white rounded-2xl px-4 py-4 shadow-lg shadow-orange-200">
+                <p className="text-orange-100 text-xs font-semibold">Total</p>
+                <h2 className="text-3xl font-black mt-1">{students.length}</h2>
+                <div className="mt-2 flex items-center gap-1.5 opacity-80">
+                  <Users size={14} />
+                  <span className="text-xs font-medium">Students</span>
+                </div>
+              </div>
+
+              {/* Evaluated */}
+              <div className="bg-white border border-green-100 rounded-2xl px-4 py-4 shadow-sm">
+                <p className="text-slate-400 text-xs font-semibold">Evaluated</p>
+                <h2 className="text-3xl font-black text-green-600 mt-1">{evaluatedCount}</h2>
+                <div className="mt-2 flex items-center gap-1.5 text-green-600 opacity-80">
+                  <CheckCircle2 size={14} />
+                  <span className="text-xs font-medium">Done</span>
+                </div>
+              </div>
+
+              {/* Pending */}
+              <div className="bg-white border border-yellow-100 rounded-2xl px-4 py-4 shadow-sm">
+                <p className="text-slate-400 text-xs font-semibold">Pending</p>
+                <h2 className="text-3xl font-black text-yellow-500 mt-1">{pendingCount}</h2>
+                <div className="mt-2 flex items-center gap-1.5 text-yellow-500 opacity-80">
+                  <Clock3 size={14} />
+                  <span className="text-xs font-medium">Awaiting</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        {/* ── SEARCH ── */}
+        <div className="bg-white border border-orange-100 rounded-2xl shadow-sm p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-orange-400" size={17} />
+            <input
+              type="text"
+              placeholder="Search students by name..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-orange-50 border border-orange-100 rounded-xl pl-11 pr-4 py-3 text-sm outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 text-slate-700 placeholder:text-slate-400 transition-all"
+            />
+          </div>
+          <div className="flex items-center gap-2 bg-orange-50 border border-orange-100 rounded-xl px-4 py-3 shrink-0">
+            <div className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse" />
+            <p className="text-sm font-semibold text-slate-700">{filteredStudents.length} Found</p>
+          </div>
+        </div>
+
+        {/* ── TABLE / EMPTY / LOADING ── */}
+        {loading ? (
+          <div className="bg-white border border-orange-100 rounded-3xl shadow-lg p-14 text-center">
+            <div className="w-14 h-14 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-5" />
+            <h2 className="text-xl font-black text-slate-800">Loading Students...</h2>
+            <p className="text-slate-400 mt-1 text-sm">Fetching latest data</p>
           </div>
         ) : filteredStudents.length === 0 ? (
-          <div className="bg-white border border-orange-100 rounded-[32px] shadow-xl p-16 text-center">
-
-            <div className="mx-auto w-28 h-28 rounded-[30px] bg-orange-100 flex items-center justify-center mb-7">
-              <Users
-                size={50}
-                className="text-orange-500"
-              />
+          <div className="bg-white border border-orange-100 rounded-3xl shadow-lg p-14 text-center">
+            <div className="mx-auto w-20 h-20 rounded-2xl bg-orange-100 flex items-center justify-center mb-5">
+              <Users size={36} className="text-orange-500" />
             </div>
-
-            <h2 className="text-3xl font-black text-slate-900">
-              No Students Found
-            </h2>
-
-            <p className="text-slate-500 mt-4 text-lg">
-              Try searching with another student name or email.
-            </p>
+            <h2 className="text-2xl font-black text-slate-900">No Students Found</h2>
+            <p className="text-slate-400 mt-2 text-sm">Try a different name.</p>
           </div>
         ) : (
-
-          /* ====================================================== */
-          /* TABLE */
-          /* ====================================================== */
-
-          <div className="overflow-hidden rounded-[32px] border border-orange-100 bg-white shadow-2xl">
-
-            {/* TABLE HEADER */}
-
-              <div className="w-full overflow-x-auto">
-
-                <table className="w-full table-fixed text-sm">
+          /* scrollable table wrapper */
+          <div className="bg-white border border-orange-100 rounded-3xl shadow-lg overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[700px] text-sm">
 
                 <thead className="bg-gradient-to-r from-orange-500 to-amber-500 text-white">
-
                   <tr>
-
-                    <th className="px-4 py-3 text-left text-sm font-bold uppercase tracking-wider">
-                      Student
-                    </th>
-
-                    <th className="px-4 py-3 text-left text-sm font-bold uppercase tracking-wider">
-                      Email
-                    </th>
-
-                    <th className="px-4 py-3 text-center text-sm font-bold uppercase tracking-wider">
-                      Avg Score
-                    </th>
-
-                    {/* <th className="px-6 py-5 text-center text-sm font-bold uppercase tracking-wider">
-                    Attendance
-                  </th> */}
-
-                    <th className="px-4 py-3 text-center text-sm font-bold uppercase tracking-wider">
-                      Status
-                    </th>
-
-                    <th className="px-4 py-3 text-center text-sm font-bold uppercase tracking-wider">
-                      Actions
-                    </th>
+                    <th className="px-5 py-4 text-left font-bold uppercase tracking-wider text-xs whitespace-nowrap">Student</th>
+                    <th className="px-5 py-4 text-left font-bold uppercase tracking-wider text-xs whitespace-nowrap">Email</th>
+                    <th className="px-5 py-4 text-center font-bold uppercase tracking-wider text-xs whitespace-nowrap">Avg Score</th>
+                    <th className="px-5 py-4 text-center font-bold uppercase tracking-wider text-xs whitespace-nowrap">Status</th>
+                    <th className="px-5 py-4 text-center font-bold uppercase tracking-wider text-xs whitespace-nowrap">Actions</th>
                   </tr>
                 </thead>
 
                 <tbody>
+                  {filteredStudents.map((student: any, index: number) => (
+                    <tr
+                      key={student.id}
+                      className={`border-b border-orange-50 hover:bg-orange-50/40 transition-colors ${index % 2 === 0 ? "bg-white" : "bg-orange-50/10"}`}
+                    >
 
-                  {filteredStudents.map(
-                    (student: any, index: number) => (
-                      <tr
-                        key={student.id}
-                        className={`
-                        border-b border-orange-100
-                        hover:bg-orange-50/50
-                        transition-all
-                        duration-300
-                        ${index % 2 === 0
-                            ? "bg-white"
-                            : "bg-orange-50/20"
-                          }
-                      `}
-                      >
-
-                        {/* STUDENT */}
-
-                        <td className="px-4 py-3">
-
-                          <div className="flex items-center gap-4 min-w-0">
-
-                            <div className="
-                            flex-shrink-0
-                            w-12
-                            h-12
-                            min-w-[48px]
-                            rounded-2xl
-                            bg-gradient-to-br
-                            from-orange-500
-                            to-amber-500
-                            flex
-                            items-center
-                            justify-center
-                            text-white
-                            font-black
-                            text-base
-                            shadow-lg
-                            text-center
-                          ">
-                              {(student.name || "S")
-                                .charAt(0)
-                                .toUpperCase()}
-                            </div>
-
-                            <div className="min-w-0">
-
-                              <h2 className="font-black text-slate-900 text-lg truncate max-w-[160px]">
-                                {student.name || "Student"}
-                              </h2>
-
-                              {/* <p className="text-sm text-slate-500 mt-1">
-                              Student ID: {student.id?.slice(0, 8)}
-                            </p> */}
-                            </div>
+                      {/* STUDENT NAME */}
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex-shrink-0 w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-white font-black text-sm shadow">
+                            {(student.name || "S").charAt(0).toUpperCase()}
                           </div>
-                        </td>
-
-                        {/* EMAIL */}
-
-                        <td className="px-4 py-3 max-w-[260px] overflow-hidden">
-
-                          <div className="flex items-center gap-2 text-slate-600 min-w-0">
-
-                            <Mail
-                              size={16}
-                              className="text-orange-500"
-                            />
-
-                            <span className="font-medium truncate block max-w-[200px]">
-                              {student.email}
-                            </span>
-                          </div>
-                        </td>
-
-                        {/* SCORE */}
-
-                        <td className="px-4 py-3 text-center">
-
-                          <div className="inline-flex items-center justify-center bg-gradient-to-r from-orange-500 to-amber-500 text-white px-3 py-1.5 rounded-2xl shadow-lg min-w-0">
-
-                            <span className="text-xl font-black">
-                              {student.avgScore}%
-                            </span>
-                          </div>
-                        </td>
-
-                        {/* ATTENDANCE */}
-
-                        {/* <td className="px-6 py-5">
-
-                        <div className="min-w-[180px]">
-
-                          <div className="flex justify-between mb-2 text-sm">
-
-                            <span className="text-slate-500">
-                              Attendance
-                            </span>
-
-                            <span className="font-bold text-slate-700">
-                              {student.attendance}%
-                            </span>
-                          </div>
-
-                          <div className="w-full h-3 bg-orange-100 rounded-full overflow-hidden">
-
-                            <div
-                              className="h-full bg-gradient-to-r from-orange-500 to-amber-500 rounded-full transition-all duration-500"
-                              style={{
-                                width: `${student.attendance}%`,
-                              }}
-                            />
-                          </div>
+                          <span className="font-bold text-slate-800 whitespace-nowrap">
+                            {student.name || "Student"}
+                          </span>
                         </div>
-                      </td> */}
+                      </td>
 
-                        {/* STATUS */}
+                      {/* EMAIL */}
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-2 text-slate-500">
+                          <Mail size={14} className="text-orange-400 flex-shrink-0" />
+                          <span className="text-xs truncate max-w-[180px]">{student.email}</span>
+                        </div>
+                      </td>
 
-                        <td className="px-4 py-3 text-center">
+                      {/* AVG SCORE */}
+                      <td className="px-5 py-4 text-center">
+                        <span className="inline-flex items-center justify-center bg-gradient-to-r from-orange-500 to-amber-500 text-white px-3 py-1 rounded-xl font-black text-sm shadow">
+                          {student.avgScore}%
+                        </span>
+                      </td>
 
-                          <div
-                            className={`
-                            inline-flex
-                            items-center
-                            gap-2
-                            px-4
-                            py-2
-                            rounded-full
-                            text-sm
-                            font-bold
-                            ${student.status === "Evaluated"
-                                ? "bg-green-100 text-green-700"
-                                : "bg-yellow-100 text-yellow-700"
-                              }
-                          `}
-                          >
-                            {student.status === "Evaluated" ? (
-                              <>
-                                <CheckCircle2 size={16} />
-                                Evaluated
-                              </>
-                            ) : (
-                              <>
-                                <Clock3 size={16} />
-                                Pending
-                              </>
-                            )}
-                          </div>
-                        </td>
+                      {/* STATUS */}
+                      <td className="px-5 py-4 text-center">
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap ${
+                          student.status === "Evaluated"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-yellow-100 text-yellow-700"
+                        }`}>
+                          {student.status === "Evaluated"
+                            ? <><CheckCircle2 size={13} /> Evaluated</>
+                            : <><Clock3 size={13} /> Pending</>
+                          }
+                        </span>
+                      </td>
 
-                        {/* ACTIONS */}
+                      {/* ACTIONS */}
+                      <td className="px-5 py-4 text-center">
+                        <button
+                          onClick={() => handleDelete(student.id)}
+                          className="inline-flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-xl font-bold text-xs shadow transition-all active:scale-95"
+                        >
+                          <Trash2 size={14} />
+                          Delete
+                        </button>
+                      </td>
 
-                        <td className="px-4 py-3">
-
-                          <div className="flex items-center justify-center">
-
-                            <button
-                              onClick={() =>
-                                handleDelete(student.id)
-                              }
-                              className="
-                              flex
-                              items-center
-                              gap-2
-                              bg-red-500
-                              hover:bg-red-600
-                              text-white
-                              px-3
-                              py-2
-                              rounded-2xl
-                              font-bold
-                              shadow-md
-                              transition-all
-                              duration-200
-                            "
-                            >
-                              <Trash2 size={17} />
-                              Delete
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  )}
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -604,41 +243,21 @@ export default function AdminStudentsPage() {
         )}
 
       </div>
-      {/* ====================================================== */}
-      {/* TOAST NOTIFICATION */}
-      {/* ====================================================== */}
 
-
+      {/* ── TOAST ── */}
       {toast.show && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-
-          {/* BACKDROP */}
-          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
-
-          {/* TOAST CARD */}
-          <div className="relative bg-white border border-orange-200 shadow-2xl rounded-2xl px-6 py-5 w-[320px] text-center animate-fadeIn">
-
-            {/* ICON */}
-            <div className={`w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center ${toast.type === "success"
-                ? "bg-orange-100 text-orange-500"
-                : "bg-red-100 text-red-500"
-              }`}>
+        <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+          <div className="bg-white border border-orange-200 shadow-2xl rounded-2xl px-6 py-5 w-[300px] text-center animate-fadeIn pointer-events-auto">
+            <div className={`w-10 h-10 mx-auto mb-3 rounded-full flex items-center justify-center text-lg ${
+              toast.type === "success" ? "bg-orange-100 text-orange-500" : "bg-red-100 text-red-500"
+            }`}>
               {toast.type === "success" ? "✔" : "✖"}
             </div>
-
-            {/* MESSAGE */}
-            <p className="text-sm font-semibold text-slate-700">
-              {toast.message}
-            </p>
-
-            {/* ACCENT BAR */}
-            <div className="mt-3 h-1 w-full bg-orange-500 rounded-full"></div>
+            <p className="text-sm font-semibold text-slate-700">{toast.message}</p>
+            <div className="mt-3 h-1 w-full bg-orange-500 rounded-full" />
           </div>
         </div>
       )}
-
     </div>
-
   );
-
 }

@@ -251,7 +251,7 @@ Marks: ${result?.result?.marks}/${result?.result?.total_marks}`,
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
 
         {/* ================================================== */}
@@ -264,9 +264,9 @@ Marks: ${result?.result?.marks}/${result?.result?.total_marks}`,
 
           <div className="h-2 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-400" />
 
-          <div className="p-8">
+          <div className="p-5 sm:p-8">
 
-            <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-8">
+            <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6 sm:gap-8">
 
               {/* LEFT */}
 
@@ -288,7 +288,7 @@ Marks: ${result?.result?.marks}/${result?.result?.total_marks}`,
                       Student
                     </p>
 
-                    <p className="font-bold text-slate-800 mt-1">
+                    <p className="font-bold text-slate-800 mt-1 break-all sm:break-normal">
                       {studentName}
                     </p>
                   </div>
@@ -307,7 +307,7 @@ Marks: ${result?.result?.marks}/${result?.result?.total_marks}`,
 
               {/* SCORE CARD */}
 
-              <div className="relative overflow-hidden bg-gradient-to-br from-orange-500 to-amber-500 text-white rounded-[30px] p-8 shadow-2xl min-w-[320px]">
+              <div className="relative overflow-hidden bg-gradient-to-br from-orange-500 to-amber-500 text-white rounded-[30px] p-6 sm:p-8 shadow-2xl w-full sm:min-w-[320px] sm:w-auto">
 
                 <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full"></div>
 
