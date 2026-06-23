@@ -27,11 +27,6 @@ export async function GET(
       );
     }
 
-    console.log(
-      "👤 Student ID:",
-      studentId
-    );
-
     // =========================================
     // PROFILE
     // =========================================
@@ -46,10 +41,6 @@ export async function GET(
       .single();
 
     if (profileError) {
-      console.log(
-        "PROFILE ERROR",
-        profileError
-      );
     }
 
     // =========================================
@@ -78,10 +69,6 @@ export async function GET(
       });
 
     if (resultError) {
-      console.log(
-        "RESULT ERROR",
-        resultError
-      );
     }
 
     // =========================================
@@ -146,10 +133,6 @@ export async function GET(
       .limit(5);
 
     if (examError) {
-      console.log(
-        "EXAM ERROR",
-        examError
-      );
     }
 
     // =========================================
@@ -170,10 +153,6 @@ export async function GET(
         submissionCount || 0,
     });
   } catch (err: any) {
-    console.log(
-      "DASHBOARD ERROR",
-      err
-    );
 
     return NextResponse.json(
       {

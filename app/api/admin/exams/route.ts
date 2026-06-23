@@ -47,10 +47,6 @@ export async function GET() {
       }
     );
   } catch (err: any) {
-    console.error(
-      "🔥 FETCH EXAMS ERROR:",
-      err
-    );
 
     return new Response(
       JSON.stringify({
@@ -144,18 +140,9 @@ export async function POST(req: Request) {
       .single();
 
     if (error) {
-      console.log(
-        "❌ CREATE EXAM ERROR:",
-        error
-      );
 
       throw error;
     }
-
-    console.log(
-      "✅ Exam Created:",
-      data
-    );
 
     return new Response(
       JSON.stringify({
@@ -167,10 +154,6 @@ export async function POST(req: Request) {
       }
     );
   } catch (err: any) {
-    console.error(
-      "🔥 CREATE EXAM ERROR:",
-      err
-    );
 
     return new Response(
       JSON.stringify({
@@ -210,11 +193,6 @@ export async function DELETE(req: Request) {
         }
       );
     }
-
-    console.log(
-      "🗑️ Deleting Exam:",
-      examId
-    );
 
     // ======================================================
     // ✅ DELETE EXAM QUESTIONS
@@ -257,10 +235,6 @@ export async function DELETE(req: Request) {
 
     if (error) throw error;
 
-    console.log(
-      "✅ Exam deleted successfully"
-    );
-
     return new Response(
       JSON.stringify({
         success: true,
@@ -272,10 +246,6 @@ export async function DELETE(req: Request) {
       }
     );
   } catch (err: any) {
-    console.error(
-      "🔥 DELETE EXAM ERROR:",
-      err
-    );
 
     return new Response(
       JSON.stringify({

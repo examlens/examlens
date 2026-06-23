@@ -61,7 +61,6 @@ export default function ResultsPage() {
 
       setResults(data.results || []);
     } catch (err) {
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -76,13 +75,13 @@ export default function ResultsPage() {
   }
 
   return (
-  <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 p-6">
+  <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 p-4 md:p-6">
     {/* HEADER */}
-    <div className="mb-12 max-w-6xl mx-auto">
-      <h1 className="text-5xl font-bold text-slate-800 tracking-tight">
+    <div className="mb-8 md:mb-12 max-w-6xl mx-auto">
+      <h1 className="text-3xl md:text-5xl font-bold text-slate-800 tracking-tight">
         My Results
       </h1>
-      <p className="text-slate-600 mt-3 text-xl">
+      <p className="text-slate-600 mt-3 text-base md:text-xl">
         Track your performance, review feedback, and improve your learning.
       </p>
     </div>
@@ -98,11 +97,11 @@ export default function ResultsPage() {
           {/* Top Accent */}
           <div className="h-2 bg-gradient-to-r from-orange-500 to-amber-500" />
 
-          <div className="p-8">
-            <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
+          <div className="p-5 md:p-8">
+            <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 md:gap-6">
               {/* Exam Info */}
               <div className="flex-1">
-                <h2 className="text-3xl font-bold text-slate-800 group-hover:text-orange-600 transition-colors">
+                <h2 className="text-2xl md:text-3xl font-bold text-slate-800 group-hover:text-orange-600 transition-colors">
                   {result.exams?.title || "Untitled Exam"}
                 </h2>
                 <p className="text-slate-500 mt-2 text-sm">
@@ -118,9 +117,9 @@ export default function ResultsPage() {
               </div>
 
               {/* Score Card */}
-              <div className="bg-gradient-to-br from-orange-500 to-amber-500 text-white px-8 py-6 rounded-3xl text-center shadow-xl min-w-[180px]">
-                <div className="text-5xl font-black tracking-tighter">
-                  {result.score} <span className="text-3xl">/</span> {result.total_marks}
+              <div className="bg-gradient-to-br from-orange-500 to-amber-500 text-white px-6 py-4 md:px-8 md:py-6 rounded-3xl text-center shadow-xl w-full md:min-w-[180px] md:w-auto">
+                <div className="text-4xl md:text-5xl font-black tracking-tighter">
+                  {result.score} <span className="text-2xl md:text-3xl">/</span> {result.total_marks}
                 </div>
                 <div className="text-sm font-medium mt-1 opacity-90">
                   {Math.round((result.score / result.total_marks) * 100)}% Score
@@ -154,12 +153,11 @@ export default function ResultsPage() {
 
     {/* DETAIL MODAL */}
     {selectedResult && (
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div className="bg-white w-full max-w-5xl rounded-3xl shadow-2xl max-h-[95vh] overflow-hidden flex flex-col">
-          {/* Modal Header */}
-          <div className="px-8 pt-8 pb-6 border-b flex justify-between items-start">
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-0 md:p-4">
+        <div className="bg-white w-full h-full md:h-auto max-w-5xl rounded-none md:rounded-3xl shadow-2xl max-h-none md:max-h-[95vh] overflow-hidden flex flex-col modal-enter">
+          <div className="px-5 md:px-8 pt-6 md:pt-8 pb-5 md:pb-6 border-b flex justify-between items-start gap-4">
             <div>
-              <h2 className="text-4xl font-bold text-slate-800">
+              <h2 className="text-2xl md:text-4xl font-bold text-slate-800">
                 {selectedResult.exams?.title}
               </h2>
               <p className="text-slate-500 mt-1">Detailed Performance Report</p>
@@ -173,14 +171,14 @@ export default function ResultsPage() {
             </button>
           </div>
 
-          <div className="overflow-y-auto p-8 space-y-10">
+          <div className="overflow-y-auto p-5 md:p-8 space-y-6 md:space-y-10">
             {/* Score Section */}
-            <div className="bg-gradient-to-br from-orange-500 via-amber-500 to-orange-600 text-white rounded-3xl p-10 shadow-inner">
-              <div className="text-xl font-medium opacity-90">Your Score</div>
-              <div className="text-7xl font-black mt-4 tracking-tighter">
+            <div className="bg-gradient-to-br from-orange-500 via-amber-500 to-orange-600 text-white rounded-2xl md:rounded-3xl p-6 md:p-10 shadow-inner">
+              <div className="text-lg font-medium opacity-90">Your Score</div>
+              <div className="text-5xl md:text-7xl font-black mt-4 tracking-tighter">
                 {selectedResult.score} / {selectedResult.total_marks}
               </div>
-              <div className="text-2xl mt-2 opacity-90">
+              <div className="text-xl md:text-2xl mt-2 opacity-90">
                 {Math.round((selectedResult.score / selectedResult.total_marks) * 100)}% Performance
               </div>
             </div>
@@ -219,7 +217,7 @@ export default function ResultsPage() {
             </div>
 
             {/* Strong & Weak Areas */}
-            <div className="grid md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
               {/* Strong Areas */}
               <div>
                 <h3 className="text-3xl font-bold text-emerald-600 mb-5">Strong Areas</h3>

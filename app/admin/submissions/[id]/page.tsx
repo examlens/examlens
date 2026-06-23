@@ -55,18 +55,12 @@ export default function EvaluatePage() {
     try {
       setLoading(true);
 
-      console.log(
-        "📦 Fetching submission:",
-        sid
-      );
-
       const res = await fetch(
         `/api/admin/submission/${sid}`
       );
 
       const result = await res.json();
 
-      console.log(result);
 
       if (!res.ok) {
         throw new Error(
@@ -77,11 +71,6 @@ export default function EvaluatePage() {
 
       setData(result);
     } catch (err) {
-      console.error(
-        "❌ Fetch error:",
-        err
-      );
-
       setData(null);
     } finally {
       setLoading(false);
@@ -114,11 +103,6 @@ export default function EvaluatePage() {
     try {
       setEvaluating(true);
 
-      console.log(
-        "🚀 Evaluating:",
-        submissionId
-      );
-
       const res = await fetch(
         "/api/admin/evaluate",
         {
@@ -134,11 +118,6 @@ export default function EvaluatePage() {
       );
 
       const result = await res.json();
-
-      console.log(
-        "🤖 Evaluation Result:",
-        result
-      );
 
       if (!res.ok) {
         throw new Error(
@@ -157,11 +136,6 @@ Marks: ${result?.result?.marks}/${result?.result?.total_marks}`,
       // 🔄 REFRESH DATA
       await fetchData(submissionId);
     } catch (err: any) {
-      console.error(
-        "❌ Evaluation Error:",
-        err
-      );
-
       showToast(
         err?.message ||
         "Evaluation failed",

@@ -25,10 +25,6 @@ export async function GET() {
       });
 
     if (error) {
-      console.log(
-        "❌ Fetch Students Error:",
-        error
-      );
 
       return NextResponse.json(
         {
@@ -83,10 +79,6 @@ export async function GET() {
       }
     );
   } catch (err) {
-    console.log(
-      "❌ Server Error:",
-      err
-    );
 
     return NextResponse.json(
       {
@@ -134,10 +126,6 @@ export async function DELETE(
       .eq("student_id", id);
 
     if (resultsError) {
-      console.log(
-        "❌ Results Delete Error:",
-        resultsError
-      );
     }
 
     // ======================================================
@@ -152,10 +140,6 @@ export async function DELETE(
       .eq("student_id", id);
 
     if (submissionsError) {
-      console.log(
-        "❌ Submissions Delete Error:",
-        submissionsError
-      );
     }
 
     // ======================================================
@@ -170,10 +154,6 @@ export async function DELETE(
       .eq("id", id);
 
     if (profileError) {
-      console.log(
-        "❌ Profile Delete Error:",
-        profileError
-      );
 
       return NextResponse.json(
         {
@@ -197,10 +177,6 @@ export async function DELETE(
       }
     );
   } catch (err) {
-    console.log(
-      "❌ Server Error:",
-      err
-    );
 
     return NextResponse.json(
       {

@@ -115,7 +115,6 @@ export default function QuestionsPage() {
       setQuestions(data);
       setFilteredQuestions(data);
     } catch (err) {
-      console.error(err);
     }
   };
 
@@ -215,7 +214,6 @@ export default function QuestionsPage() {
 
       fetchQuestions();
     } catch (err) {
-      console.error(err);
 
       showToast("Failed to add question", "error");
     } finally {
@@ -241,7 +239,6 @@ export default function QuestionsPage() {
 
       fetchQuestions();
     } catch (err) {
-      console.error(err);
 
       showToast("Failed to delete question", "error");
     }

@@ -43,11 +43,6 @@ export async function GET() {
 
     if(error){
 
-      console.log(
-        "Revision Fetch Error:",
-        error.message
-      );
-
 
       return NextResponse.json(
         {
@@ -73,12 +68,6 @@ export async function GET() {
 
   }
   catch(err:any){
-
-
-    console.log(
-      "Student Revision API Error:",
-      err
-    );
 
 
     return NextResponse.json(

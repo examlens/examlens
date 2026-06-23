@@ -57,10 +57,6 @@ export async function POST(req: Request) {
     } = await supabase.auth.getUser(token);
 
     if (authError || !user) {
-      console.error(
-        "❌ AUTH ERROR:",
-        authError
-      );
 
       return new Response(
         JSON.stringify({
@@ -71,11 +67,6 @@ export async function POST(req: Request) {
     }
 
     const student_id = user.id;
-
-    console.log(
-      "👤 Logged-in student:",
-      student_id
-    );
 
     // ==================================================
     // ✅ GET EXAM DETAILS
@@ -91,10 +82,6 @@ export async function POST(req: Request) {
       .single();
 
     if (examError || !examData) {
-      console.error(
-        "❌ EXAM ERROR:",
-        examError
-      );
 
       return new Response(
         JSON.stringify({
@@ -126,10 +113,6 @@ export async function POST(req: Request) {
       .maybeSingle();
 
     if (existingError) {
-      console.error(
-        "❌ EXISTING SUBMISSION ERROR:",
-        existingError
-      );
 
       throw existingError;
     }
@@ -221,18 +204,9 @@ export async function POST(req: Request) {
         .eq("id", submissionId);
 
       if (updateError) {
-        console.error(
-          "❌ UPDATE ERROR:",
-          updateError
-        );
 
         throw updateError;
       }
-
-      console.log(
-        "✅ Existing submission updated:",
-        submissionId
-      );
     } else {
       // ==================================================
       // ✅ CREATE NEW SUBMISSION
@@ -260,21 +234,12 @@ export async function POST(req: Request) {
         .single();
 
       if (insertError) {
-        console.error(
-          "❌ INSERT ERROR:",
-          insertError
-        );
 
         throw insertError;
       }
 
       submissionId =
         newSubmission.id;
-
-      console.log(
-        "✅ New submission created:",
-        submissionId
-      );
     }
 
     // ==================================================
@@ -290,10 +255,6 @@ export async function POST(req: Request) {
       { status: 200 }
     );
   } catch (err: any) {
-    console.error(
-      "🔥 SUBMIT ERROR:",
-      err
-    );
 
     return new Response(
       JSON.stringify({

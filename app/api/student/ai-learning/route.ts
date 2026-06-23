@@ -45,7 +45,6 @@ export async function GET(req: Request) {
       });
 
     if (error) {
-      console.log("NOTES FETCH ERROR", error);
 
       return NextResponse.json(
         {
@@ -56,8 +55,6 @@ export async function GET(req: Request) {
         },
       );
     }
-
-    console.log("STUDENT NOTES:", data);
 
     return NextResponse.json(data || []);
   } catch (e: any) {

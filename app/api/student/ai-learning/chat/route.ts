@@ -247,7 +247,6 @@ Rules:
         completion.choices?.[0]?.message?.content || "No answer generated",
     });
   } catch (e: any) {
-    console.log("STUDENT AI ERROR", e);
 
     return NextResponse.json(
       {

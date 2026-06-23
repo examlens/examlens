@@ -39,7 +39,6 @@ export async function POST(req: Request) {
 
       await parser.destroy();
     } catch (pdfError) {
-      console.log("PDF EXTRACTION ERROR", pdfError);
 
       notesText = "";
     }
@@ -113,7 +112,6 @@ export async function POST(req: Request) {
       revision,
     });
   } catch (err: any) {
-    console.log("REVISION UPLOAD ERROR", err);
 
     return NextResponse.json(
       {

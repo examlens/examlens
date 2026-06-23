@@ -60,7 +60,6 @@ export default function AdminDashboardPage() {
 
         setDashboard(data);
       } catch (err) {
-        console.log(err);
       } finally {
         setLoading(false);
       }
@@ -98,7 +97,7 @@ export default function AdminDashboardPage() {
 }
 
 return (
-  <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 p-4 md:p-6">
+  <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 p-2 sm:p-4 md:p-6">
 
     {/* ====================================================== */}
     {/* TOP HEADER */}
@@ -121,7 +120,7 @@ return (
             ADMIN PANEL
           </div>
 
-          <h1 className="text-4xl sm:text-5xl font-black text-white leading-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight">
             Smart Exam
             <span className="block text-orange-500">
               Analytics Dashboard

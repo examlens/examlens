@@ -71,7 +71,6 @@ export async function GET(req: Request) {
       });
 
     if (error) {
-      console.error(error);
 
       return new Response(
         JSON.stringify({
@@ -89,7 +88,6 @@ export async function GET(req: Request) {
       { status: 200 }
     );
   } catch (err: any) {
-    console.error(err);
 
     return new Response(
       JSON.stringify({

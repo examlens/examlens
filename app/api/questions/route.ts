@@ -14,7 +14,6 @@ export async function GET() {
       });
 
     if (error) {
-      console.log("❌ GET ERROR:", error);
 
       return new Response(
         JSON.stringify({
@@ -33,7 +32,6 @@ export async function GET() {
       }
     );
   } catch (err) {
-    console.log("❌ SERVER ERROR:", err);
 
     return new Response(
       JSON.stringify({
@@ -53,11 +51,6 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-
-    console.log(
-      "📥 Incoming Question:",
-      body
-    );
 
     const {
       question,
@@ -108,10 +101,6 @@ export async function POST(req: Request) {
         .select();
 
     if (error) {
-      console.log(
-        "❌ INSERT ERROR:",
-        error
-      );
 
       return new Response(
         JSON.stringify({
@@ -122,11 +111,6 @@ export async function POST(req: Request) {
         }
       );
     }
-
-    console.log(
-      "✅ QUESTION INSERTED:",
-      data
-    );
 
     return new Response(
       JSON.stringify({
@@ -140,10 +124,6 @@ export async function POST(req: Request) {
       }
     );
   } catch (err: any) {
-    console.log(
-      "❌ POST ERROR:",
-      err.message
-    );
 
     return new Response(
       JSON.stringify({
@@ -186,10 +166,6 @@ export async function DELETE(
         .eq("id", id);
 
     if (error) {
-      console.log(
-        "❌ DELETE ERROR:",
-        error
-      );
 
       return new Response(
         JSON.stringify({
@@ -212,10 +188,6 @@ export async function DELETE(
       }
     );
   } catch (err) {
-    console.log(
-      "❌ DELETE SERVER ERROR:",
-      err
-    );
 
     return new Response(
       JSON.stringify({

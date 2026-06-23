@@ -49,7 +49,6 @@ export async function POST(req: Request) {
       message: "User deleted successfully",
     });
   } catch (err: any) {
-    console.error(err);
 
     return NextResponse.json(
       {

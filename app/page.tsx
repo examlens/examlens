@@ -176,7 +176,6 @@ export default function AuthPage() {
         );
       }
     } catch (err: any) {
-      console.error("❌ AUTH ERROR:", err);
       showToast(err.message, "error");
     } finally {
       setLoading(false);
@@ -214,8 +213,8 @@ export default function AuthPage() {
       <div className="absolute bottom-[-150px] right-[-100px] w-[450px] h-[450px] bg-orange-200/30 rounded-full blur-3xl" />
 
       {/* LOGIN CARD */}
-      <div className="relative z-10 w-full max-w-lg mx-10">
-        <div className="bg-white/92 backdrop-blur-2xl border border-white/40 shadow-[0_15px_50px_rgba(0,0,0,0.12)] rounded-[28px] overflow-hidden">
+      <div className="relative z-10 w-full max-w-lg mx-4">
+        <div className="bg-white/92 backdrop-blur-2xl border border-white/40 shadow-[0_15px_50px_rgba(0,0,0,0.12)] rounded-[28px] overflow-hidden modal-enter">
 
           {/* TOP HEADER */}
           <div className="bg-gradient-to-r from-orange-500 via-amber-500 to-orange-400 px-6 py-6 text-center">
@@ -304,11 +303,10 @@ export default function AuthPage() {
               </div>
             </div>
 
-            {/* LOGIN BUTTON */}
             <button
               onClick={handleAuth}
               disabled={loading}
-              className="w-full py-3 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-orange-500 to-amber-500"
+              className="w-full py-3 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-95 transition-all duration-200 shadow-lg shadow-orange-500/30"
             >
               {loading ? "Please wait..." : isSignup ? "Create Account" : "Login"}
             </button>
