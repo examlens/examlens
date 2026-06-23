@@ -3,7 +3,7 @@ import OpenAI from "openai";
 import { supabaseAdmin } from "@/app/lib/supabaseAdmin";
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY || "dummy-key-for-build",
 });
 
 export async function POST(req: Request) {
