@@ -50,7 +50,6 @@ export default function AILearning() {
       } = await supabase.auth.getSession();
 
       if (!session) {
-        console.log("NO ACTIVE SESSION");
 
         setNotes([]);
 
@@ -68,11 +67,8 @@ export default function AILearning() {
 
       const result = await res.json();
 
-      console.log("AI LEARNING NOTES:", result);
-
       // handle api error
       if (!res.ok) {
-        console.log("NOTES FETCH ERROR", result.error);
 
         setNotes([]);
 
@@ -82,7 +78,6 @@ export default function AILearning() {
       // update cards
       setNotes(Array.isArray(result) ? result : []);
     } catch (error) {
-      console.log("LOAD NOTES ERROR", error);
 
       setNotes([]);
     }
@@ -203,18 +198,18 @@ export default function AILearning() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         {/* HEADER */}
 
-        <div className="bg-white rounded-[35px] shadow-xl border border-orange-100 p-8 mb-8 flex justify-between items-center">
+        <div className="bg-white rounded-[28px] md:rounded-[35px] shadow-xl border border-orange-100 p-5 md:p-8 mb-6 md:mb-8">
           <div>
-            <h1 className="text-4xl font-black text-slate-800 flex gap-3 items-center">
-              <Sparkles className="text-orange-500" />
+            <h1 className="text-2xl md:text-4xl font-black text-slate-800 flex gap-3 items-center">
+              <Sparkles className="text-orange-500 shrink-0" />
               AI Learning Hub
             </h1>
 
-            <p className="text-slate-500 mt-3">
+            <p className="text-slate-500 mt-3 text-sm md:text-base">
               Upload your notes and study with AI
             </p>
           </div>
@@ -222,85 +217,78 @@ export default function AILearning() {
 
         {/* UPLOAD */}
 
-        <div className="bg-white rounded-[35px] shadow-lg border border-orange-100 p-7 mb-10">
-          <h2 className="text-2xl font-black mb-5">Upload Notes</h2>
+        <div className="bg-white rounded-[28px] md:rounded-[35px] shadow-lg border border-orange-100 p-5 md:p-7 mb-8 md:mb-10">
+          <h2 className="text-xl md:text-2xl font-black mb-5">Upload Notes</h2>
 
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Notes title"
-              className="border rounded-xl p-4"
+              className="border border-orange-100 rounded-xl p-4 focus:outline-none focus:border-orange-400 transition-colors"
             />
 
             <input
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               placeholder="Subject"
-              className="border rounded-xl p-4"
+              className="border border-orange-100 rounded-xl p-4 focus:outline-none focus:border-orange-400 transition-colors"
             />
 
             <input
               type="file"
               accept=".pdf"
               onChange={(e) => setFile(e.target.files?.[0] || null)}
-              className="border rounded-xl p-4"
+              className="border border-orange-100 rounded-xl p-4"
             />
           </div>
 
           <button
             onClick={uploadNotes}
             disabled={uploading}
-            className="mt-5 bg-orange-500 text-white px-6 py-3 rounded-xl font-bold flex gap-2"
+            className="mt-5 bg-orange-500 hover:bg-orange-600 active:scale-95 text-white px-6 py-3 rounded-xl font-bold flex gap-2 items-center transition-all duration-150"
           >
-            <UploadCloud />
-
+            <UploadCloud size={18} />
             {uploading ? "Uploading..." : "Upload Notes"}
           </button>
         </div>
 
         {/* NOTES */}
 
-        <h2 className="text-3xl font-black mb-5">My Notes</h2>
+        <h2 className="text-2xl md:text-3xl font-black mb-5">My Notes</h2>
 
         {notes.length === 0 ? (
-          <div className="bg-white rounded-3xl p-10 text-center text-slate-500">
+          <div className="bg-white rounded-3xl p-10 text-center text-slate-500 border border-orange-100">
             No uploaded notes yet
           </div>
         ) : (
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 md:gap-6">
             {notes.map((n: any) => (
               <div
                 key={n.id}
-                className="bg-white rounded-[30px] p-7 shadow-xl border border-orange-100 hover:-translate-y-2 transition"
+                className="bg-white rounded-[24px] md:rounded-[30px] p-5 md:p-7 shadow-xl border border-orange-100 hover:-translate-y-2 transition-all duration-200"
               >
-                <div className="w-14 h-14 rounded-2xl bg-orange-500 flex items-center justify-center text-white">
-                  <BookOpen />
+                <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-orange-500 flex items-center justify-center text-white">
+                  <BookOpen size={20} />
                 </div>
 
-                <h3 className="text-xl font-black mt-5">{n.title}</h3>
+                <h3 className="text-lg md:text-xl font-black mt-4">{n.title}</h3>
 
-                <p className="text-orange-600 font-bold">{n.subject}</p>
+                <p className="text-orange-600 font-bold text-sm">{n.subject}</p>
 
                 <a
                   href={n.file_url}
                   target="_blank"
-                  className="text-blue-600 block mt-3"
+                  className="text-blue-600 block mt-3 text-sm hover:underline"
                 >
                   Open PDF
                 </a>
 
                 <button
-                  onClick={() => {
-                    setActive(n);
-
-                    setAnswer("");
-
-                    setChat([]);
-                  }}
-                  className="mt-5 bg-orange-500 text-white px-5 py-3 rounded-xl font-bold flex gap-2"
+                  onClick={() => { setActive(n); setAnswer(""); setChat([]); }}
+                  className="mt-4 bg-orange-500 hover:bg-orange-600 active:scale-95 text-white px-5 py-2.5 rounded-xl font-bold flex gap-2 items-center transition-all duration-150 text-sm"
                 >
-                  <MessageCircle />
+                  <MessageCircle size={16} />
                   Ask AI
                 </button>
               </div>
@@ -311,29 +299,32 @@ export default function AILearning() {
         {/* AI CHAT */}
 
         {active && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-5">
-            <div className="bg-white rounded-[35px] w-full max-w-5xl h-[85vh] overflow-hidden flex flex-col shadow-2xl">
-              <div className="bg-orange-500 text-white p-6 flex justify-between">
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-0 md:p-5">
+            <div className="bg-white rounded-none md:rounded-[35px] w-full h-full md:h-auto max-w-5xl md:max-h-[85vh] overflow-hidden flex flex-col shadow-2xl modal-enter">
+              <div className="bg-orange-500 text-white p-5 md:p-6 flex justify-between items-center">
                 <div>
-                  <h2 className="text-2xl font-black">ExamLens AI Tutor</h2>
-
-                  <p>{active.title}</p>
+                  <h2 className="text-xl md:text-2xl font-black">ExamLens AI Tutor</h2>
+                  <p className="text-orange-100 text-sm mt-0.5">{active.title}</p>
                 </div>
 
-                <button onClick={() => setActive(null)}>
-                  <X />
+                <button
+                  onClick={() => setActive(null)}
+                  className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
+                >
+                  <X size={18} />
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-8">
+              <div className="flex-1 overflow-y-auto p-5 md:p-8">
                 {chat.map((c: any, i) => (
-                  <div key={i} className="bg-orange-50 rounded-2xl p-4 mb-3">
+                  <div key={i} className={`rounded-2xl p-4 mb-3 text-sm ${c.role === "student" ? "bg-orange-50 text-slate-700" : "bg-slate-50 border border-slate-100"}`}>
+                    <span className="text-xs font-bold text-orange-500 block mb-1">{c.role === "student" ? "You" : "AI"}</span>
                     {c.text}
                   </div>
                 ))}
 
                 {answer && (
-                  <div className="border rounded-3xl p-6">
+                  <div className="border border-orange-100 rounded-2xl md:rounded-3xl p-5 md:p-6">
                     <ReactMarkdown
                       remarkPlugins={[remarkMath]}
                       rehypePlugins={[rehypeKatex]}
@@ -344,25 +335,26 @@ export default function AILearning() {
                 )}
 
                 {loading && (
-                  <p className="text-orange-500 font-bold mt-5">
+                  <p className="text-orange-500 font-bold mt-5 animate-pulse">
                     AI thinking...
                   </p>
                 )}
               </div>
 
-              <div className="border-t p-5 flex gap-3">
+              <div className="border-t p-4 flex gap-3">
                 <input
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && askAI()}
                   placeholder="Ask from your notes..."
-                  className="flex-1 border rounded-xl p-4"
+                  className="flex-1 border border-orange-100 rounded-xl p-3 md:p-4 text-sm focus:outline-none focus:border-orange-400 transition-colors"
                 />
 
                 <button
                   onClick={askAI}
-                  className="bg-orange-500 text-white px-5 rounded-xl"
+                  className="bg-orange-500 hover:bg-orange-600 active:scale-95 text-white px-4 md:px-5 rounded-xl transition-all duration-150 flex items-center justify-center"
                 >
-                  <Send />
+                  <Send size={18} />
                 </button>
               </div>
             </div>

@@ -47,12 +47,9 @@ export default function StudentExams() {
 
         const data = await res.json();
 
-        console.log("📦 Exams API:", data);
-
         // ✅ Ensure it's always an array
         setExams(Array.isArray(data) ? data : []);
       } catch (err) {
-        console.error("❌ Fetch exams error:", err);
         setExams([]);
       } finally {
         setLoading(false);
@@ -64,7 +61,6 @@ export default function StudentExams() {
 
   // 🚀 Start Exam Handler (SAFE)
   const handleStartExam = (exam: any) => {
-    console.log("🚀 Exam clicked:", exam);
 
     if (!exam?.id) {
       showToast("❌ Exam ID missing", "error");
@@ -84,16 +80,16 @@ export default function StudentExams() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 p-4 md:p-6">
       {/* HEADER */}
-      <div className="mb-12">
+      <div className="mb-8 md:mb-12">
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-5xl font-bold text-slate-800 tracking-tight">
+              <h1 className="text-3xl md:text-5xl font-bold text-slate-800 tracking-tight">
                 Available Exams
               </h1>
-              <p className="text-slate-600 mt-3 text-xl">
+              <p className="text-slate-600 mt-3 text-base md:text-xl">
                 Choose an exam to begin. Good luck!
               </p>
             </div>
@@ -127,7 +123,7 @@ export default function StudentExams() {
                 {/* Top Accent Bar */}
                 <div className="h-2 bg-gradient-to-r from-orange-500 to-amber-500" />
 
-                <div className="p-8 flex-1 flex flex-col">
+                <div className="p-5 md:p-8 flex-1 flex flex-col">
                   {/* Title */}
                   <div className="mb-6">
                     <h2 className="text-2xl font-bold text-slate-800 leading-tight line-clamp-2 group-hover:text-orange-600 transition-colors">
@@ -158,7 +154,7 @@ export default function StudentExams() {
                   {/* Start Button */}
                   <button
                     onClick={() => handleStartExam(exam)}
-                    className="mt-auto w-full py-4 rounded-2xl bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-semibold text-lg shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/40 transition-all duration-200 flex items-center justify-center gap-3 group-hover:scale-[1.02]"
+                    className="mt-auto w-full py-3 md:py-4 rounded-2xl bg-orange-500 hover:bg-orange-600 active:scale-95 text-white font-semibold text-base md:text-lg shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/40 transition-all duration-200 flex items-center justify-center gap-3 group-hover:scale-[1.02]"
                   >
                     Start Exam
                     <span className="text-xl transition-transform group-hover:translate-x-1">→</span>

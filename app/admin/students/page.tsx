@@ -75,7 +75,6 @@ export default function AdminStudentsPage() {
           : []
       );
     } catch (err) {
-      console.log(err);
 
       setStudents([]);
     } finally {
@@ -125,7 +124,6 @@ export default function AdminStudentsPage() {
 
       fetchStudents();
     } catch (err: any) {
-      console.error(err);
 
       showToast(err.message || "Failed to delete student", "error");
     }

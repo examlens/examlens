@@ -68,7 +68,6 @@ export async function GET() {
       }
     );
   } catch (err: any) {
-    console.error(err);
 
     return new Response(
       JSON.stringify({

@@ -3,10 +3,8 @@ import OpenAI from "openai";
 import {supabase} from "@/app/lib/supabase";
 
 
-const openai =
-new OpenAI({
-apiKey:
-process.env.OPENAI_API_KEY
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || "dummy-key-for-build",
 });
 
 

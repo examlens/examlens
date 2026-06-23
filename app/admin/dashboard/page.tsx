@@ -60,7 +60,6 @@ export default function AdminDashboardPage() {
 
         setDashboard(data);
       } catch (err) {
-        console.log(err);
       } finally {
         setLoading(false);
       }
@@ -98,7 +97,7 @@ export default function AdminDashboardPage() {
 }
 
 return (
-  <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 p-4 md:p-6">
+  <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 p-2 sm:p-4 md:p-6">
 
     {/* ====================================================== */}
     {/* TOP HEADER */}
@@ -121,7 +120,7 @@ return (
             ADMIN PANEL
           </div>
 
-          <h1 className="text-4xl sm:text-5xl font-black text-white leading-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight">
             Smart Exam
             <span className="block text-orange-500">
               Analytics Dashboard
@@ -136,44 +135,44 @@ return (
 
         {/* RIGHT */}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 min-w-0">
+        <div className="grid grid-cols-2 gap-3 sm:gap-5 min-w-0">
 
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-5">
-            <p className="text-slate-400 text-sm">
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-5">
+            <p className="text-slate-400 text-xs sm:text-sm">
               Students
             </p>
 
-            <h2 className="text-4xl font-black text-white mt-2">
+            <h2 className="text-3xl sm:text-4xl font-black text-white mt-1 sm:mt-2">
               {dashboard.totalStudents}
             </h2>
           </div>
 
-          <div className="bg-orange-500 rounded-3xl p-5 shadow-lg shadow-orange-500/30">
-            <p className="text-orange-100 text-sm">
+          <div className="bg-orange-500 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-lg shadow-orange-500/30">
+            <p className="text-orange-100 text-xs sm:text-sm">
               Avg Score
             </p>
 
-            <h2 className="text-4xl font-black text-white mt-2">
+            <h2 className="text-3xl sm:text-4xl font-black text-white mt-1 sm:mt-2">
               {dashboard.averageScore}%
             </h2>
           </div>
 
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-5">
-            <p className="text-slate-400 text-sm">
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-5">
+            <p className="text-slate-400 text-xs sm:text-sm">
               Submissions
             </p>
 
-            <h2 className="text-4xl font-black text-white mt-2">
+            <h2 className="text-3xl sm:text-4xl font-black text-white mt-1 sm:mt-2">
               {dashboard.totalSubmissions}
             </h2>
           </div>
 
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-5">
-            <p className="text-slate-400 text-sm">
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-5">
+            <p className="text-slate-400 text-xs sm:text-sm">
               Evaluated
             </p>
 
-            <h2 className="text-4xl font-black text-orange-400 mt-2">
+            <h2 className="text-3xl sm:text-4xl font-black text-orange-400 mt-1 sm:mt-2">
               {dashboard.evaluatedSubmissions}
             </h2>
           </div>

@@ -32,7 +32,6 @@ export async function POST(req: Request) {
       .insert(rows);
 
     if (error) {
-      console.error("❌ ASSIGN QUESTIONS ERROR:", error);
       throw error;
     }
 
@@ -41,7 +40,6 @@ export async function POST(req: Request) {
       { status: 200 }
     );
   } catch (err: any) {
-    console.error("🔥 ASSIGN QUESTIONS ERROR:", err);
     return new Response(
       JSON.stringify({
         error: err.message || "Failed to assign questions",

@@ -139,10 +139,6 @@ export async function GET(req: Request) {
       }
     );
   } catch (err: any) {
-    console.error(
-      "❌ STUDENT EXAMS ERROR:",
-      err
-    );
 
     return new Response(
       JSON.stringify({

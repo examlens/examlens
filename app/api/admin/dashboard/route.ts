@@ -19,7 +19,6 @@ export async function GET() {
       .eq("role", "student");
 
     if (studentError) {
-      console.log(studentError);
     }
 
     // =====================================================
@@ -37,7 +36,6 @@ export async function GET() {
       });
 
     if (submissionError) {
-      console.log(submissionError);
     }
 
     // =====================================================
@@ -56,7 +54,6 @@ export async function GET() {
       .eq("status", "evaluated");
 
     if (evaluatedError) {
-      console.log(evaluatedError);
     }
 
     // =====================================================
@@ -75,7 +72,6 @@ export async function GET() {
       .neq("status", "evaluated");
 
     if (pendingError) {
-      console.log(pendingError);
     }
 
     // =====================================================
@@ -90,7 +86,6 @@ export async function GET() {
       .select("percentage");
 
     if (resultError) {
-      console.log(resultError);
     }
 
     // =====================================================
@@ -141,7 +136,6 @@ export async function GET() {
       .eq("role", "student"); // FILTER STUDENTS ONLY
 
     if (topError) {
-      console.log(topError);
     }
 
     // =====================================================
@@ -165,7 +159,6 @@ export async function GET() {
       .limit(5);
 
     if (examError) {
-      console.log(examError);
     }
 
     // =====================================================
@@ -188,7 +181,6 @@ export async function GET() {
       .limit(5);
 
     if (recentError) {
-      console.log(recentError);
     }
 
     // =====================================================
@@ -220,10 +212,6 @@ export async function GET() {
         recentSubmissions || [],
     });
   } catch (err: any) {
-    console.log(
-      "DASHBOARD ERROR",
-      err
-    );
 
     return NextResponse.json(
       {

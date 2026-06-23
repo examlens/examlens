@@ -97,7 +97,6 @@ export default function ExamsPage() {
 
       setExams(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error(err);
     }
   };
 
@@ -113,7 +112,6 @@ export default function ExamsPage() {
 
       setQuestions(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error(err);
     }
   };
 
@@ -228,8 +226,6 @@ export default function ExamsPage() {
 
       const examId = examData?.exam?.id;
 
-      console.log("✅ Created Exam ID:", examId);
-
       // =========================================
       // ASSIGN QUESTIONS
       // =========================================
@@ -273,7 +269,6 @@ export default function ExamsPage() {
 
       fetchExams();
     } catch (err: any) {
-      console.error(err);
 
       showToast(err.message || "Failed to create exam", "error");
     } finally {

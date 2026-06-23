@@ -7,25 +7,13 @@ export async function GET(req: Request) {
     // ==================================================
 
     const url = new URL(req.url);
-
     const segments = url.pathname.split("/");
-
-    const examId =
-      segments[segments.length - 1];
-
-    console.log(
-      "📥 Extracted examId:",
-      examId
-    );
+    const examId = segments[segments.length - 1];
 
     if (!examId) {
       return new Response(
-        JSON.stringify({
-          error: "Exam ID missing",
-        }),
-        {
-          status: 400,
-        }
+        JSON.stringify({ error: "Exam ID missing" }),
+        { status: 400 }
       );
     }
 
@@ -33,27 +21,16 @@ export async function GET(req: Request) {
     // ✅ GET AUTH TOKEN
     // ==================================================
 
-    const authHeader =
-      req.headers.get("authorization");
+    const authHeader = req.headers.get("authorization");
 
-    if (
-      !authHeader ||
-      !authHeader.startsWith("Bearer ")
-    ) {
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return new Response(
-        JSON.stringify({
-          error: "No auth token",
-        }),
-        {
-          status: 401,
-        }
+        JSON.stringify({ error: "No auth token" }),
+        { status: 401 }
       );
     }
 
-    const token = authHeader.replace(
-      "Bearer ",
-      ""
-    );
+    const token = authHeader.replace("Bearer ", "");
 
     // ==================================================
     // ✅ GET REAL USER
@@ -62,33 +39,16 @@ export async function GET(req: Request) {
     const {
       data: { user },
       error: authError,
-    } = await supabase.auth.getUser(
-      token
-    );
+    } = await supabase.auth.getUser(token);
 
     if (authError || !user) {
-      console.error(
-        "❌ AUTH ERROR:",
-        authError
-      );
-
       return new Response(
-        JSON.stringify({
-          error:
-            "User not authenticated",
-        }),
-        {
-          status: 401,
-        }
+        JSON.stringify({ error: "User not authenticated" }),
+        { status: 401 }
       );
     }
 
     const student_id = user.id;
-
-    console.log(
-      "👤 REAL USER:",
-      student_id
-    );
 
     // ==================================================
     // ✅ ENSURE STUDENT EXISTS IN USERS TABLE
@@ -104,29 +64,16 @@ export async function GET(req: Request) {
         "Student",
     };
 
-    const {
-      error: userUpsertError,
-    } = await supabase
+    const { error: userUpsertError } = await supabase
       .from("users")
-      .upsert([userPayload], {
-        onConflict: "id",
-      });
+      .upsert([userPayload], { onConflict: "id" });
 
     if (userUpsertError) {
-      console.error(
-        "❌ UPSERT USER ERROR:",
-        userUpsertError
-      );
-
       return new Response(
         JSON.stringify({
-          error:
-            userUpsertError.message ||
-            "Failed to verify user record",
+          error: userUpsertError.message || "Failed to verify user record",
         }),
-        {
-          status: 500,
-        }
+        { status: 500 }
       );
     }
 
@@ -139,31 +86,14 @@ export async function GET(req: Request) {
       error: examError,
     } = await supabase
       .from("exams")
-      .select(`
-        id,
-        title,
-        duration
-      `)
+      .select(`id, title, duration`)
       .eq("id", examId)
       .single();
 
-    if (
-      examError ||
-      !examData
-    ) {
-      console.error(
-        "❌ EXAM ERROR:",
-        examError
-      );
-
+    if (examError || !examData) {
       return new Response(
-        JSON.stringify({
-          error:
-            "Exam not found",
-        }),
-        {
-          status: 404,
-        }
+        JSON.stringify({ error: "Exam not found" }),
+        { status: 404 }
       );
     }
 
@@ -178,7 +108,6 @@ export async function GET(req: Request) {
       .from("exam_questions")
       .select(`
         question_id,
-
         questions (
           id,
           question,
@@ -188,18 +117,9 @@ export async function GET(req: Request) {
       .eq("exam_id", examId);
 
     if (qError) {
-      console.error(
-        "❌ QUESTIONS ERROR:",
-        qError
-      );
-
       return new Response(
-        JSON.stringify({
-          error: qError.message,
-        }),
-        {
-          status: 500,
-        }
+        JSON.stringify({ error: qError.message }),
+        { status: 500 }
       );
     }
 
@@ -207,27 +127,17 @@ export async function GET(req: Request) {
     // ✅ FORMAT QUESTIONS
     // ==================================================
 
-    const questions = (
-      questionData || []
-    ).map((item: any) => {
-      const q = Array.isArray(
-        item.questions
-      )
+    const questions = (questionData || []).map((item: any) => {
+      const q = Array.isArray(item.questions)
         ? item.questions[0]
         : item.questions;
 
       return {
         id: q?.id || "",
-        question:
-          q?.question || "",
+        question: q?.question || "",
         marks: q?.marks || 0,
       };
     });
-
-    console.log(
-      "✅ Questions Count:",
-      questions.length
-    );
 
     // ==================================================
     // ✅ CHECK EXISTING SUBMISSION
@@ -238,32 +148,15 @@ export async function GET(req: Request) {
       error: existingError,
     } = await supabase
       .from("submissions")
-      .select(`
-        id,
-        status,
-        start_time,
-        started_at,
-        submitted_at,
-        is_completed
-      `)
+      .select(`id, status, start_time, started_at, submitted_at, is_completed`)
       .eq("exam_id", examId)
       .eq("student_id", student_id)
       .maybeSingle();
 
     if (existingError) {
-      console.error(
-        "❌ EXISTING SUBMISSION ERROR:",
-        existingError
-      );
-
       return new Response(
-        JSON.stringify({
-          error:
-            existingError.message,
-        }),
-        {
-          status: 500,
-        }
+        JSON.stringify({ error: existingError.message }),
+        { status: 500 }
       );
     }
 
@@ -273,21 +166,14 @@ export async function GET(req: Request) {
 
     if (
       existing &&
-      (
-        existing.status ===
-        "submitted" ||
-        existing.is_completed === true
-      )
+      (existing.status === "submitted" || existing.is_completed === true)
     ) {
       return new Response(
         JSON.stringify({
           already_attempted: true,
-          message:
-            "You already attempted this exam",
+          message: "You already attempted this exam",
         }),
-        {
-          status: 200,
-        }
+        { status: 200 }
       );
     }
 
@@ -298,8 +184,7 @@ export async function GET(req: Request) {
     let submission: any = existing;
 
     if (!existing) {
-      const startedAt =
-        new Date().toISOString();
+      const startedAt = new Date().toISOString();
 
       const {
         data: newSubmission,
@@ -309,137 +194,63 @@ export async function GET(req: Request) {
         .insert([
           {
             exam_id: examId,
-
             student_id,
-
-            status:
-              "in_progress",
-
-            start_time:
-              startedAt,
-
-            started_at:
-              startedAt,
-
-            is_completed:
-              false,
+            status: "in_progress",
+            start_time: startedAt,
+            started_at: startedAt,
+            is_completed: false,
           },
         ])
         .select()
         .single();
 
       if (subError) {
-        console.error(
-          "❌ CREATE SUBMISSION ERROR:",
-          subError
-        );
-
         return new Response(
-          JSON.stringify({
-            error:
-              subError.message,
-          }),
-          {
-            status: 500,
-          }
+          JSON.stringify({ error: subError.message }),
+          { status: 500 }
         );
       }
 
-      submission =
-        newSubmission;
-
-      console.log(
-        "✅ New exam started:",
-        submission.id
-      );
-    } else {
-      console.log(
-        "🔁 Resuming existing attempt:",
-        submission.id
-      );
+      submission = newSubmission;
     }
 
     // ==================================================
     // ✅ CALCULATE REMAINING TIME
     // ==================================================
 
-    const durationMinutes =
-      Number(
-        examData.duration || 10
-      );
+    const durationMinutes = Number(examData.duration || 10);
 
-    const startTime =
-      new Date(
-        submission.started_at ||
-        submission.start_time
-      ).getTime();
+    const startTime = new Date(
+      submission.started_at || submission.start_time
+    ).getTime();
 
-    const currentTime =
-      Date.now();
-
-    const endTime =
-      startTime +
-      durationMinutes *
-      60 *
-      1000;
-
-    const remainingSeconds =
-      Math.floor(
-        (endTime -
-          currentTime) /
-        1000
-      );
-
-    console.log(
-      "⏳ Remaining Seconds:",
-      remainingSeconds
-    );
+    const currentTime = Date.now();
+    const endTime = startTime + durationMinutes * 60 * 1000;
+    const remainingSeconds = Math.floor((endTime - currentTime) / 1000);
 
     // ==================================================
     // ✅ AUTO TIME OVER
     // ==================================================
 
     if (remainingSeconds <= 0) {
-
-      // ✅ ONLY MARK TIME OVER
-      // IF IT WAS REALLY STARTED BEFORE
-
       await supabase
         .from("submissions")
-        .update({
-          status: "time_over",
-          is_completed: true,
-        })
+        .update({ status: "time_over", is_completed: true })
         .eq("id", submission.id);
 
       return new Response(
         JSON.stringify({
           success: true,
-
           time_over: true,
-
           exam_id: examId,
-
-          title:
-            examData.title || "Exam",
-
-          duration:
-            durationMinutes,
-
-          start_time:
-            submission.started_at ||
-            submission.start_time,
-
-          submission_id:
-            submission.id,
-
+          title: examData.title || "Exam",
+          duration: durationMinutes,
+          start_time: submission.started_at || submission.start_time,
+          submission_id: submission.id,
           questions,
-
           remaining_seconds: 0,
         }),
-        {
-          status: 200,
-        }
+        { status: 200 }
       );
     }
 
@@ -450,46 +261,22 @@ export async function GET(req: Request) {
     return new Response(
       JSON.stringify({
         success: true,
-
         exam_id: examId,
-
-        title:
-          examData.title || "Exam",
-
-        duration:
-          durationMinutes,
-
-        start_time:
-          submission.started_at ||
-          submission.start_time,
-
-        submission_id:
-          submission.id,
-
+        title: examData.title || "Exam",
+        duration: durationMinutes,
+        start_time: submission.started_at || submission.start_time,
+        submission_id: submission.id,
         questions,
-
-        remaining_seconds:
-          remainingSeconds,
+        remaining_seconds: remainingSeconds,
       }),
-      {
-        status: 200,
-      }
+      { status: 200 }
     );
   } catch (err: any) {
-    console.error(
-      "❌ API CRASH:",
-      err
-    );
-
     return new Response(
       JSON.stringify({
-        error:
-          err.message ||
-          "Failed to fetch exam",
+        error: err.message || "Failed to fetch exam",
       }),
-      {
-        status: 500,
-      }
+      { status: 500 }
     );
   }
 }

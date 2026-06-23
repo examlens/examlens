@@ -113,11 +113,6 @@ export default function ExamPage() {
 
         const data = await res.json();
 
-        console.log(
-          "📦 Exam API:",
-          data
-        );
-
         // =====================================================
         // ✅ ALREADY ATTEMPTED
         // =====================================================
@@ -192,11 +187,6 @@ export default function ExamPage() {
           setTimeOver(true);
         }
 
-        console.log(
-          "⏳ Remaining Seconds:",
-          remainingSeconds
-        );
-
         // =====================================================
         // ✅ HANDLE TIME OVER
         // =====================================================
@@ -216,11 +206,6 @@ export default function ExamPage() {
           remainingSeconds
         );
       } catch (err: any) {
-        console.error(
-          "❌ FETCH EXAM ERROR:",
-          err
-        );
-
         setError(
           err.message ||
           "Failed to fetch exam"
@@ -353,11 +338,6 @@ export default function ExamPage() {
           throw uploadError;
         }
 
-        console.log(
-          "📂 Uploaded File:",
-          fileUrl
-        );
-
         // =====================================================
         // ✅ SUBMIT TO API
         // =====================================================
@@ -388,11 +368,6 @@ export default function ExamPage() {
         const data =
           await res.json();
 
-        console.log(
-          "📦 Submit Response:",
-          data
-        );
-
         if (!res.ok) {
           throw new Error(
             data.error ||
@@ -409,11 +384,6 @@ export default function ExamPage() {
           "/student/results"
         );
       } catch (err: any) {
-        console.error(
-          "❌ SUBMIT ERROR:",
-          err
-        );
-
         showToast(
           err.message ||
           "Submission failed",

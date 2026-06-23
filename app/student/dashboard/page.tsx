@@ -46,10 +46,6 @@ export default function StudentDashboard() {
           sessionError ||
           !session
         ) {
-          console.log(
-            "Session Error:",
-            sessionError
-          );
 
           setLoading(false);
           return;
@@ -57,11 +53,6 @@ export default function StudentDashboard() {
 
         const studentId =
           session.user.id;
-
-        console.log(
-          "👤 Student ID:",
-          studentId
-        );
 
         // =========================================
         // FETCH DASHBOARD DATA
@@ -74,11 +65,6 @@ export default function StudentDashboard() {
         const result =
           await res.json();
 
-        console.log(
-          "📊 Dashboard Data:",
-          result
-        );
-
         if (!res.ok) {
           throw new Error(
             result.error ||
@@ -88,10 +74,6 @@ export default function StudentDashboard() {
 
         setData(result);
       } catch (err: any) {
-        console.log(
-          "Dashboard Fetch Error:",
-          err
-        );
       } finally {
         setLoading(false);
       }
@@ -143,33 +125,33 @@ export default function StudentDashboard() {
     {/* HEADER */}
     {/* ===================================================== */}
 
-    <div className="relative overflow-hidden rounded-[32px] bg-white p-8 mb-8 shadow-xl">
+    <div className="rounded-[28px] md:rounded-[32px] bg-white p-5 md:p-8 mb-8 shadow-xl">
 
       <div className="absolute top-0 right-0 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
 
-      <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+      <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
 
         <div>
           <p className="uppercase tracking-[0.25em] text-orange-800 text-xs font-semibold">
             Student Dashboard
           </p>
 
-          <h1 className="text-4xl font-black text-black mt-3">
+          <h1 className="text-3xl md:text-4xl font-black text-black mt-3">
             WELCOME BACK
           </h1>
 
-          <p className="text-slate-500 mt-3 max-w-2xl leading-relaxed">
+          <p className="text-slate-500 mt-3 max-w-2xl leading-relaxed text-sm md:text-base">
             Monitor your academic growth, performance insights,
             attendance progress and completed evaluations.
           </p>
         </div>
 
-        <div className="bg-white/15 backdrop-blur-xl border border-white/20 rounded-3xl px-6 py-5 min-w-[220px]">
-          <p className="text-browntext-sm uppercase tracking-wider">
+        <div className="bg-white/15 backdrop-blur-xl border border-orange-100 rounded-3xl px-6 py-4 w-full lg:min-w-[220px] lg:w-auto">
+          <p className="text-sm uppercase tracking-wider text-orange-600 font-semibold">
             Exams Evaluated
           </p>
 
-          <h2 className="text-5xl font-black text-orange-500 mt-2">
+          <h2 className="text-4xl md:text-5xl font-black text-orange-500 mt-2">
             {results.length}
           </h2>
         </div>
@@ -332,7 +314,7 @@ export default function StudentDashboard() {
 
                     {/* TOP */}
 
-                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5 mb-6">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 
                       <div>
                         {/* <p className="text-xs uppercase tracking-[0.2em] text-orange-500 font-bold">
@@ -348,11 +330,11 @@ export default function StudentDashboard() {
                         </p>
                       </div>
 
-                      <div className="min-w-[120px]">
+                      <div className="w-full sm:min-w-[120px] sm:w-auto">
 
                         <div className="bg-white border border-orange-100 rounded-3xl px-5 py-4 text-center shadow-sm">
 
-                          <h2 className="text-4xl font-black text-orange-500">
+                          <h2 className="text-3xl md:text-4xl font-black text-orange-500">
                             {result.percentage}%
                           </h2>
 

@@ -1,7 +1,103 @@
 @import "tailwindcss";
 
+/* ============================================
+   BASE
+============================================ */
 body {
   margin: 0;
   padding: 0;
   font-family: sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ============================================
+   SMOOTH SCROLLBAR
+============================================ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #f97316;
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #ea6c08;
+}
+
+/* ============================================
+   PAGE ENTER ANIMATION
+   Applied to main content wrapper
+============================================ */
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-enter {
+  animation: pageEnter 0.35s ease-out both;
+}
+
+/* ============================================
+   MODAL SCALE-IN ANIMATION
+============================================ */
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-enter {
+  animation: modalIn 0.25s ease-out both;
+}
+
+/* ============================================
+   FADE IN
+============================================ */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out both;
+}
+
+/* ============================================
+   SIDEBAR OVERLAY — smooth backdrop
+============================================ */
+.sidebar-overlay {
+  transition: opacity 0.3s ease;
+}
+
+/* ============================================
+   CARD HOVER — consistent lift
+============================================ */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-4px);
+}
+
+/* ============================================
+   BUTTON ACTIVE PRESS
+============================================ */
+button:active {
+  transform: scale(0.97);
+  transition: transform 0.1s ease;
 }
