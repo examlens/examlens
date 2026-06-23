@@ -4,8 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
-import { Menu } from "lucide-react";
-
+import { Menu, LogOut } from "lucide-react";
 export default function AdminLayout({ children }: any) {
   const path = usePathname();
   const router = useRouter();
@@ -31,7 +30,7 @@ export default function AdminLayout({ children }: any) {
   };
 
   return (
-    <div className="min-h-screen flex overflow-hidden">
+    <div className="min-h-[100dvh] flex overflow-hidden">
 
       {/* ================================================
           MOBILE OVERLAY
@@ -48,14 +47,14 @@ export default function AdminLayout({ children }: any) {
       ================================================ */}
       <aside
         className={[
-          "fixed left-0 top-0 z-50 h-screen w-64 bg-black text-white flex flex-col justify-between",
+          "fixed left-0 top-0 z-50 h-[100dvh] w-64 bg-black text-white flex flex-col justify-between",
           "transition-transform duration-300 ease-in-out",
           sidebarOpen ? "translate-x-0" : "-translate-x-full",
           "md:translate-x-0",
         ].join(" ")}
       >
         {/* TOP */}
-        <div>
+        <div className="flex-1 overflow-y-auto">
           <div className="p-6 border-b border-gray-800">
             <h1 className="text-xl font-bold text-white">
               Exam<span className="text-orange-500">Lens</span>
@@ -78,7 +77,7 @@ export default function AdminLayout({ children }: any) {
                       : "hover:bg-gray-800 text-gray-300 hover:text-white"
                   }`}
                 >
-                  <span className="text-base">{item.icon}</span>
+                  <span className="hidden md:inline-block text-base">{item.icon}</span>
                   <span className="text-sm font-medium">{item.name}</span>
                 </div>
               </Link>
@@ -100,7 +99,7 @@ export default function AdminLayout({ children }: any) {
       {/* ================================================
           MAIN CONTENT
       ================================================ */}
-      <div className="flex-1 flex flex-col md:ml-64 min-h-screen">
+      <div className="flex-1 flex flex-col md:ml-64 min-h-[100dvh]">
 
         {/* MOBILE TOPBAR */}
         <div className="sticky top-0 z-30 flex items-center justify-between px-4 py-3 bg-black border-b border-gray-800 md:hidden">
@@ -116,9 +115,13 @@ export default function AdminLayout({ children }: any) {
             Exam<span className="text-orange-500">Lens</span>
           </h1>
 
-          <div className="w-10 h-10 rounded-xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center">
-            <span className="text-orange-400 text-sm font-bold">A</span>
-          </div>
+          <button
+            onClick={handleLogout}
+            className="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200"
+            aria-label="Logout"
+          >
+            <LogOut size={18} />
+          </button>
         </div>
 
         {/* PAGE CONTENT */}

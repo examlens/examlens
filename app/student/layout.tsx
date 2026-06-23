@@ -4,8 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/app/lib/supabase";
-import { Menu, X } from "lucide-react";
-
+import { Menu, X, LogOut } from "lucide-react";
 export default function StudentLayout({ children }: any) {
   const path = usePathname();
   const router = useRouter();
@@ -50,7 +49,7 @@ export default function StudentLayout({ children }: any) {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100 overflow-hidden">
+    <div className="flex h-[100dvh] bg-gray-100 overflow-hidden">
 
       {/* ================================================
           MOBILE OVERLAY — click to close sidebar
@@ -69,14 +68,14 @@ export default function StudentLayout({ children }: any) {
       ================================================ */}
       <aside
         className={[
-          "fixed left-0 top-0 z-50 h-screen w-64 bg-black text-white flex flex-col justify-between",
+          "fixed left-0 top-0 z-50 h-[100dvh] w-64 bg-black text-white flex flex-col justify-between",
           "transition-transform duration-300 ease-in-out",
           sidebarOpen ? "translate-x-0" : "-translate-x-full",
           "md:translate-x-0",
         ].join(" ")}
       >
         {/* TOP */}
-        <div>
+        <div className="flex-1 overflow-y-auto">
           <div className="p-6 border-b border-gray-800">
             <h1 className="text-xl font-bold text-white">
               Exam<span className="text-orange-500">Lens</span>
@@ -95,7 +94,7 @@ export default function StudentLayout({ children }: any) {
                       : "text-gray-300 hover:bg-gray-800 hover:text-white"
                   }`}
                 >
-                  <span className="text-lg">{item.icon}</span>
+                  <span className="hidden md:inline-block text-lg">{item.icon}</span>
                   <span className="font-medium text-sm">{item.name}</span>
                 </div>
               </Link>
@@ -127,7 +126,7 @@ export default function StudentLayout({ children }: any) {
       {/* ================================================
           MAIN CONTENT AREA
       ================================================ */}
-      <div className="flex-1 flex flex-col md:ml-64 h-screen overflow-y-auto">
+      <div className="flex-1 flex flex-col md:ml-64 h-[100dvh] overflow-y-auto">
 
         {/* ================================================
             MOBILE TOPBAR — visible only on < md
@@ -145,10 +144,14 @@ export default function StudentLayout({ children }: any) {
             Exam<span className="text-orange-500">Lens</span>
           </h1>
 
-          {/* Avatar */}
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-black text-sm uppercase">
-            {studentName.charAt(0)}
-          </div>
+          {/* Logout Button */}
+          <button
+            onClick={handleLogout}
+            className="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200"
+            aria-label="Logout"
+          >
+            <LogOut size={18} />
+          </button>
         </div>
 
         {/* ================================================

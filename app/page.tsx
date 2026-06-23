@@ -206,7 +206,7 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-500 via-amber-400 to-orange-300 px-4 relative overflow-hidden">
+    <div className="min-h-[100dvh] flex items-center justify-center bg-gradient-to-br from-orange-500 via-amber-400 to-orange-300 px-4 relative overflow-hidden">
 
       {/* BACKGROUND BLUR EFFECTS */}
       <div className="absolute top-[-120px] left-[-120px] w-96 h-96 bg-white/20 rounded-full blur-3xl" />
