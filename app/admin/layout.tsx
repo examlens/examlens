@@ -30,7 +30,7 @@ export default function AdminLayout({ children }: any) {
   };
 
   return (
-    <div className="min-h-[100dvh] flex overflow-hidden">
+    <div className="min-h-[100dvh] flex overflow-x-hidden w-full">
 
       {/* ================================================
           MOBILE OVERLAY
@@ -85,8 +85,8 @@ export default function AdminLayout({ children }: any) {
           </div>
         </div>
 
-        {/* BOTTOM */}
-        <div className="p-4 border-t border-gray-800">
+        {/* BOTTOM — only show logout on desktop; mobile uses topbar logout */}
+        <div className="hidden md:block p-4 border-t border-gray-800">
           <button
             onClick={handleLogout}
             className="w-full bg-red-500 hover:bg-red-600 py-2.5 rounded-xl transition-all duration-200 font-semibold text-sm"
@@ -99,7 +99,7 @@ export default function AdminLayout({ children }: any) {
       {/* ================================================
           MAIN CONTENT
       ================================================ */}
-      <div className="flex-1 flex flex-col md:ml-64 min-h-[100dvh]">
+      <div className="flex-1 flex flex-col md:ml-64 min-h-[100dvh] min-w-0 overflow-x-hidden">
 
         {/* MOBILE TOPBAR */}
         <div className="sticky top-0 z-30 flex items-center justify-between px-4 py-3 bg-black border-b border-gray-800 md:hidden">
@@ -125,7 +125,7 @@ export default function AdminLayout({ children }: any) {
         </div>
 
         {/* PAGE CONTENT */}
-        <main className="flex-1 overflow-y-auto bg-gray-100 p-4 md:p-6 page-enter">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden bg-gray-100 p-4 md:p-6 page-enter">
           {children}
         </main>
       </div>

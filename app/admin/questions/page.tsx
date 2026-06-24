@@ -546,8 +546,10 @@ export default function QuestionsPage() {
       {/* ===================================================== */}
 
       {showModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-5">
-          <div className="w-full max-w-3xl bg-white rounded-[35px] shadow-2xl p-8 relative animate-in fade-in zoom-in-95 duration-300">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm overflow-y-auto">
+          <div className="min-h-screen flex items-start justify-center p-4 md:p-8">
+          <div className="w-full max-w-3xl bg-white rounded-[35px] shadow-2xl relative flex flex-col my-10 animate-in fade-in zoom-in-95 duration-300">
+            <div className="p-6 sm:p-8">
             {/* CLOSE */}
 
             <button
@@ -808,10 +810,11 @@ export default function QuestionsPage() {
                 </button>
               </div>
             </div>
+            </div>
+            </div>
           </div>
         </div>
       )}
-
 
       {/* ===================================================== */}
       {/* TOAST */}

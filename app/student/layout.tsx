@@ -49,7 +49,7 @@ export default function StudentLayout({ children }: any) {
   };
 
   return (
-    <div className="flex h-[100dvh] bg-gray-100 overflow-hidden">
+    <div className="flex h-[100dvh] bg-gray-100 overflow-x-hidden w-full">
 
       {/* ================================================
           MOBILE OVERLAY — click to close sidebar
@@ -102,8 +102,8 @@ export default function StudentLayout({ children }: any) {
           </div>
         </div>
 
-        {/* BOTTOM — user + logout */}
-        <div className="p-4 border-t border-gray-800 space-y-3">
+        {/* BOTTOM — only show on desktop; mobile uses topbar logout */}
+        <div className="hidden md:block p-4 border-t border-gray-800 space-y-3">
           <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-black text-sm uppercase">
               {studentName.charAt(0)}
@@ -126,7 +126,7 @@ export default function StudentLayout({ children }: any) {
       {/* ================================================
           MAIN CONTENT AREA
       ================================================ */}
-      <div className="flex-1 flex flex-col md:ml-64 h-[100dvh] overflow-y-auto">
+      <div className="flex-1 flex flex-col md:ml-64 h-[100dvh] overflow-y-auto overflow-x-hidden min-w-0">
 
         {/* ================================================
             MOBILE TOPBAR — visible only on < md
@@ -211,7 +211,7 @@ export default function StudentLayout({ children }: any) {
         </div>
 
         {/* PAGE CONTENT */}
-        <div className="p-4 md:p-6 flex-1 page-enter">
+        <div className="p-4 md:p-6 flex-1 page-enter overflow-x-hidden">
           {children}
         </div>
       </div>
