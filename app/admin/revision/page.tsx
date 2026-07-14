@@ -74,24 +74,45 @@ export default function RevisionAdmin() {
   async function save() {
     if (!subject || !file) {
       alert("Subject and PDF required");
-
       return;
     }
 
     try {
       setLoading(true);
 
-      const formData = new FormData();
+      // 1. Get a signed upload URL for this file
+      const urlRes = await fetch("/api/get-upload-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileName: file.name,
+          contentType: file.type,
+        }),
+      });
 
-      formData.append("subject", subject);
+      if (!urlRes.ok) throw new Error("Failed to get upload URL");
 
-      formData.append("file", file);
+      const { uploadUrl, filePath, publicUrl } = await urlRes.json();
 
-      formData.append("questions", JSON.stringify(questions));
+      // 2. Upload the PDF directly to Firebase Storage (bypasses your Vercel function)
+      const uploadRes = await fetch(uploadUrl, {
+        method: "PUT",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
 
+      if (!uploadRes.ok) throw new Error("File upload failed");
+
+      // 3. Send only JSON metadata to your API route
       const res = await fetch("/api/admin/revision", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subject,
+          filePath,
+          publicUrl,
+          questions,
+        }),
       });
 
       if (!res.ok) throw new Error();
@@ -99,15 +120,8 @@ export default function RevisionAdmin() {
       alert("Revision Content Uploaded");
 
       setSubject("");
-
       setFile(null);
-
-      setQuestions([
-        {
-          question: "",
-          marks: 0,
-        },
-      ]);
+      setQuestions([{ question: "", marks: 0 }]);
     } catch (err) {
       alert("Upload failed");
     } finally {

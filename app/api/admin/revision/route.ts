@@ -1,21 +1,18 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/app/lib/supabase";
 import { adminStorage } from "@/app/lib/firebaseAdmin";
-import { getDownloadURL } from "firebase-admin/storage";
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
-    const formData = await req.formData();
+    const { subject, filePath, publicUrl, questions } = await req.json();
 
-    const subject = formData.get("subject") as string;
-    const file = formData.get("file") as File;
-
-    const questions = JSON.parse(formData.get("questions") as string);
-
-    if (!file) {
-      return NextResponse.json({ error: "PDF missing" }, { status: 400 });
+    if (!subject || !filePath || !publicUrl) {
+      return NextResponse.json(
+        { error: "subject, filePath and publicUrl are required" },
+        { status: 400 },
+      );
     }
 
     let notesText = "";
@@ -25,7 +22,8 @@ export async function POST(req: Request) {
     // ===============================
 
     try {
-      const buffer = Buffer.from(await file.arrayBuffer());
+      const bucket = adminStorage.bucket();
+      const [buffer] = await bucket.file(filePath).download();
 
       const { PDFParse } = await import("pdf-parse");
 
@@ -39,33 +37,16 @@ export async function POST(req: Request) {
 
       await parser.destroy();
     } catch (pdfError) {
+      console.log("PDF EXTRACTION ERROR", pdfError);
 
       notesText = "";
     }
 
     // ===============================
-    // FIREBASE STORAGE UPLOAD
+    // MAKE FILE PUBLIC
     // ===============================
 
-    const buffer = Buffer.from(await file.arrayBuffer());
-
-    const fileName = `revision-notes/${Date.now()}-${file.name}`;
-
-    const bucket = adminStorage.bucket();
-
-    const fileRef = bucket.file(fileName);
-
-    await fileRef.save(buffer, {
-      metadata: {
-        contentType: file.type,
-      },
-    });
-
-    // make public url
-
-    await fileRef.makePublic();
-
-    const notesUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+    await adminStorage.bucket().file(filePath).makePublic();
 
     // ===============================
     // SAVE REVISION
@@ -75,9 +56,7 @@ export async function POST(req: Request) {
       .from("revisions")
       .insert({
         subject,
-
-        notes_url: notesUrl,
-
+        notes_url: publicUrl,
         notes_text: notesText,
       })
       .select()
@@ -93,9 +72,7 @@ export async function POST(req: Request) {
 
     const questionRows = questions.map((q: any) => ({
       revision_id: revision.id,
-
       question: q.question,
-
       marks: q.marks,
     }));
 
@@ -112,6 +89,7 @@ export async function POST(req: Request) {
       revision,
     });
   } catch (err: any) {
+    console.log("REVISION UPLOAD ERROR", err);
 
     return NextResponse.json(
       {
