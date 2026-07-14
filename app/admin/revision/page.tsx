@@ -206,11 +206,7 @@ mt-2
         </div>
 
         <div
-          className="
-grid
-lg:grid-cols-3
-gap-8
-"
+          className="flex flex-col lg:flex-row gap-4"
         >
           {/* LEFT UPLOAD */}
 
