@@ -40,6 +40,7 @@ export default function StudentLayout({ children }: any) {
     { name: "Revision Notes", path: "/student/revision", icon: "📖" },
     { name: "AI Learning", path: "/student/ai-learning", icon: "🤖" },
     { name: "Take Exam", path: "/student/exams", icon: "📝" },
+    // { name: "MCQ Tests", path: "/student/mcq", icon: "📝" },
     { name: "My Results", path: "/student/results", icon: "🏆" },
   ];
 

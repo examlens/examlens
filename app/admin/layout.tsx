@@ -21,6 +21,9 @@ export default function AdminLayout({ children }: any) {
     { name: "Students", path: "/admin/students", icon: "👥" },
     { name: "Submissions", path: "/admin/submissions", icon: "📥" },
     { name: "Questions", path: "/admin/questions", icon: "❓" },
+    // { name: "MCQ Questions", path: "/admin/mcq/questions", icon: "📝" },
+    // { name: "MCQ Tests", path: "/admin/mcq/exams", icon: "📝" },
+    // { name: "MCQ Results", path: "/admin/mcq/results", icon: "📊" },
     { name: "Revision Notes", path: "/admin/revision", icon: "📖" },
   ];
 
